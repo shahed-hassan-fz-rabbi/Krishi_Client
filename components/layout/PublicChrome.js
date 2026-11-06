@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, Sprout, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
-import { BrandMark } from "./BrandMark.js";
-import { LanguageSwitcher, ThemeSwitcher } from "./Switchers.js";
-import { Button } from "../ui/Button.js";
-import { useLang } from "../../lib/i18n/LanguageContext.js";
+import { BrandMark } from "@/components/layout/BrandMark.js";
+import { LanguageSwitcher, ThemeSwitcher } from "@/components/layout/Switchers.js";
+import { Button } from "@/components/ui/Button.js";
+import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const links = [
-  { href: "/#features", key: "landing.sectionFeatures" },
-  { href: "/#how-it-works", key: "landing.sectionHow" },
-  { href: "/#data", key: "landing.sectionData" },
-  { href: "/#about", key: "landing.sectionAbout" },
+  { href: "/", key: "common.home" },
+  { href: "/#features", key: "common.features" },
+  { href: "/#data", key: "nav.dataSources" },
+  { href: "/#how-it-works", key: "common.howItWorks" },
+  { href: "/#about", key: "common.about" },
 ];
 
 /** Public website header (landing). Not authentication — app is open-access for now. */
@@ -24,15 +25,7 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <div className="flex items-center gap-2 text-content">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald text-white">
-            <Sprout className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <div className="leading-tight">
-            <span className="block text-base font-semibold">Krishi Mama</span>
-            <span className="block text-[11px] text-muted">Climate Intelligence</span>
-          </div>
-        </div>
+        <BrandMark />
 
         <nav className="hidden items-center gap-6 text-sm text-muted md:flex" aria-label="Primary">
           {links.map((l) => (
@@ -94,8 +87,8 @@ export function PublicFooter() {
     <footer className="mt-20 bg-forest text-sidebar-text">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
-          <p className="text-lg font-semibold">{t("brand")}</p>
-          <p className="mt-2 text-sm text-sidebar-muted">{t("tagline")}</p>
+          <BrandMark tone="dark" />
+          <p className="mt-3 text-sm text-sidebar-muted">{t("tagline")}</p>
         </div>
         <div className="text-sm">
           <p className="font-medium">{t("landing.poweredByLabel")}</p>

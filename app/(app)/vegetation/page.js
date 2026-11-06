@@ -8,7 +8,7 @@ export default function VegetationPage() {
     <PlaceholderScreen
       icon={Leaf}
       title="Vegetation Intelligence"
-      message="MODIS MOD13Q1 NDVI / EVI trends with quality masking â€” vegetation indices inform context, they are not yield or disease measurements."
+      message="MODIS MOD13Q1 NDVI / EVI trends with quality masking — vegetation indices inform context, they are not yield or disease measurements."
       phaseTag="Phase 7"
     />
   );

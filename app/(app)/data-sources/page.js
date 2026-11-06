@@ -8,7 +8,7 @@ export default function DataSourcesPage() {
     <PlaceholderScreen
       icon={Database}
       title="Data Sources & Transparency"
-      message="Every dataset used by the platform: source, product, version, units, period, processing method and known limitations â€” with ingestion provenance."
+      message="Every dataset used by the platform: source, product, version, units, period, processing method and known limitations — with ingestion provenance."
       phaseTag="Phase 3+"
     />
   );

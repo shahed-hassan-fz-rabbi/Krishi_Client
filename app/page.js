@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
+  CloudRain,
   Droplets,
   Leaf,
   Languages,
@@ -11,11 +12,12 @@ import {
   Sprout,
 } from "lucide-react";
 
-import { PublicHeader, PublicFooter } from "../components/layout/PublicChrome.js";
-import { Badge } from "../components/ui/Badge.js";
-import { Button } from "../components/ui/Button.js";
-import { Card, CardBody, CardHeader } from "../components/ui/Card.js";
-import { useLang } from "../lib/i18n/LanguageContext.js";
+import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js";
+import { HeroMedia } from "@/components/landing/HeroMedia.js";
+import { Badge } from "@/components/ui/Badge.js";
+import { Button } from "@/components/ui/Button.js";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
+import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const featureItems = [
   { icon: Sprout, tone: "emerald" },
@@ -25,6 +27,8 @@ const featureItems = [
   { icon: Languages, tone: "purple" },
   { icon: ShieldCheck, tone: "amber" },
 ];
+
+const highlightIcons = [ArrowRight, BarChart3, Droplets, Leaf];
 
 const steps = [
   { n: "1", keyTitle: "step1Title", keyBody: "step1Body" },
@@ -78,30 +82,55 @@ export default function LandingPage() {
       <PublicHeader />
 
       <main className="flex-1">
-        {/* Hero */}
+        {/* Hero — two-column with the user-provided photograph */}
         <section className="relative overflow-hidden">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_0%,var(--km-sage)_0%,transparent_70%)]"
           />
-          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-            <Badge tone="blue" className="mb-5">
-              {t("landing.heroKicker")}
-            </Badge>
-            <h1 className="max-w-3xl text-4xl leading-tight font-bold tracking-tight text-content sm:text-5xl">
-              {t("landing.heroTitle")}
-            </h1>
-            <p className="mt-5 max-w-2xl text-base text-muted sm:text-lg">{t("landing.heroSubtitle")}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button href="/dashboard" size="lg">
-                {t("landing.heroCta")}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Button>
-              <Button href="#how-it-works" size="lg" variant="outline">
-                {t("landing.heroSecondary")}
-              </Button>
+          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <Badge tone="blue" className="mb-5">
+                {t("landing.heroKicker")}
+              </Badge>
+              <h1 className="max-w-xl text-4xl leading-tight font-bold tracking-tight text-content sm:text-5xl">
+                {t("landing.heroTitle")}
+              </h1>
+              <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">{t("landing.heroSubtitle")}</p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Button href="/dashboard" size="lg">
+                  {t("landing.heroCta")}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+                <Button href="#how-it-works" size="lg" variant="outline">
+                  {t("landing.heroSecondary")}
+                </Button>
+              </div>
+              <p className="mt-6 max-w-xl text-xs text-muted">{t("landing.heroNote")}</p>
             </div>
-            <p className="mt-6 max-w-xl text-xs text-muted">{t("landing.heroNote")}</p>
+            <HeroMedia />
+          </div>
+
+          {/* Feature highlight strip */}
+          <div className="border-y border-line bg-surface">
+            <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-6 sm:grid-cols-2 lg:grid-cols-4">
+              {t("landing.highlights").map((label, i) => {
+                const Icon = highlightIcons[i] || Sprout;
+                return (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sage text-forest">
+                      <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <p className="text-[10px] tracking-wide text-muted uppercase">
+                        {t("landing.highlightsLabel")}
+                      </p>
+                      <p className="text-sm font-medium text-content">{label}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 

@@ -2,17 +2,43 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Sprout } from "lucide-react";
+import { useLang } from "@/lib/i18n/LanguageContext.js";
 
+const LOGO_SRC = "/images/logo.png";
+
+/**
+ * Official Krishi Mama mark.
+ * Uses the user-provided /images/logo.png with object-contain (no stretch/crop).
+ * If the asset is missing, falls back to the temporary inline mark without
+ * breaking layout; it displays automatically once the user adds the file.
+ */
 export function BrandMark({ href = "/", tone = "dark", compact = false }) {
+  const { t } = useLang();
+  const [logoOk, setLogoOk] = useState(true);
+
   return (
     <Link href={href} className="inline-flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald text-base text-white">
-        কৃ
-      </span>
+      {logoOk ? (
+        <img
+          src={LOGO_SRC}
+          alt="Krishi Mama"
+          onError={() => setLogoOk(false)}
+          className="h-9 w-9 shrink-0 rounded-lg bg-surface object-contain shadow-km-sm"
+        />
+      ) : (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald text-white">
+          <Sprout className="h-5 w-5" aria-hidden="true" />
+        </span>
+      )}
       {!compact ? (
         <span className="leading-tight">
-          <span className="block text-base font-semibold text-inherit">Krishi Mama</span>
-          <span className={tone === "dark" ? "block text-[11px] text-sidebar-muted" : "block text-[11px] text-muted"}>
+          <span className="block text-base font-semibold text-inherit">{t("brand")}</span>
+          <span
+            className={
+              tone === "dark" ? "block text-[11px] text-sidebar-muted" : "block text-[11px] text-muted"
+            }
+          >
             Climate Intelligence
           </span>
         </span>

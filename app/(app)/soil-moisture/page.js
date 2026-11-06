@@ -8,7 +8,7 @@ export default function SoilMoisturePage() {
     <PlaceholderScreen
       icon={Droplets}
       title="Soil Moisture Intelligence"
-      message="SMAP SPL3SMP_E surface soil moisture with quality flags â€” satellite estimates, clearly not field measurements."
+      message="SMAP SPL3SMP_E surface soil moisture with quality flags — satellite estimates, clearly not field measurements."
       phaseTag="Phase 5"
     />
   );
