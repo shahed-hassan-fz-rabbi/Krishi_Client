@@ -15,9 +15,23 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError(t("auth.fillAllFields"));
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError(t("auth.invalidEmail"));
+      return;
+    }
+
     setIsLoading(true);
     // Backend authentication will be implemented by another agent
     // This page structure is ready for integration
@@ -45,6 +59,11 @@ export default function LoginPage() {
 
           <Card>
             <CardBody>
+              {error && (
+                <div className="mb-4 rounded-lg bg-danger/10 border border-danger/30 px-4 py-3 text-sm text-danger">
+                  {error}
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <Input
                   label={t("auth.emailLabel")}

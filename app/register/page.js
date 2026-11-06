@@ -17,9 +17,22 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError(t("auth.passwordMismatch"));
+      return;
+    }
+
+    if (password.length < 6) {
+      setError(t("auth.passwordTooShort"));
+      return;
+    }
+
     setIsLoading(true);
     // Backend authentication will be implemented by another agent
     // This page structure is ready for integration
@@ -47,6 +60,11 @@ export default function RegisterPage() {
 
           <Card>
             <CardBody>
+              {error && (
+                <div className="mb-4 rounded-lg bg-danger/10 border border-danger/30 px-4 py-3 text-sm text-danger">
+                  {error}
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <Input
                   label={t("auth.fullNameLabel")}
