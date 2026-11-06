@@ -2,12 +2,14 @@
 
 const toneClasses = {
   low: "bg-sage text-forest dark:text-sage", // soft green chip
+  emerald: "bg-emerald/15 text-emerald",
   moderate: "bg-amber/15 text-amber",
   high: "bg-danger/12 text-danger",
   purple: "bg-purple/15 text-purple",
   blue: "bg-climate/12 text-climate",
   neutral: "bg-surface-2 text-muted",
   outline: "border border-line text-muted",
+  sage: "bg-sage/20 text-forest",
 };
 
 export function Badge({ tone = "neutral", children, className = "" }) {

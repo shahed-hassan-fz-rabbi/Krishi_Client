@@ -10,10 +10,9 @@ import { Button } from "@/components/ui/Button.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const links = [
-  { href: "/", key: "common.home" },
   { href: "/#features", key: "common.features" },
-  { href: "/#data", key: "nav.dataSources" },
   { href: "/#how-it-works", key: "common.howItWorks" },
+  { href: "/#data", key: "nav.dataSources" },
   { href: "/#about", key: "common.about" },
 ];
 
@@ -28,11 +27,11 @@ export function PublicHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-sm shadow-km-sm">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <BrandMark />
 
-        <nav className="hidden items-center gap-6 text-sm text-muted md:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-8 text-sm font-medium text-muted md:flex lg:gap-10" aria-label="Primary">
           {links.map((l) => (
             <Link key={l.href} href={l.href} className="transition-colors hover:text-content">
               {t(l.key)}
@@ -40,9 +39,10 @@ export function PublicHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
           <LanguageSwitcher />
           <ThemeSwitcher />
+          <div className="h-6 w-px bg-line" />
           <Button href="/login" size="sm" variant="ghost">
             {t("auth.login")}
           </Button>
@@ -50,17 +50,17 @@ export function PublicHeader() {
             {t("auth.register")}
           </Button>
           <Button href="/dashboard" size="sm" variant="outline">
-            {t("landing.heroCta")}
+            {t("nav.dashboard")}
           </Button>
         </div>
 
         <button
           type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line md:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface md:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
@@ -72,7 +72,7 @@ export function PublicHeader() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm text-content hover:bg-surface-2"
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-content hover:bg-surface-2"
               >
                 {t(l.key)}
               </Link>
@@ -82,17 +82,19 @@ export function PublicHeader() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm text-content hover:bg-surface-2"
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-content hover:bg-surface-2"
               >
                 {t(l.key)}
               </Link>
             ))}
           </nav>
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-6 flex items-center gap-3">
             <LanguageSwitcher />
             <ThemeSwitcher />
-            <Button href="/dashboard" size="sm" className="ml-auto">
-              {t("landing.heroCta")}
+          </div>
+          <div className="mt-4 flex flex-col gap-2">
+            <Button href="/dashboard" size="sm" className="w-full">
+              {t("nav.dashboard")}
             </Button>
           </div>
         </div>
@@ -106,21 +108,106 @@ export function PublicFooter() {
   const { t } = useLang();
   return (
     <footer className="mt-20 bg-forest text-sidebar-text">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-start md:justify-between">
-        <div className="max-w-sm">
-          <BrandMark tone="dark" />
-          <p className="mt-3 text-sm text-sidebar-muted">{t("tagline")}</p>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Brand */}
+          <div className="space-y-4">
+            <BrandMark tone="dark" />
+            <p className="text-sm text-sidebar-muted leading-relaxed">{t("tagline")}</p>
+          </div>
+
+          {/* Platform */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.platform")}</h3>
+            <ul className="space-y-2 text-sm text-sidebar-muted">
+              <li>
+                <Link href="/#features" className="hover:text-sidebar-text transition-colors">
+                  {t("common.features")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#how-it-works" className="hover:text-sidebar-text transition-colors">
+                  {t("common.howItWorks")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#data" className="hover:text-sidebar-text transition-colors">
+                  {t("nav.dataSources")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#about" className="hover:text-sidebar-text transition-colors">
+                  {t("common.about")}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Features */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.features")}</h3>
+            <ul className="space-y-2 text-sm text-sidebar-muted">
+              <li>
+                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                  {t("nav.climate")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                  {t("nav.rainfall")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                  {t("nav.soilMoisture")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                  {t("nav.vegetation")}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Account */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.account")}</h3>
+            <ul className="space-y-2 text-sm text-sidebar-muted">
+              <li>
+                <Link href="/login" className="hover:text-sidebar-text transition-colors">
+                  {t("auth.login")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/register" className="hover:text-sidebar-text transition-colors">
+                  {t("auth.register")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                  {t("nav.dashboard")}
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div className="text-sm">
-          <p className="font-medium">{t("landing.poweredByLabel")}</p>
-          <ul className="mt-2 space-y-1 text-sidebar-muted">
-            <li>NASA POWER · Agroclimatology Daily</li>
-            <li>SMAP SPL3SMP_E · Soil Moisture</li>
-            <li>GPM IMERG · Precipitation</li>
-            <li>MODIS MOD13Q1 · Vegetation Indices</li>
-          </ul>
+
+        {/* Data sources */}
+        <div className="mt-12 border-t border-sidebar-hover pt-8">
+          <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("landing.poweredByLabel")}</h3>
+          <div className="grid gap-2 text-sm text-sidebar-muted sm:grid-cols-2 lg:grid-cols-4">
+            <p>NASA POWER · Agroclimatology Daily</p>
+            <p>SMAP SPL3SMP_E · Soil Moisture</p>
+            <p>GPM IMERG · Precipitation</p>
+            <p>MODIS MOD13Q1 · Vegetation Indices</p>
+          </div>
         </div>
-        <p className="max-w-xs text-xs text-sidebar-muted">{t("landing.footerRights")}</p>
+
+        {/* Copyright */}
+        <div className="mt-8 border-t border-sidebar-hover pt-8 text-xs text-sidebar-muted">
+          <p>{t("landing.footerRights")}</p>
+        </div>
       </div>
     </footer>
   );

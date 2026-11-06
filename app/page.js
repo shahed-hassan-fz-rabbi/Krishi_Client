@@ -5,148 +5,137 @@ import {
   ArrowRight,
   BarChart3,
   CloudRain,
+  Database,
   Droplets,
+  Globe,
   Leaf,
   Languages,
+  MapPin,
   ShieldCheck,
   Sprout,
+  Thermometer,
 } from "lucide-react";
 
 import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js";
-import { HeroMedia } from "@/components/landing/HeroMedia.js";
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
+const HERO_SRC = "/images/hero.jpeg";
+
 const featureItems = [
-  { icon: Sprout, tone: "emerald" },
-  { icon: BarChart3, tone: "climate" },
-  { icon: Droplets, tone: "climate" },
-  { icon: Leaf, tone: "emerald" },
-  { icon: Languages, tone: "purple" },
-  { icon: ShieldCheck, tone: "amber" },
+  { icon: CloudRain, titleKey: "featureRainfall", descKey: "featureRainfallDesc", tone: "climate" },
+  { icon: Thermometer, titleKey: "featureTemp", descKey: "featureTempDesc", tone: "amber" },
+  { icon: MapPin, titleKey: "featureDistrict", descKey: "featureDistrictDesc", tone: "emerald" },
+  { icon: Database, titleKey: "featureEvidence", descKey: "featureEvidenceDesc", tone: "purple" },
+  { icon: Languages, titleKey: "featureLanguage", descKey: "featureLanguageDesc", tone: "purple" },
+  { icon: ShieldCheck, titleKey: "featureTransparency", descKey: "featureTransparencyDesc", tone: "amber" },
 ];
 
-const highlightIcons = [ArrowRight, BarChart3, Droplets, Leaf];
-
 const steps = [
-  { n: "1", keyTitle: "step1Title", keyBody: "step1Body" },
-  { n: "2", keyTitle: "step2Title", keyBody: "step2Body" },
-  { n: "3", keyTitle: "step3Title", keyBody: "step3Body" },
+  { n: "1", icon: MapPin, titleKey: "step1Title", descKey: "step1Desc" },
+  { n: "2", icon: Database, titleKey: "step2Title", descKey: "step2Desc" },
+  { n: "3", icon: BarChart3, titleKey: "step3Title", descKey: "step3Desc" },
+  { n: "4", icon: Sprout, titleKey: "step4Title", descKey: "step4Desc" },
 ];
 
 const datasets = [
   {
     name: "NASA POWER — Agroclimatology Daily",
     scope: "Rainfall, temperatures, humidity, solar radiation",
-    status: "implemented", // Phase 3
+    status: "implemented",
   },
-  { name: "SMAP SPL3SMP_E", scope: "Surface soil moisture", status: "later" },
-  { name: "GPM IMERG V07", scope: "High-resolution satellite precipitation", status: "later" },
-  { name: "MODIS MOD13Q1.061", scope: "NDVI / EVI vegetation indices", status: "later" },
+  { name: "SMAP SPL3SMP_E", scope: "Surface soil moisture", status: "planned" },
+  { name: "GPM IMERG V07", scope: "High-resolution satellite precipitation", status: "planned" },
+  { name: "MODIS MOD13Q1.061", scope: "NDVI / EVI vegetation indices", status: "planned" },
 ];
 
 export default function LandingPage() {
   const { t } = useLang();
-
-  const featureCopy = [
-    [
-      "Handoff Window Intelligence",
-      "We compare what history says about sowing now, 7 days late, or 14 days late — with district-specific rainfall, temperature and humidity records.",
-    ],
-    [
-      "Climate Intelligence",
-      "Long-term temperature and humidity patterns from NASA POWER, presented with honest evidence coverage.",
-    ],
-    [
-      "Soil Moisture Insights",
-      "SMAP satellite soil moisture adds the surface-moisture story — always labeled as satellite estimates, never field measurements.",
-    ],
-    [
-      "Vegetation Watch",
-      "MODIS NDVI/EVI trends show how the landscape has been growing — vegetation indices inform, they do not measure yield.",
-    ],
-    [
-      "English + Bangla",
-      "Every calculated result is explained in simple Bengali and English — built for the people who actually read it.",
-    ],
-    [
-      "Radical transparency",
-      "Each number shows its dataset, period, and limitations. Insufficient evidence is stated as insufficient — never dressed up.",
-    ],
-  ];
 
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader />
 
       <main className="flex-1">
-        {/* Hero — two-column with the user-provided photograph */}
-        <section className="relative overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_0%,var(--km-sage)_0%,transparent_70%)]"
-          />
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.1fr_0.9fr]">
-            <div>
-              <Badge tone="blue" className="mb-5">
+        {/* Hero with background image */}
+        <section className="relative min-h-[600px] overflow-hidden">
+          {/* Background image with overlay */}
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-forest/90 via-forest/75 to-emerald/80" />
+            <img
+              src={HERO_SRC}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="eager"
+            />
+          </div>
+
+          {/* Hero content overlay */}
+          <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:py-32">
+            <div className="max-w-3xl">
+              <Badge tone="sage" className="mb-6 bg-white/20 text-white border-white/30 backdrop-blur-sm">
                 {t("landing.heroKicker")}
               </Badge>
-              <h1 className="max-w-xl text-4xl leading-tight font-bold tracking-tight text-content sm:text-5xl">
+              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
                 {t("landing.heroTitle")}
               </h1>
-              <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">{t("landing.heroSubtitle")}</p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button href="/dashboard" size="lg">
+              <p className="mt-6 text-lg leading-relaxed text-white/90 sm:text-xl lg:text-2xl">
+                {t("landing.heroSubtitle")}
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-4 sm:gap-6">
+                <Button href="/dashboard" size="lg" className="bg-white text-forest hover:bg-white/90">
                   {t("landing.heroCta")}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
-                <Button href="#how-it-works" size="lg" variant="outline">
+                <Button
+                  href="#how-it-works"
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10 hover:border-white/50"
+                >
                   {t("landing.heroSecondary")}
                 </Button>
               </div>
-              <p className="mt-6 max-w-xl text-xs text-muted">{t("landing.heroNote")}</p>
+              <p className="mt-6 max-w-xl text-sm text-white/80">
+                {t("landing.heroNote")}
+              </p>
             </div>
-            <HeroMedia />
           </div>
+        </section>
 
-          {/* Feature highlight strip */}
-          <div className="border-y border-line bg-surface">
-            <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-6 sm:grid-cols-2 lg:grid-cols-4">
-              {t("landing.highlights").map((label, i) => {
-                const Icon = highlightIcons[i] || Sprout;
-                return (
-                  <div key={label} className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sage text-forest">
-                      <Icon className="h-4.5 w-4.5" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <p className="text-[10px] tracking-wide text-muted uppercase">
-                        {t("landing.highlightsLabel")}
-                      </p>
-                      <p className="text-sm font-medium text-content">{label}</p>
-                    </div>
-                  </div>
-                );
-              })}
+        {/* Supported districts */}
+        <section className="border-b border-line bg-surface py-12">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Globe className="h-5 w-5 text-emerald" aria-hidden="true" />
+                <span className="text-sm font-medium text-muted">{t("landing.supportedDistricts")}</span>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Badge tone="emerald">Chattogram</Badge>
+                <Badge tone="emerald">Cumilla</Badge>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Features */}
-        <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
-          <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
-            {t("landing.sectionFeatures")}
-          </h2>
-          <p className="mt-2 text-sm text-muted sm:text-base">{t("landing.sectionFeaturesSub")}</p>
+        <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+              {t("landing.sectionFeatures")}
+            </h2>
+            <p className="mt-4 text-base text-muted sm:text-lg">{t("landing.sectionFeaturesSub")}</p>
+          </div>
 
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {featureItems.map((f, i) => (
-              <Card key={featureCopy[i][0]} className="transition-shadow hover:shadow-km-md">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featureItems.map((f) => (
+              <Card key={f.titleKey} className="transition-shadow hover:shadow-km-md">
                 <CardBody>
                   <span
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${
                       f.tone === "climate"
                         ? "bg-climate/12 text-climate"
                         : f.tone === "purple"
@@ -156,10 +145,10 @@ export default function LandingPage() {
                             : "bg-sage text-emerald"
                     }`}
                   >
-                    <f.icon className="h-5 w-5" aria-hidden="true" />
+                    <f.icon className="h-6 w-6" aria-hidden="true" />
                   </span>
-                  <h3 className="mt-4 text-base font-semibold text-content">{featureCopy[i][0]}</h3>
-                  <p className="mt-2 text-sm text-muted">{featureCopy[i][1]}</p>
+                  <h3 className="mt-4 text-lg font-semibold text-content">{t(f.titleKey)}</h3>
+                  <p className="mt-2 text-sm text-muted leading-relaxed">{t(f.descKey)}</p>
                 </CardBody>
               </Card>
             ))}
@@ -167,66 +156,83 @@ export default function LandingPage() {
         </section>
 
         {/* How it works */}
-        <section id="how-it-works" className="scroll-mt-20 bg-surface py-16">
+        <section id="how-it-works" className="scroll-mt-20 bg-surface py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
-              {t("landing.sectionHow")}
-            </h2>
-            <p className="mt-2 text-sm text-muted sm:text-base">{t("landing.sectionHowSub")}</p>
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+                {t("landing.sectionHow")}
+              </h2>
+              <p className="mt-4 text-base text-muted sm:text-lg">{t("landing.sectionHowSub")}</p>
+            </div>
 
-            <ol className="mt-10 grid gap-5 md:grid-cols-3">
-              {steps.map((s) => (
-                <li key={s.n} className="relative rounded-xl border border-line bg-bg p-6">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald text-sm font-bold text-white">
-                    {s.n}
-                  </span>
-                  <h3 className="mt-4 text-base font-semibold text-content">{t(`landing.${s.keyTitle}`)}</h3>
-                  <p className="mt-2 text-sm text-muted">{t(`landing.${s.keyBody}`)}</p>
-                </li>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {steps.map((s, i) => (
+                <div key={s.n} className="relative">
+                  <div className="rounded-xl border border-line bg-bg p-6 h-full">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald text-sm font-bold text-white">
+                        {s.n}
+                      </span>
+                      <s.icon className="h-5 w-5 text-emerald" aria-hidden="true" />
+                    </div>
+                    <h3 className="text-base font-semibold text-content mb-2">{t(s.titleKey)}</h3>
+                    <p className="text-sm text-muted leading-relaxed">{t(s.descKey)}</p>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-0.5 bg-line -translate-y-1/2" />
+                  )}
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </section>
 
         {/* Data sources */}
-        <section id="data" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
-          <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
-            {t("landing.sectionData")}
-          </h2>
-          <p className="mt-2 text-sm text-muted sm:text-base">{t("landing.sectionDataSub")}</p>
+        <section id="data" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+              {t("landing.sectionData")}
+            </h2>
+            <p className="mt-4 text-base text-muted sm:text-lg">{t("landing.sectionDataSub")}</p>
+          </div>
 
-          <Card className="mt-10">
+          <Card className="max-w-3xl mx-auto">
             <CardHeader title={t("landing.dataStatusTitle")} className="mb-2" />
             <CardBody>
               <ul className="divide-y divide-line">
                 {datasets.map((d) => (
-                  <li key={d.name} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                    <div>
+                  <li key={d.name} className="flex flex-wrap items-center justify-between gap-2 py-4">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-content">{d.name}</p>
-                      <p className="text-xs text-muted">{d.scope}</p>
+                      <p className="text-xs text-muted mt-0.5">{d.scope}</p>
                     </div>
-                    <Badge tone={d.status === "implemented" ? "low" : "purple"}>
-                      {d.status === "implemented" ? t("landing.statusImplemented") : t("landing.statusLaterPhase")}
+                    <Badge tone={d.status === "implemented" ? "emerald" : "purple"}>
+                      {d.status === "implemented" ? t("landing.statusImplemented") : t("landing.statusPlanned")}
                     </Badge>
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-xs text-muted">{t("common.sampleNote")}</p>
+              <p className="mt-6 text-xs text-muted">{t("landing.nasaLstNote")}</p>
             </CardBody>
           </Card>
         </section>
 
         {/* About */}
-        <section id="about" className="scroll-mt-20 bg-surface py-16">
+        <section id="about" className="scroll-mt-20 bg-surface py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
-              {t("landing.sectionAbout")}
-            </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
-              {t("landing.sectionAboutBody")}
-            </p>
-            <div className="mt-8 flex items-center gap-3">
-              <Button href="/dashboard">{t("landing.heroCta")}</Button>
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+                {t("landing.sectionAbout")}
+              </h2>
+              <p className="mt-6 text-base leading-relaxed text-muted sm:text-lg">
+                {t("landing.sectionAboutBody")}
+              </p>
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <Button href="/dashboard" size="lg">
+                  {t("landing.heroCta")}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
             </div>
           </div>
         </section>
