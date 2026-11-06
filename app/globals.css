@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (Tailwind v4 custom variant) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   KRISHI MAMA — DESIGN TOKENS
+   Exact approved palette + semantic surface tokens.
+   Brand colors are constant; surfaces/text adapt to theme.
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* semantic — light */
+  --km-bg: #f5f7f2; /* Off-white */
+  --km-surface: #ffffff;
+  --km-surface-2: #eef4ec;
+  --km-text: #242b27; /* Dark Charcoal */
+  --km-text-muted: #5c6b62;
+  --km-border: #e3e9e1;
+
+  /* brand — identical in both themes */
+  --km-forest: #123d2b; /* Deep Forest Green */
+  --km-emerald: #16865a; /* Emerald Green */
+  --km-emerald-strong: #0f6c49;
+  --km-sage: #ddf3e5; /* Soft Sage */
+  --km-climate: #2878c8; /* Climate Blue */
+  --km-purple: #8b75d7; /* Purple Accent */
+  --km-amber: #e6a23c; /* Amber */
+  --km-danger: #d95d59; /* Risk Red */
+
+  /* sidebar chrome */
+  --km-sidebar: #123d2b;
+  --km-sidebar-text: #e7f2ea;
+  --km-sidebar-muted: #9cb8a7;
+  --km-sidebar-hover: #1a4a36;
+
+  /* elevation */
+  --km-shadow-sm: 0 1px 2px rgba(18, 61, 43, 0.06), 0 1px 3px rgba(18, 61, 43, 0.08);
+  --km-shadow-md: 0 4px 14px rgba(18, 61, 43, 0.1);
+
+  color-scheme: light;
 }
 
+.dark {
+  /* semantic — dark */
+  --km-bg: #161d18;
+  --km-surface: #212b23;
+  --km-surface-2: #29342b;
+  --km-text: #f0f5f0;
+  --km-text-muted: #a7b6ab;
+  --km-border: #37443a;
+
+  /* sage works on dark, others stay constant */
+  --km-sage: #1c332a;
+
+  --km-sidebar: #10261c;
+  --km-sidebar-text: #e7f2ea;
+  --km-sidebar-muted: #93ab9d;
+  --km-sidebar-hover: #1a4a36;
+
+  --km-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --km-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+  color-scheme: dark;
+}
+
+/* Map tokens to Tailwind utilities */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--km-bg);
+  --color-surface: var(--km-surface);
+  --color-surface-2: var(--km-surface-2);
+  --color-content: var(--km-text);
+  --color-muted: var(--km-text-muted);
+  --color-line: var(--km-border);
+
+  --color-forest: var(--km-forest);
+  --color-emerald: var(--km-emerald);
+  --color-emerald-strong: var(--km-emerald-strong);
+  --color-sage: var(--km-sage);
+  --color-climate: var(--km-climate);
+  --color-purple: var(--km-purple);
+  --color-amber: var(--km-amber);
+  --color-danger: var(--km-danger);
+
+  --color-sidebar: var(--km-sidebar);
+  --color-sidebar-text: var(--km-sidebar-text);
+  --color-sidebar-muted: var(--km-sidebar-muted);
+  --color-sidebar-hover: var(--km-sidebar-hover);
+
+  --shadow-km-sm: var(--km-shadow-sm);
+  --shadow-km-md: var(--km-shadow-md);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background-color: var(--km-bg);
+    color: var(--km-text);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Bengali typography: Noto Sans Bengali leads; Inter falls back for Latin glyphs */
+  html[lang="bn"] body {
+    font-family: var(--font-bengali), var(--font-inter), system-ui, sans-serif;
+  }
+
+  /* Accessibility: never naked italic / clear focus ring */
+  :not(i):not(em) {
+    font-style: normal;
+  }
+  :focus-visible {
+    outline: 2px solid var(--km-climate);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--km-emerald);
+    color: #ffffff;
+  }
 }

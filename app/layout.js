@@ -1,29 +1,42 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Noto_Sans_Bengali } from "next/font/google";
+
+import { AppProviders } from "../components/providers/AppProviders.js";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const bengali = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  variable: "--font-bengali",
+  display: "swap",
 });
 
 export const metadata = {
   title: "Krishi Mama — Climate Intelligence for Agriculture",
   description:
-    "NASA-powered climate-informed agricultural decision support for Bangladesh.",
+    "NASA-powered climate-informed agricultural decision support for Bangladesh, starting with Chattogram.",
 };
+
+/** Applies the persisted theme before first paint to avoid a flash of the wrong mode. */
+const themeInitScript = `(function(){try{var t=localStorage.getItem('km-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
 export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${inter.variable} ${bengali.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full antialiased">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

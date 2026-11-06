@@ -1,69 +1,209 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import {
+  ArrowRight,
+  BarChart3,
+  Droplets,
+  Leaf,
+  Languages,
+  ShieldCheck,
+  Sprout,
+} from "lucide-react";
+
+import { PublicHeader, PublicFooter } from "../components/layout/PublicChrome.js";
+import { Badge } from "../components/ui/Badge.js";
+import { Button } from "../components/ui/Button.js";
+import { Card, CardBody, CardHeader } from "../components/ui/Card.js";
+import { useLang } from "../lib/i18n/LanguageContext.js";
+
+const featureItems = [
+  { icon: Sprout, tone: "emerald" },
+  { icon: BarChart3, tone: "climate" },
+  { icon: Droplets, tone: "climate" },
+  { icon: Leaf, tone: "emerald" },
+  { icon: Languages, tone: "purple" },
+  { icon: ShieldCheck, tone: "amber" },
+];
+
+const steps = [
+  { n: "1", keyTitle: "step1Title", keyBody: "step1Body" },
+  { n: "2", keyTitle: "step2Title", keyBody: "step2Body" },
+  { n: "3", keyTitle: "step3Title", keyBody: "step3Body" },
+];
+
+const datasets = [
+  {
+    name: "NASA POWER — Agroclimatology Daily",
+    scope: "Rainfall, temperatures, humidity, solar radiation",
+    status: "implemented", // Phase 3
+  },
+  { name: "SMAP SPL3SMP_E", scope: "Surface soil moisture", status: "later" },
+  { name: "GPM IMERG V07", scope: "High-resolution satellite precipitation", status: "later" },
+  { name: "MODIS MOD13Q1.061", scope: "NDVI / EVI vegetation indices", status: "later" },
+];
+
+export default function LandingPage() {
+  const { t } = useLang();
+
+  const featureCopy = [
+    [
+      "Handoff Window Intelligence",
+      "We compare what history says about sowing now, 7 days late, or 14 days late — with district-specific rainfall, temperature and humidity records.",
+    ],
+    [
+      "Climate Intelligence",
+      "Long-term temperature and humidity patterns from NASA POWER, presented with honest evidence coverage.",
+    ],
+    [
+      "Soil Moisture Insights",
+      "SMAP satellite soil moisture adds the surface-moisture story — always labeled as satellite estimates, never field measurements.",
+    ],
+    [
+      "Vegetation Watch",
+      "MODIS NDVI/EVI trends show how the landscape has been growing — vegetation indices inform, they do not measure yield.",
+    ],
+    [
+      "English + Bangla",
+      "Every calculated result is explained in simple Bengali and English — built for the people who actually read it.",
+    ],
+    [
+      "Radical transparency",
+      "Each number shows its dataset, period, and limitations. Insufficient evidence is stated as insufficient — never dressed up.",
+    ],
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-screen flex-col">
+      <PublicHeader />
+
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_0%,var(--km-sage)_0%,transparent_70%)]"
+          />
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+            <Badge tone="blue" className="mb-5">
+              {t("landing.heroKicker")}
+            </Badge>
+            <h1 className="max-w-3xl text-4xl leading-tight font-bold tracking-tight text-content sm:text-5xl">
+              {t("landing.heroTitle")}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base text-muted sm:text-lg">{t("landing.heroSubtitle")}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button href="/dashboard" size="lg">
+                {t("landing.heroCta")}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <Button href="#how-it-works" size="lg" variant="outline">
+                {t("landing.heroSecondary")}
+              </Button>
+            </div>
+            <p className="mt-6 max-w-xl text-xs text-muted">{t("landing.heroNote")}</p>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
+          <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+            {t("landing.sectionFeatures")}
+          </h2>
+          <p className="mt-2 text-sm text-muted sm:text-base">{t("landing.sectionFeaturesSub")}</p>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featureItems.map((f, i) => (
+              <Card key={featureCopy[i][0]} className="transition-shadow hover:shadow-km-md">
+                <CardBody>
+                  <span
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                      f.tone === "climate"
+                        ? "bg-climate/12 text-climate"
+                        : f.tone === "purple"
+                          ? "bg-purple/12 text-purple"
+                          : f.tone === "amber"
+                            ? "bg-amber/12 text-amber"
+                            : "bg-sage text-emerald"
+                    }`}
+                  >
+                    <f.icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-4 text-base font-semibold text-content">{featureCopy[i][0]}</h3>
+                  <p className="mt-2 text-sm text-muted">{featureCopy[i][1]}</p>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how-it-works" className="scroll-mt-20 bg-surface py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+              {t("landing.sectionHow")}
+            </h2>
+            <p className="mt-2 text-sm text-muted sm:text-base">{t("landing.sectionHowSub")}</p>
+
+            <ol className="mt-10 grid gap-5 md:grid-cols-3">
+              {steps.map((s) => (
+                <li key={s.n} className="relative rounded-xl border border-line bg-bg p-6">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald text-sm font-bold text-white">
+                    {s.n}
+                  </span>
+                  <h3 className="mt-4 text-base font-semibold text-content">{t(`landing.${s.keyTitle}`)}</h3>
+                  <p className="mt-2 text-sm text-muted">{t(`landing.${s.keyBody}`)}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* Data sources */}
+        <section id="data" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
+          <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+            {t("landing.sectionData")}
+          </h2>
+          <p className="mt-2 text-sm text-muted sm:text-base">{t("landing.sectionDataSub")}</p>
+
+          <Card className="mt-10">
+            <CardHeader title={t("landing.dataStatusTitle")} className="mb-2" />
+            <CardBody>
+              <ul className="divide-y divide-line">
+                {datasets.map((d) => (
+                  <li key={d.name} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-content">{d.name}</p>
+                      <p className="text-xs text-muted">{d.scope}</p>
+                    </div>
+                    <Badge tone={d.status === "implemented" ? "low" : "purple"}>
+                      {d.status === "implemented" ? t("landing.statusImplemented") : t("landing.statusLaterPhase")}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs text-muted">{t("common.sampleNote")}</p>
+            </CardBody>
+          </Card>
+        </section>
+
+        {/* About */}
+        <section id="about" className="scroll-mt-20 bg-surface py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <h2 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+              {t("landing.sectionAbout")}
+            </h2>
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">
+              {t("landing.sectionAboutBody")}
+            </p>
+            <div className="mt-8 flex items-center gap-3">
+              <Button href="/dashboard">{t("landing.heroCta")}</Button>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <PublicFooter />
     </div>
   );
 }
