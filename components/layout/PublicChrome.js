@@ -17,6 +17,11 @@ const links = [
   { href: "/#about", key: "common.about" },
 ];
 
+const authLinks = [
+  { href: "/login", key: "auth.login" },
+  { href: "/register", key: "auth.register" },
+];
+
 /** Public website header (landing). Not authentication — app is open-access for now. */
 export function PublicHeader() {
   const { t } = useLang();
@@ -38,7 +43,13 @@ export function PublicHeader() {
         <div className="hidden items-center gap-2 md:flex">
           <LanguageSwitcher />
           <ThemeSwitcher />
-          <Button href="/dashboard" size="sm" variant="primary">
+          <Button href="/login" size="sm" variant="ghost">
+            {t("auth.login")}
+          </Button>
+          <Button href="/register" size="sm" variant="primary">
+            {t("auth.register")}
+          </Button>
+          <Button href="/dashboard" size="sm" variant="outline">
             {t("landing.heroCta")}
           </Button>
         </div>
@@ -57,6 +68,16 @@ export function PublicHeader() {
         <div className="border-t border-line bg-surface px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2 text-sm text-content hover:bg-surface-2"
+              >
+                {t(l.key)}
+              </Link>
+            ))}
+            {authLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
