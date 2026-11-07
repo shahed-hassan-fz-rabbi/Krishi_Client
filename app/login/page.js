@@ -2,20 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Leaf } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowRight, CloudRain, Loader2, MapPin, ShieldCheck } from "lucide-react";
 
 import { BrandMark } from "@/components/layout/BrandMark.js";
 import { Input } from "@/components/forms/Input.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody } from "@/components/ui/Card.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
+import { useAuth } from "@/contexts/AuthContext.js";
+
+const HERO_SRC = "/images/hero.jpeg";
 
 export default function LoginPage() {
+  const router = useRouter();
   const { t } = useLang();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,76 +38,130 @@ export default function LoginPage() {
       return;
     }
 
-    setIsLoading(true);
-    // Backend authentication will be implemented by another agent
-    // This page structure is ready for integration
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    setIsSubmitting(true);
+    try {
+      const res = await login({ email, password });
+      if (res.success) {
+        router.push("/dashboard");
+      } else {
+        setError(res.error || "Invalid email or password");
+      }
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-line bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+      <header className="border-b border-line bg-bg/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <BrandMark />
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12 sm:px-6">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
-              {t("auth.loginTitle")}
-            </h1>
-            <p className="mt-2 text-sm text-muted">{t("auth.loginSubtitle")}</p>
-          </div>
-
-          <Card>
-            <CardBody>
-              {error && (
-                <div className="mb-4 rounded-lg bg-danger/10 border border-danger/30 px-4 py-3 text-sm text-danger">
-                  {error}
-                </div>
-              )}
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <Input
-                  label={t("auth.emailLabel")}
-                  type="email"
-                  placeholder={t("auth.emailPlaceholder")}
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 lg:py-12">
+        <div className="w-full max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left side - Brand intro */}
+            <div className="hidden lg:block">
+              <div className="relative rounded-2xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-forest/90 via-forest/75 to-emerald/85" />
+                <img
+                  src={HERO_SRC}
+                  alt=""
+                  className="h-full w-full object-cover"
                 />
-
-                <Input
-                  label={t("auth.passwordLabel")}
-                  type="password"
-                  placeholder={t("auth.passwordPlaceholder")}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-
-                <div className="flex items-center justify-between text-sm">
-                  <Link
-                    href="/forgot-password"
-                    className="text-climate hover:text-climate-strong"
-                  >
-                    {t("auth.forgotPassword")}
-                  </Link>
+                <div className="relative p-8 lg:p-12">
+                  <h2 className="text-3xl font-bold text-white mb-4">
+                    {t("auth.loginBrandTitle")}
+                  </h2>
+                  <p className="text-white/90 text-lg leading-relaxed mb-8">
+                    {t("auth.loginBrandDesc")}
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20">
+                        <CloudRain className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">{t("auth.loginFeature1")}</p>
+                        <p className="text-sm text-white/80">{t("auth.loginFeature1Desc")}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20">
+                        <MapPin className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">{t("auth.loginFeature2")}</p>
+                        <p className="text-sm text-white/80">{t("auth.loginFeature2Desc")}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/20">
+                        <ShieldCheck className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">{t("auth.loginFeature3")}</p>
+                        <p className="text-sm text-white/80">{t("auth.loginFeature3Desc")}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            </div>
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? t("auth.loggingIn") : t("auth.loginButton")}
-                  {!isLoading && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
-                </Button>
-              </form>
+            {/* Right side - Login form */}
+            <div className="w-full max-w-md mx-auto">
+              <div className="mb-8 text-center lg:text-left">
+                <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+                  {t("auth.loginTitle")}
+                </h1>
+                <p className="mt-2 text-sm text-muted">{t("auth.loginSubtitle")}</p>
+              </div>
+
+              <Card>
+                <CardBody>
+                  {error && (
+                    <div className="mb-4 rounded-lg bg-danger/10 border border-danger/30 px-4 py-3 text-sm text-danger">
+                      {error}
+                    </div>
+                  )}
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <Input
+                      label={t("auth.emailLabel")}
+                      type="email"
+                      placeholder={t("auth.emailPlaceholder")}
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <Input
+                      label={t("auth.passwordLabel")}
+                      type="password"
+                      placeholder={t("auth.passwordPlaceholder")}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
+                          {t("auth.loggingIn")}
+                        </>
+                      ) : (
+                        <>
+                          {t("auth.loginButton")}
+                          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
@@ -116,7 +176,7 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 size="lg"
-                className="w-full"
+                className="w-full opacity-60 cursor-not-allowed"
                 disabled
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -148,12 +208,10 @@ export default function LoginPage() {
               </p>
             </CardBody>
           </Card>
-
-          <p className="mt-6 text-center text-xs text-muted">
-            {t("auth.backendNote")}
-          </p>
         </div>
-      </main>
+      </div>
     </div>
-  );
+  </main>
+</div>
+);
 }

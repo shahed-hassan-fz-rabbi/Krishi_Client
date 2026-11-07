@@ -8,6 +8,7 @@ import { BrandMark } from "@/components/layout/BrandMark.js";
 import { LanguageSwitcher, ThemeSwitcher } from "@/components/layout/Switchers.js";
 import { Button } from "@/components/ui/Button.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
+import { useAuth } from "@/contexts/AuthContext.js";
 
 const links = [
   { href: "/#features", key: "common.features" },
@@ -24,6 +25,7 @@ const authLinks = [
 /** Public website header (landing). Not authentication — app is open-access for now. */
 export function PublicHeader() {
   const { t } = useLang();
+  const { user, isAuthenticated, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
   return (
@@ -43,15 +45,34 @@ export function PublicHeader() {
           <LanguageSwitcher />
           <ThemeSwitcher />
           <div className="h-6 w-px bg-line" />
-          <Button href="/login" size="sm" variant="ghost">
-            {t("auth.login")}
-          </Button>
-          <Button href="/register" size="sm" variant="primary">
-            {t("auth.register")}
-          </Button>
-          <Button href="/dashboard" size="sm" variant="outline">
-            {t("nav.dashboard")}
-          </Button>
+          {isAuthenticated && user ? (
+            <>
+              <div className="flex items-center gap-2 px-2 text-xs">
+                <span className="font-medium text-content">{user.name}</span>
+                <span className="rounded bg-emerald/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald uppercase tracking-wider">
+                  {user.role}
+                </span>
+              </div>
+              <Button href="/dashboard" size="sm" variant="outline">
+                {t("nav.dashboard")}
+              </Button>
+              <Button onClick={logout} size="sm" variant="ghost">
+                {t("auth.logout")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button href="/login" size="sm" variant="ghost">
+                {t("auth.login")}
+              </Button>
+              <Button href="/register" size="sm" variant="primary">
+                {t("auth.register")}
+              </Button>
+              <Button href="/dashboard" size="sm" variant="outline">
+                {t("nav.dashboard")}
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -77,16 +98,33 @@ export function PublicHeader() {
                 {t(l.key)}
               </Link>
             ))}
-            {authLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-content hover:bg-surface-2"
-              >
-                {t(l.key)}
-              </Link>
-            ))}
+            {isAuthenticated && user ? (
+              <div className="my-2 rounded-lg bg-surface-2 p-3 text-xs">
+                <p className="font-semibold text-content">{user.name}</p>
+                <p className="text-muted">{user.email}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="mt-2 text-xs font-medium text-danger hover:underline"
+                >
+                  {t("auth.logout")}
+                </button>
+              </div>
+            ) : (
+              authLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-content hover:bg-surface-2"
+                >
+                  {t(l.key)}
+                </Link>
+              ))
+            )}
           </nav>
           <div className="mt-6 flex items-center gap-3">
             <LanguageSwitcher />
@@ -198,9 +236,9 @@ export function PublicFooter() {
           <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("landing.poweredByLabel")}</h3>
           <div className="grid gap-2 text-sm text-sidebar-muted sm:grid-cols-2 lg:grid-cols-4">
             <p>NASA POWER · Agroclimatology Daily</p>
-            <p>SMAP SPL3SMP_E · Soil Moisture</p>
-            <p>GPM IMERG · Precipitation</p>
-            <p>MODIS MOD13Q1 · Vegetation Indices</p>
+            <p>SMAP SPL3SMP_E · planned</p>
+            <p>GPM IMERG · planned</p>
+            <p>MODIS MOD13Q1 · planned</p>
           </div>
         </div>
 

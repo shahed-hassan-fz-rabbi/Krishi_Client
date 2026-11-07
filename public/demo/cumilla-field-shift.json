@@ -1,0 +1,776 @@
+{
+  "success": true,
+  "meta": {
+    "district": "cumilla",
+    "parameter": "HANDOFF_AMAN-MUSTARD",
+    "unit": "composite",
+    "dataset_provenance": "nasa:power:daily:point",
+    "time_standard": "LST",
+    "formula_version": "v1.0.0-phase3",
+    "years_used": 25,
+    "total_observations": 27393,
+    "valid_observations": 27393,
+    "missing_observations": 0,
+    "coverage_percent": 100,
+    "limitations": "NASA POWER Local Solar Time (LST) observations. Gridded point interpolation resolution ~0.5 deg. Descriptive historical statistics only. No predictive crop yield or sowing guarantees."
+  },
+  "data": {
+    "transition_id": "aman-mustard",
+    "config": {
+      "id": "aman-mustard",
+      "previous_crop": "T. Aman Rice",
+      "next_crop": "Mustard",
+      "name_en": "Aman Rice to Mustard",
+      "name_bn": "আমন ধান থেকে সরিষা",
+      "sowing_month": 11,
+      "sowing_days_start": 1,
+      "sowing_days_end": 20,
+      "sowing_window_label": "Nov 1 – Nov 20",
+      "harvest_window_label": "Late Oct – Mid Nov",
+      "min_consecutive_dry_days": 5,
+      "description_en": "Transition between monsoon Aman harvest and winter Rabi Mustard sowing. Excessive residual moisture delays tillage, while sowing past late November causes severe flowering heat stress.",
+      "description_bn": "আমন ধান কাটার পর রবি মৌসুমের সরিষা চাষের গুরুত্বপূর্ণ ট্রানজিশন উইন্ডো। দেরিতে বৃষ্টি হলে জমি তৈরিতে বিলম্ব ঘটে, এবং ২০ নভেম্বরের পর সরিষা বুনলে ফলন কমে যায়।"
+    },
+    "formula_version": "v1.0.0-phase3",
+    "years_used": 25,
+    "climatology_period": "2001–2025",
+    "evidence_status": "robust_sample",
+    "sowing_opportunity": {
+      "workable_window_probability_pct": 100,
+      "years_with_workable_window": 25,
+      "total_years": 25,
+      "historical_frequency": {
+        "optimal_years": 17,
+        "optimal_pct": 68,
+        "moderate_delay_years": 8,
+        "moderate_delay_pct": 32,
+        "constrained_years": 0,
+        "constrained_pct": 0
+      },
+      "sowing_dry_days_distribution": {
+        "count": 25,
+        "min": 15,
+        "max": 20,
+        "mean": 17.16,
+        "median": 17,
+        "p25": 15,
+        "p50": 17,
+        "p75": 19,
+        "p90": 20,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      },
+      "sowing_total_rain_distribution": {
+        "count": 25,
+        "min": 0,
+        "max": 251.9,
+        "mean": 40.5036,
+        "median": 21.33,
+        "p25": 3.13,
+        "p50": 21.33,
+        "p75": 40.62,
+        "p90": 113.548,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      },
+      "sowing_max_dry_run_distribution": {
+        "count": 25,
+        "min": 7,
+        "max": 20,
+        "mean": 14.52,
+        "median": 14,
+        "p25": 12,
+        "p50": 14,
+        "p75": 18,
+        "p90": 20,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      },
+      "sowing_tmin_distribution": {
+        "count": 25,
+        "min": 16.34,
+        "max": 20.23,
+        "mean": 18.5212,
+        "median": 18.66,
+        "p25": 17.62,
+        "p50": 18.66,
+        "p75": 19.33,
+        "p90": 19.648,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      },
+      "oct_total_rain_distribution": {
+        "count": 25,
+        "min": 47.99,
+        "max": 449.22,
+        "mean": 202.6776,
+        "median": 199.88,
+        "p25": 126.14,
+        "p50": 199.88,
+        "p75": 260.21,
+        "p90": 350.032,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      },
+      "oct_late_rain_distribution": {
+        "count": 25,
+        "min": 0,
+        "max": 322.57,
+        "mean": 74.65,
+        "median": 30.32,
+        "p25": 14.6,
+        "p50": 30.32,
+        "p75": 111.7,
+        "p90": 200.48,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      },
+      "nov_total_rain_distribution": {
+        "count": 25,
+        "min": 0,
+        "max": 252.02,
+        "mean": 40.942,
+        "median": 21.57,
+        "p25": 3.55,
+        "p50": 21.57,
+        "p75": 44.97,
+        "p90": 113.748,
+        "evidence_status": "robust",
+        "evidence_limitation": null
+      }
+    },
+    "period_comparison": {
+      "period1_label": "2001–2012 (12 years)",
+      "period2_label": "2013–2025 (13 years)",
+      "metrics": {
+        "sowing_dry_days": {
+          "metric": "Nov 1–20 Sowing Window Dry Days",
+          "unit": "days",
+          "period1": {
+            "label": "2001–2012",
+            "years_count": 12,
+            "mean": 17.75,
+            "median": 17.5
+          },
+          "period2": {
+            "label": "2013–2025",
+            "years_count": 13,
+            "mean": 16.62,
+            "median": 16
+          },
+          "shift": {
+            "delta_mean": -1.13,
+            "delta_pct": -6.4,
+            "evidence_label": "within_historical_variability"
+          },
+          "statistical_tests": {
+            "mann_whitney_u": {
+              "u1": 105,
+              "u2": 51,
+              "u": 51,
+              "z": 1.469,
+              "p_value": 0.1419,
+              "n1": 12,
+              "n2": 13,
+              "is_significant": false
+            },
+            "welch_t": {
+              "t": -1.422,
+              "df": 22.8,
+              "mean1": 17.75,
+              "mean2": 16.62,
+              "mean_diff": -1.13,
+              "p_approx": 0.1551,
+              "n1": 12,
+              "n2": 13
+            }
+          }
+        },
+        "oct_late_rain": {
+          "metric": "Late October Rain (Oct 16–31)",
+          "unit": "mm",
+          "period1": {
+            "label": "2001–2012",
+            "years_count": 12,
+            "mean": 46.8,
+            "median": 19.64
+          },
+          "period2": {
+            "label": "2013–2025",
+            "years_count": 13,
+            "mean": 100.36,
+            "median": 66.17
+          },
+          "shift": {
+            "delta_mean": 53.56,
+            "delta_pct": 114.5,
+            "evidence_label": "within_historical_variability"
+          },
+          "statistical_tests": {
+            "mann_whitney_u": {
+              "u1": 52,
+              "u2": 104,
+              "u": 52,
+              "z": -1.414,
+              "p_value": 0.1573,
+              "n1": 12,
+              "n2": 13,
+              "is_significant": false
+            },
+            "welch_t": {
+              "t": 1.609,
+              "df": 17.9,
+              "mean1": 46.8,
+              "mean2": 100.36,
+              "mean_diff": 53.56,
+              "p_approx": 0.1075,
+              "n1": 12,
+              "n2": 13
+            }
+          }
+        },
+        "oct_total_rain": {
+          "metric": "October Total Rainfall",
+          "unit": "mm",
+          "period1": {
+            "label": "2001–2012",
+            "years_count": 12,
+            "mean": 167.31,
+            "median": 176.77
+          },
+          "period2": {
+            "label": "2013–2025",
+            "years_count": 13,
+            "mean": 235.33,
+            "median": 200.5
+          },
+          "shift": {
+            "delta_mean": 68.02,
+            "delta_pct": 40.7,
+            "evidence_label": "within_historical_variability"
+          },
+          "statistical_tests": {
+            "mann_whitney_u": {
+              "u1": 51,
+              "u2": 105,
+              "u": 51,
+              "z": -1.469,
+              "p_value": 0.1419,
+              "n1": 12,
+              "n2": 13,
+              "is_significant": false
+            },
+            "welch_t": {
+              "t": 1.622,
+              "df": 22.6,
+              "mean1": 167.31,
+              "mean2": 235.33,
+              "mean_diff": 68.02,
+              "p_approx": 0.1048,
+              "n1": 12,
+              "n2": 13
+            }
+          }
+        },
+        "nov_total_rain": {
+          "metric": "November Total Rainfall",
+          "unit": "mm",
+          "period1": {
+            "label": "2001–2012",
+            "years_count": 12,
+            "mean": 28.74,
+            "median": 9.89
+          },
+          "period2": {
+            "label": "2013–2025",
+            "years_count": 13,
+            "mean": 52.2,
+            "median": 25.53
+          },
+          "shift": {
+            "delta_mean": 23.46,
+            "delta_pct": 81.6,
+            "evidence_label": "within_historical_variability"
+          },
+          "statistical_tests": {
+            "mann_whitney_u": {
+              "u1": 67.5,
+              "u2": 88.5,
+              "u": 67.5,
+              "z": -0.571,
+              "p_value": 0.5679,
+              "n1": 12,
+              "n2": 13,
+              "is_significant": false
+            },
+            "welch_t": {
+              "t": 1.008,
+              "df": 17.6,
+              "mean1": 28.74,
+              "mean2": 52.2,
+              "mean_diff": 23.46,
+              "p_approx": 0.3133,
+              "n1": 12,
+              "n2": 13
+            }
+          }
+        },
+        "sowing_mean_tmin": {
+          "metric": "Sowing Window Minimum Temp (T2M_MIN)",
+          "unit": "C",
+          "period1": {
+            "label": "2001–2012",
+            "years_count": 12,
+            "mean": 18.17,
+            "median": 18.24
+          },
+          "period2": {
+            "label": "2013–2025",
+            "years_count": 13,
+            "mean": 18.84,
+            "median": 19.19
+          },
+          "shift": {
+            "delta_mean": 0.67,
+            "delta_pct": 3.7,
+            "evidence_label": "within_historical_variability"
+          },
+          "statistical_tests": {
+            "mann_whitney_u": {
+              "u1": 53,
+              "u2": 103,
+              "u": 53,
+              "z": -1.36,
+              "p_value": 0.1739,
+              "n1": 12,
+              "n2": 13,
+              "is_significant": false
+            },
+            "welch_t": {
+              "t": 1.694,
+              "df": 20.1,
+              "mean1": 18.17,
+              "mean2": 18.84,
+              "mean_diff": 0.67,
+              "p_approx": 0.0902,
+              "n1": 12,
+              "n2": 13
+            }
+          }
+        }
+      }
+    },
+    "yearly_series": [
+      {
+        "year": 2001,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 36.64,
+        "max_dry_run": 8,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.63,
+        "min_tmin_sowing": 17.23,
+        "oct_total_rain": 203.02,
+        "oct_late_rain": 91.52,
+        "oct_rain_days": 19,
+        "nov_total_rain": 36.7,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2002,
+        "dry_days_sowing": 17,
+        "wet_days_sowing": 3,
+        "total_sowing_rain": 112.33,
+        "max_dry_run": 10,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.2,
+        "min_tmin_sowing": 14.52,
+        "oct_total_rain": 47.99,
+        "oct_late_rain": 11.72,
+        "oct_rain_days": 10,
+        "nov_total_rain": 112.83,
+        "nov_rain_days": 3,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2003,
+        "dry_days_sowing": 19,
+        "wet_days_sowing": 1,
+        "total_sowing_rain": 3.65,
+        "max_dry_run": 16,
+        "workable_window": true,
+        "mean_tmin_sowing": 16.93,
+        "min_tmin_sowing": 15.1,
+        "oct_total_rain": 149.72,
+        "oct_late_rain": 30.32,
+        "oct_rain_days": 19,
+        "nov_total_rain": 3.65,
+        "nov_rain_days": 1,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2004,
+        "dry_days_sowing": 20,
+        "wet_days_sowing": 0,
+        "total_sowing_rain": 0,
+        "max_dry_run": 20,
+        "workable_window": true,
+        "mean_tmin_sowing": 16.34,
+        "min_tmin_sowing": 13.99,
+        "oct_total_rain": 183.55,
+        "oct_late_rain": 0.86,
+        "oct_rain_days": 9,
+        "nov_total_rain": 0.37,
+        "nov_rain_days": 0,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2005,
+        "dry_days_sowing": 18,
+        "wet_days_sowing": 2,
+        "total_sowing_rain": 6.46,
+        "max_dry_run": 11,
+        "workable_window": true,
+        "mean_tmin_sowing": 17.23,
+        "min_tmin_sowing": 14.67,
+        "oct_total_rain": 239.89,
+        "oct_late_rain": 131.07,
+        "oct_rain_days": 14,
+        "nov_total_rain": 6.46,
+        "nov_rain_days": 2,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2006,
+        "dry_days_sowing": 20,
+        "wet_days_sowing": 0,
+        "total_sowing_rain": 3.13,
+        "max_dry_run": 20,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.66,
+        "min_tmin_sowing": 15.41,
+        "oct_total_rain": 62.54,
+        "oct_late_rain": 3.18,
+        "oct_rain_days": 11,
+        "nov_total_rain": 3.55,
+        "nov_rain_days": 0,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2007,
+        "dry_days_sowing": 16,
+        "wet_days_sowing": 4,
+        "total_sowing_rain": 74.71,
+        "max_dry_run": 11,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.8,
+        "min_tmin_sowing": 16.23,
+        "oct_total_rain": 320.38,
+        "oct_late_rain": 98.16,
+        "oct_rain_days": 15,
+        "nov_total_rain": 74.71,
+        "nov_rain_days": 4,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2008,
+        "dry_days_sowing": 20,
+        "wet_days_sowing": 0,
+        "total_sowing_rain": 0.95,
+        "max_dry_run": 20,
+        "workable_window": true,
+        "mean_tmin_sowing": 17.45,
+        "min_tmin_sowing": 15.07,
+        "oct_total_rain": 211.91,
+        "oct_late_rain": 140.87,
+        "oct_rain_days": 14,
+        "nov_total_rain": 0.95,
+        "nov_rain_days": 0,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2009,
+        "dry_days_sowing": 16,
+        "wet_days_sowing": 4,
+        "total_sowing_rain": 40.62,
+        "max_dry_run": 14,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.45,
+        "min_tmin_sowing": 17.2,
+        "oct_total_rain": 169.99,
+        "oct_late_rain": 20.01,
+        "oct_rain_days": 13,
+        "nov_total_rain": 40.62,
+        "nov_rain_days": 4,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2010,
+        "dry_days_sowing": 17,
+        "wet_days_sowing": 3,
+        "total_sowing_rain": 12.19,
+        "max_dry_run": 17,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.73,
+        "min_tmin_sowing": 17.92,
+        "oct_total_rain": 292.87,
+        "oct_late_rain": 19.26,
+        "oct_rain_days": 14,
+        "nov_total_rain": 13.32,
+        "nov_rain_days": 4,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2011,
+        "dry_days_sowing": 20,
+        "wet_days_sowing": 0,
+        "total_sowing_rain": 0,
+        "max_dry_run": 20,
+        "workable_window": true,
+        "mean_tmin_sowing": 17.36,
+        "min_tmin_sowing": 15.6,
+        "oct_total_rain": 58.66,
+        "oct_late_rain": 14.6,
+        "oct_rain_days": 11,
+        "nov_total_rain": 0,
+        "nov_rain_days": 0,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2012,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 51.76,
+        "max_dry_run": 13,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.29,
+        "min_tmin_sowing": 15.13,
+        "oct_total_rain": 67.14,
+        "oct_late_rain": 0,
+        "oct_rain_days": 10,
+        "nov_total_rain": 51.76,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2013,
+        "dry_days_sowing": 20,
+        "wet_days_sowing": 0,
+        "total_sowing_rain": 0,
+        "max_dry_run": 20,
+        "workable_window": true,
+        "mean_tmin_sowing": 17.62,
+        "min_tmin_sowing": 14.59,
+        "oct_total_rain": 163.2,
+        "oct_late_rain": 66.17,
+        "oct_rain_days": 17,
+        "nov_total_rain": 0,
+        "nov_rain_days": 0,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2014,
+        "dry_days_sowing": 20,
+        "wet_days_sowing": 0,
+        "total_sowing_rain": 0.13,
+        "max_dry_run": 20,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.33,
+        "min_tmin_sowing": 16.15,
+        "oct_total_rain": 82.14,
+        "oct_late_rain": 4.76,
+        "oct_rain_days": 11,
+        "nov_total_rain": 0.13,
+        "nov_rain_days": 0,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2015,
+        "dry_days_sowing": 18,
+        "wet_days_sowing": 2,
+        "total_sowing_rain": 4.04,
+        "max_dry_run": 18,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.69,
+        "min_tmin_sowing": 16.77,
+        "oct_total_rain": 126.14,
+        "oct_late_rain": 1.68,
+        "oct_rain_days": 14,
+        "nov_total_rain": 4.04,
+        "nov_rain_days": 2,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2016,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 251.9,
+        "max_dry_run": 13,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.19,
+        "min_tmin_sowing": 15.23,
+        "oct_total_rain": 260.21,
+        "oct_late_rain": 44.16,
+        "oct_rain_days": 19,
+        "nov_total_rain": 252.02,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2017,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 9.41,
+        "max_dry_run": 7,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.33,
+        "min_tmin_sowing": 17.54,
+        "oct_total_rain": 388.29,
+        "oct_late_rain": 322.57,
+        "oct_rain_days": 16,
+        "nov_total_rain": 9.41,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2018,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 25.54,
+        "max_dry_run": 13,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.04,
+        "min_tmin_sowing": 14.42,
+        "oct_total_rain": 78.24,
+        "oct_late_rain": 18.42,
+        "oct_rain_days": 11,
+        "nov_total_rain": 25.54,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2019,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 114.36,
+        "max_dry_run": 8,
+        "workable_window": true,
+        "mean_tmin_sowing": 20.23,
+        "min_tmin_sowing": 18.22,
+        "oct_total_rain": 256.4,
+        "oct_late_rain": 71.37,
+        "oct_rain_days": 22,
+        "nov_total_rain": 114.36,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2020,
+        "dry_days_sowing": 16,
+        "wet_days_sowing": 4,
+        "total_sowing_rain": 37.22,
+        "max_dry_run": 16,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.66,
+        "min_tmin_sowing": 15.12,
+        "oct_total_rain": 369.8,
+        "oct_late_rain": 257.9,
+        "oct_rain_days": 24,
+        "nov_total_rain": 44.97,
+        "nov_rain_days": 6,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2021,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 25.53,
+        "max_dry_run": 12,
+        "workable_window": true,
+        "mean_tmin_sowing": 17.53,
+        "min_tmin_sowing": 15.14,
+        "oct_total_rain": 200.5,
+        "oct_late_rain": 111.7,
+        "oct_rain_days": 20,
+        "nov_total_rain": 25.53,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      },
+      {
+        "year": 2022,
+        "dry_days_sowing": 19,
+        "wet_days_sowing": 1,
+        "total_sowing_rain": 2.81,
+        "max_dry_run": 14,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.19,
+        "min_tmin_sowing": 13.53,
+        "oct_total_rain": 294.87,
+        "oct_late_rain": 116.51,
+        "oct_rain_days": 21,
+        "nov_total_rain": 2.99,
+        "nov_rain_days": 1,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2023,
+        "dry_days_sowing": 17,
+        "wet_days_sowing": 3,
+        "total_sowing_rain": 146.28,
+        "max_dry_run": 15,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.39,
+        "min_tmin_sowing": 17.76,
+        "oct_total_rain": 190.39,
+        "oct_late_rain": 26.98,
+        "oct_rain_days": 16,
+        "nov_total_rain": 146.47,
+        "nov_rain_days": 3,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2024,
+        "dry_days_sowing": 16,
+        "wet_days_sowing": 4,
+        "total_sowing_rain": 21.33,
+        "max_dry_run": 13,
+        "workable_window": true,
+        "mean_tmin_sowing": 19.28,
+        "min_tmin_sowing": 15.24,
+        "oct_total_rain": 449.22,
+        "oct_late_rain": 240.22,
+        "oct_rain_days": 21,
+        "nov_total_rain": 21.57,
+        "nov_rain_days": 4,
+        "opportunity_status": "optimal"
+      },
+      {
+        "year": 2025,
+        "dry_days_sowing": 15,
+        "wet_days_sowing": 5,
+        "total_sowing_rain": 31.6,
+        "max_dry_run": 14,
+        "workable_window": true,
+        "mean_tmin_sowing": 18.48,
+        "min_tmin_sowing": 14.28,
+        "oct_total_rain": 199.88,
+        "oct_late_rain": 22.24,
+        "oct_rain_days": 16,
+        "nov_total_rain": 31.6,
+        "nov_rain_days": 5,
+        "opportunity_status": "moderate_delay"
+      }
+    ],
+    "scientific_disclosures": {
+      "wet_day_definition": "Project-selected threshold: valid daily precipitation >= 1.0 mm; not an agronomic threshold.",
+      "time_standard": "NASA POWER Local Solar Time (LST).",
+      "sample_disclosure": "Based on 25 years (2001–2025) of NASA POWER Daily Agroclimatology point observations.",
+      "stat_test_disclosure": "Two-sample Mann-Whitney U rank-sum test and Welch's t-test comparing Period 1 (2001–2012, N=12) vs Period 2 (2013–2025, N=13).",
+      "disclaimer": "Descriptive historical evidence only. Does not guarantee specific sowing dates or crop yields. Local field conditions, soil percolation, and seed variety must be verified on-ground."
+    },
+    "total_observations": 27393,
+    "valid_observations": 27393,
+    "coverage_percent": 100
+  }
+}

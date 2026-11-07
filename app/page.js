@@ -20,6 +20,7 @@ import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js"
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
+import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const HERO_SRC = "/images/hero.jpeg";
@@ -43,7 +44,7 @@ const steps = [
 const datasets = [
   {
     name: "NASA POWER — Agroclimatology Daily",
-    scope: "Rainfall, temperatures, humidity, solar radiation",
+    scope: "Daily rainfall, temperature, humidity, and solar radiation observations",
     status: "implemented",
   },
   { name: "SMAP SPL3SMP_E", scope: "Surface soil moisture", status: "planned" },
@@ -52,7 +53,8 @@ const datasets = [
 ];
 
 export default function LandingPage() {
-  const { t } = useLang();
+  const { t, locale } = useLang();
+  const { districts } = useLocation();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -60,10 +62,10 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero with background image */}
-        <section className="relative min-h-[600px] overflow-hidden">
+        <section className="relative min-h-[700px] flex items-center justify-center overflow-hidden">
           {/* Background image with overlay */}
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-forest/90 via-forest/75 to-emerald/80" />
+            <div className="absolute inset-0 bg-gradient-to-br from-forest/95 via-forest/85 to-emerald/90 dark:from-forest/98 dark:via-forest/92 dark:to-emerald/95" />
             <img
               src={HERO_SRC}
               alt=""
@@ -72,36 +74,34 @@ export default function LandingPage() {
             />
           </div>
 
-          {/* Hero content overlay */}
-          <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:py-32">
-            <div className="max-w-3xl">
-              <Badge tone="sage" className="mb-6 bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                {t("landing.heroKicker")}
-              </Badge>
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                {t("landing.heroTitle")}
-              </h1>
-              <p className="mt-6 text-lg leading-relaxed text-white/90 sm:text-xl lg:text-2xl">
-                {t("landing.heroSubtitle")}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4 sm:gap-6">
-                <Button href="/dashboard" size="lg" className="bg-white text-forest hover:bg-white/90">
-                  {t("landing.heroCta")}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
-                <Button
-                  href="#how-it-works"
-                  size="lg"
-                  variant="outline"
-                  className="border-white/30 text-white hover:bg-white/10 hover:border-white/50"
-                >
-                  {t("landing.heroSecondary")}
-                </Button>
-              </div>
-              <p className="mt-6 max-w-xl text-sm text-white/80">
-                {t("landing.heroNote")}
-              </p>
+          {/* Hero content overlay - centered */}
+          <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
+            <Badge tone="sage" className="mb-6 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              {t("landing.heroKicker")}
+            </Badge>
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
+              {t("landing.heroTitle")}
+            </h1>
+            <p className="mt-6 text-lg leading-relaxed text-white/95 sm:text-xl lg:text-2xl max-w-3xl mx-auto">
+              {t("landing.heroSubtitle")}
+            </p>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+              <Button href="/dashboard" size="lg" className="bg-white text-forest hover:bg-white/90 px-8">
+                {t("landing.heroCta")}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <Button
+                href="#how-it-works"
+                size="lg"
+                variant="outline"
+                className="border-white/40 text-white hover:bg-white/10 hover:border-white/60 px-8"
+              >
+                {t("landing.heroSecondary")}
+              </Button>
             </div>
+            <p className="mt-8 max-w-2xl mx-auto text-sm text-white/80 leading-relaxed">
+              {t("landing.heroNote")}
+            </p>
           </div>
         </section>
 
@@ -114,8 +114,11 @@ export default function LandingPage() {
                 <span className="text-sm font-medium text-muted">{t("landing.supportedDistricts")}</span>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Badge tone="emerald">Chattogram</Badge>
-                <Badge tone="emerald">Cumilla</Badge>
+                {districts.map((d) => (
+                  <Badge key={d.code} tone="emerald">
+                    {locale === "bn" ? d.nameBn || d.nameEn : d.nameEn}
+                  </Badge>
+                ))}
               </div>
             </div>
           </div>

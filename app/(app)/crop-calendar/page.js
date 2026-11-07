@@ -8,7 +8,7 @@ export default function CropCalendarPage() {
     <PlaceholderScreen
       icon={CalendarRange}
       title="Crop Calendar"
-      message="Configurable, source-verified crop calendars for transitions such as Aman rice to mustard, with citations and applicability notes."
+      message="Planned feature. Source-verified crop calendars and crop-specific timing guidance are not available yet."
       phaseTag="Phase 8"
     />
   );

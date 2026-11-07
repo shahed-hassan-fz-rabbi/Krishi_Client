@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
@@ -37,7 +38,7 @@ export function BottomNav() {
           const active = pathname === href;
           return (
             <li key={href} className="flex-1">
-              <a
+              <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[10px] leading-tight transition-colors ${
@@ -50,7 +51,7 @@ export function BottomNav() {
                   aria-hidden="true"
                 />
                 <span className="max-w-[9ch] truncate">{t(key)}</span>
-              </a>
+              </Link>
             </li>
           );
         })}
