@@ -8,11 +8,14 @@ export function Table({ children, className = "" }) {
   );
 }
 
-export function THead({ columns }) {
+export function THead({ columns, children }) {
+  if (children) {
+    return <thead>{children}</thead>;
+  }
   return (
     <thead>
       <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
-        {columns.map((c, i) => (
+        {(columns || []).map((c, i) => (
           <th key={c || i} className="whitespace-nowrap px-5 py-3 font-medium">
             {c}
           </th>

@@ -87,10 +87,10 @@ To ensure absolute transparency for competition evaluators, the table below docu
 | **Local Auth (Email/PW)** | `/login`, `/register` | **Implemented** | Client form validation and backend session management via HTTP-only cookies. |
 | **Google Authentication** | `/login`, `/register` | **Limited (Placeholder)** | Single-Sign-On button is rendered as an inactive placeholder (`disabled`, `opacity-60`). |
 | **Guest Access Mode** | `/(app)/*` | **Implemented** | Open-access guest evaluation across all analytical pages without login barriers. |
-| **SMAP Soil Moisture** | `/soil-moisture` | **Planned (Phase 5)** | Displays transparent placeholder screen detailing planned SMAP SPL3SMP_E integration. |
-| **MODIS Vegetation (NDVI)**| `/vegetation` | **Planned (Phase 7)** | Displays transparent placeholder screen detailing planned MODIS MOD13Q1 vegetation tracking. |
-| **Interactive GIS Map** | `/map` | **Planned (Phase 8)** | Displays transparent placeholder screen for planned administrative boundary mapping. |
-| **Crop Calendar Guide** | `/crop-calendar` | **Planned (Phase 8)** | Displays transparent placeholder screen for planned crop phenology calendars. |
+| **SMAP Soil Moisture** | `/soil-moisture` | **Implemented** | Real NASA SMAP Enhanced Level-3 9 km volumetric soil moisture observations (`SPL3SMP_E V006`), bitmask quality filtering, and surface temperature. |
+| **MODIS Vegetation (NDVI)**| `/vegetation` | **Implemented** | Real NASA Terra MODIS 250 m 16-day vegetation metrics (`MOD13Q1.061`), scaled NDVI/EVI trends, composite day-of-year tracking, and pixel reliability quality filtering. |
+| **Interactive GIS Map** | `/map` | **Implemented** | Interactive Leaflet GIS dashboard rendering official BBS 2020 Admin-2 district boundary polygons (`bgd_admbnda_adm2_bbs_20201113`), NASA observation overlays, and spatial metrics. |
+| **Crop Calendar Guide** | `/crop-calendar` | **Implemented** | Source-backed phenology calendar (BAMIS/DAE/BRRI/BARI) for Aman, Boro, Aus, and Mustard across Cumilla & Chattogram agro-ecological regions with NASA satellite alignment. |
 
 ---
 

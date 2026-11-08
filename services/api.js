@@ -229,3 +229,112 @@ export async function fetchHandoffAnalysis(
 
   return liveRes;
 }
+
+/**
+ * GET /api/v1/soil-moisture/latest?district=cumilla
+ * Fetches latest volumetric soil moisture from NASA SMAP.
+ */
+export async function fetchSoilMoistureLatest(district = "cumilla") {
+  return request(`/soil-moisture/latest?district=${encodeURIComponent(district)}`);
+}
+
+/**
+ * GET /api/v1/soil-moisture/history?district=cumilla&from=...&to=...
+ * Fetches historical SMAP time-series and quality indicators.
+ */
+export async function fetchSoilMoistureHistory(district = "cumilla", from = "2024-01-01", to = "2024-12-31", quality = null) {
+  const params = new URLSearchParams({ district, from, to });
+  if (quality) {
+    params.set("quality", quality);
+  }
+  return request(`/soil-moisture/history?${params.toString()}`);
+}
+
+/**
+ * GET /api/v1/soil-moisture/status
+ * Fetches SMAP ingestion and Earthdata connection status.
+ */
+export async function fetchSoilMoistureStatus() {
+  return request("/soil-moisture/status");
+}
+
+/**
+ * GET /api/v1/vegetation/latest?district=cumilla
+ * Fetches latest 250m MODIS NDVI, EVI, and QA reliability.
+ */
+export async function fetchVegetationLatest(district = "cumilla") {
+  return request(`/vegetation/latest?district=${encodeURIComponent(district)}`);
+}
+
+/**
+ * GET /api/v1/vegetation/history?district=cumilla&from=...&to=...&quality=good
+ * Fetches 16-day composite vegetation index time series.
+ */
+export async function fetchVegetationHistory(district = "cumilla", from = "2024-01-01", to = "2024-12-31", quality = null) {
+  const params = new URLSearchParams({ district, from, to });
+  if (quality) {
+    params.set("quality", quality);
+  }
+  return request(`/vegetation/history?${params.toString()}`);
+}
+
+/**
+ * GET /api/v1/vegetation/status
+ * Fetches MODIS ingestion and AppEEARS connection status.
+ */
+export async function fetchVegetationStatus() {
+  return request("/vegetation/status");
+}
+
+/**
+ * GET /api/v1/gis/districts
+ * Fetches available GIS districts and spatial bounding boxes.
+ */
+export async function fetchGisDistricts() {
+  return request("/gis/districts");
+}
+
+/**
+ * GET /api/v1/gis/boundaries?district=...
+ * Fetches official BBS 2020 Admin-2 GeoJSON boundary polygons.
+ */
+export async function fetchGisBoundaries(district = null) {
+  const query = district ? `?district=${encodeURIComponent(district)}` : "";
+  return request(`/gis/boundaries${query}`);
+}
+
+/**
+ * GET /api/v1/gis/layers?district=...
+ * Fetches multi-sensor geospatial observation pins, footprint circles, and metadata.
+ */
+export async function fetchGisLayers(district = "cumilla") {
+  return request(`/gis/layers?district=${encodeURIComponent(district)}`);
+}
+
+/**
+ * GET /api/v1/crop-calendar/crops
+ * Fetches list of supported crops and seasons.
+ */
+export async function fetchCropList() {
+  return request("/crop-calendar/crops");
+}
+
+/**
+ * GET /api/v1/crop-calendar?district=...&crop=...&season=...
+ * Fetches official BAMIS/DAE crop calendars and phenological stages.
+ */
+export async function fetchCropCalendars(district = "cumilla", crop = null, season = null) {
+  const params = new URLSearchParams({ district });
+  if (crop) params.set("crop", crop);
+  if (season) params.set("season", season);
+  return request(`/crop-calendar?${params.toString()}`);
+}
+
+/**
+ * GET /api/v1/crop-calendar/alignment?district=...&crop=...
+ * Fetches live alignment of official crop calendar with NASA satellite indicators.
+ */
+export async function fetchCropCalendarAlignment(district = "cumilla", crop = "monsoon_aman") {
+  const params = new URLSearchParams({ district, crop });
+  return request(`/crop-calendar/alignment?${params.toString()}`);
+}
