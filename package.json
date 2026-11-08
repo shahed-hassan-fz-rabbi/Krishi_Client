@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test tests/voice.input.test.js tests/voice.output.test.js tests/auth.history.ui.test.js tests/map.offline.test.js tests/farm.ui.test.js tests/farm.lifecycle.ui.test.js tests/farm.planning.ui.test.js tests/farm.environment.ui.test.js tests/farm.activity.ui.test.js tests/farm.notification.ui.test.js"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

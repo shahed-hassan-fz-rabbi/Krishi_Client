@@ -9,7 +9,7 @@
 const DEFAULT_BASE_URL = "http://localhost:5000/api/v1";
 
 export function getApiBaseUrl() {
-  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
   if (envUrl && typeof envUrl === "string") {
     return envUrl.replace(/\/+$/, "");
   }
@@ -337,4 +337,305 @@ export async function fetchCropCalendars(district = "cumilla", crop = null, seas
 export async function fetchCropCalendarAlignment(district = "cumilla", crop = "monsoon_aman") {
   const params = new URLSearchParams({ district, crop });
   return request(`/crop-calendar/alignment?${params.toString()}`);
+}
+
+/**
+ * POST /api/v1/assistant/chat
+ * Sends a natural language query to the Krishi Mama AI Assistant.
+ * Grounded in NASA satellite observations and official crop calendar matrices.
+ */
+export async function sendAssistantMessage({ message, district = "cumilla", crop = null, farmId = null, conversationId = null }) {
+  return request("/assistant/chat", {
+    method: "POST",
+    body: JSON.stringify({ message, district, crop, farmId, conversationId }),
+    timeoutMs: 35000,
+  });
+}
+
+/**
+ * GET /api/v1/assistant/conversations
+ * Fetches the authenticated user's conversation history list.
+ */
+export async function fetchAssistantConversations() {
+  return request("/assistant/conversations");
+}
+
+/**
+ * GET /api/v1/assistant/conversations/:id
+ * Fetches a specific conversation with all message turns.
+ */
+export async function fetchAssistantConversation(id) {
+  return request(`/assistant/conversations/${encodeURIComponent(id)}`);
+}
+
+/**
+ * PATCH /api/v1/assistant/conversations/:id
+ * Renames an existing conversation title.
+ */
+export async function renameAssistantConversation(id, title) {
+  return request(`/assistant/conversations/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title }),
+  });
+}
+
+/**
+ * DELETE /api/v1/assistant/conversations/:id
+ * Deletes a conversation by ID.
+ */
+export async function deleteAssistantConversation(id) {
+  return request(`/assistant/conversations/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * ============================================================================
+ * MY FARM — SMART CROP LIFECYCLE MANAGEMENT API
+ * ============================================================================
+ */
+
+/**
+ * GET /api/v1/farms
+ * Fetches all farms belonging to the authenticated user.
+ */
+export async function fetchFarms(params = {}) {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/farms${qs}`);
+}
+
+/**
+ * GET /api/v1/farms/:id
+ * Fetches single farm details with official crop phenology and satellite context.
+ */
+export async function fetchFarmById(id) {
+  return request(`/farms/${encodeURIComponent(id)}`);
+}
+
+/**
+ * POST /api/v1/farms
+ * Creates a new farm belonging to the authenticated user.
+ */
+export async function createFarm(payload) {
+  return request("/farms", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * PATCH /api/v1/farms/:id
+ * Updates an existing farm document.
+ */
+export async function updateFarm(id, payload) {
+  return request(`/farms/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * DELETE /api/v1/farms/:id
+ * Deletes a farm belonging to the authenticated user.
+ */
+export async function deleteFarm(id) {
+  return request(`/farms/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * ============================================================================
+ * CROP LIFECYCLE TEMPLATE ENGINE API
+ * ============================================================================
+ */
+
+/**
+ * GET /api/v1/farms/:id/lifecycle
+ * Fetches structured lifecycle timeline for a specific farm.
+ */
+export async function fetchFarmLifecycle(farmId, options = {}) {
+  const query = new URLSearchParams();
+  if (options.asOfDate) query.set("asOfDate", options.asOfDate);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/farms/${encodeURIComponent(farmId)}/lifecycle${qs}`);
+}
+
+/**
+ * POST /api/v1/farms/:id/lifecycle/refresh
+ * Re-evaluates lifecycle and synchronizes current stage in the database.
+ */
+export async function refreshFarmLifecycle(farmId) {
+  return request(`/farms/${encodeURIComponent(farmId)}/lifecycle/refresh`, {
+    method: "POST",
+  });
+}
+
+/**
+ * GET /api/v1/crop-lifecycle/templates
+ * Fetches all supported crop lifecycle templates.
+ */
+export async function fetchCropLifecycleTemplates() {
+  return request("/crop-lifecycle/templates");
+}
+
+/**
+ * GET /api/v1/crop-lifecycle/templates/:cropCode?district=cumilla
+ * Fetches template specifications for a specific crop and optional district.
+ */
+export async function fetchCropLifecycleTemplate(cropCode, district = null) {
+  const query = district ? `?district=${encodeURIComponent(district)}` : "";
+  return request(`/crop-lifecycle/templates/${encodeURIComponent(cropCode)}${query}`);
+}
+
+/**
+ * POST /api/v1/crop-planning/recommendations
+ * Evaluates suitable crops and generates AI-assisted planning recommendations.
+ */
+export async function fetchCropPlanningRecommendations(payload) {
+  return request("/crop-planning/recommendations", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * GET /api/v1/farms/:id/environment
+ * Fetches NASA Environmental Intelligence for a specific farm.
+ */
+export async function fetchFarmEnvironment(farmId) {
+  return request(`/farms/${encodeURIComponent(farmId)}/environment`);
+}
+
+/**
+ * GET /api/v1/farms/:id/activities
+ * Fetches activities for a farm with optional query filters.
+ */
+export async function fetchFarmActivities(farmId, params = {}) {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.stageCode) query.set("stageCode", params.stageCode);
+  if (params.activityType) query.set("activityType", params.activityType);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/farms/${encodeURIComponent(farmId)}/activities${qs}`);
+}
+
+/**
+ * GET /api/v1/farms/:id/activities/:activityId
+ */
+export async function fetchSingleFarmActivity(farmId, activityId) {
+  return request(`/farms/${encodeURIComponent(farmId)}/activities/${encodeURIComponent(activityId)}`);
+}
+
+/**
+ * POST /api/v1/farms/:id/activities
+ * Creates a custom farm activity.
+ */
+export async function createFarmActivity(farmId, activityData) {
+  return request(`/farms/${encodeURIComponent(farmId)}/activities`, {
+    method: "POST",
+    body: JSON.stringify(activityData),
+  });
+}
+
+/**
+ * PATCH /api/v1/farms/:id/activities/:activityId
+ * Updates activity status, note, or rescheduled date.
+ */
+export async function updateFarmActivity(farmId, activityId, updateData) {
+  return request(`/farms/${encodeURIComponent(farmId)}/activities/${encodeURIComponent(activityId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(updateData),
+  });
+}
+
+/**
+ * DELETE /api/v1/farms/:id/activities/:activityId
+ * Deletes a custom farmer-created activity.
+ */
+export async function deleteFarmActivity(farmId, activityId) {
+  return request(`/farms/${encodeURIComponent(farmId)}/activities/${encodeURIComponent(activityId)}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * POST /api/v1/farms/:id/activities/generate
+ * Generates official template activities for the farm.
+ */
+export async function generateFarmActivities(farmId) {
+  return request(`/farms/${encodeURIComponent(farmId)}/activities/generate`, {
+    method: "POST",
+  });
+}
+
+/**
+ * GET /api/v1/farms/activities/overview
+ * Fetches user-wide activity overview for the My Farm dashboard.
+ */
+export async function fetchActivitiesOverview() {
+  return request("/farms/activities/overview");
+}
+
+/**
+ * GET /api/v1/farms/activities/notifications-readiness
+ */
+export async function fetchActivitiesNotificationReadiness() {
+  return request("/farms/activities/notifications-readiness");
+}
+
+/**
+ * ============================================================================
+ * SMART FARM NOTIFICATIONS API
+ * ============================================================================
+ */
+
+/**
+ * GET /api/v1/notifications
+ */
+export async function fetchNotifications(params = {}) {
+  const query = new URLSearchParams();
+  if (params.unreadOnly) query.set("unreadOnly", "true");
+  if (params.farmId) query.set("farmId", params.farmId);
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.offset) query.set("offset", String(params.offset));
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/notifications${qs}`);
+}
+
+/**
+ * GET /api/v1/notifications/unread-count
+ */
+export async function fetchUnreadNotificationCount() {
+  return request("/notifications/unread-count");
+}
+
+/**
+ * PATCH /api/v1/notifications/:id/read
+ */
+export async function markNotificationRead(id) {
+  return request(`/notifications/${encodeURIComponent(id)}/read`, {
+    method: "PATCH",
+  });
+}
+
+/**
+ * PATCH /api/v1/notifications/read-all
+ */
+export async function markAllNotificationsRead(farmId = null) {
+  return request("/notifications/read-all", {
+    method: "PATCH",
+    body: JSON.stringify(farmId ? { farmId } : {}),
+  });
+}
+
+/**
+ * DELETE /api/v1/notifications/:id
+ */
+export async function deleteNotification(id) {
+  return request(`/notifications/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
 }

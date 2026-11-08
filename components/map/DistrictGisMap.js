@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -93,6 +93,23 @@ export default function DistrictGisMap({
   isBn = false,
 }) {
   const geoJsonRef = useRef(null);
+  const [isOfflineBasemap, setIsOfflineBasemap] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!navigator.onLine) {
+        setIsOfflineBasemap(true);
+      }
+      const handleOffline = () => setIsOfflineBasemap(true);
+      const handleOnline = () => setIsOfflineBasemap(false);
+      window.addEventListener("offline", handleOffline);
+      window.addEventListener("online", handleOnline);
+      return () => {
+        window.removeEventListener("offline", handleOffline);
+        window.removeEventListener("online", handleOnline);
+      };
+    }
+  }, []);
 
   const districtMeta = layersData?.district;
   const sensors = layersData?.sensors;
@@ -132,20 +149,50 @@ export default function DistrictGisMap({
 
   return (
     <div className="relative h-[620px] w-full overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
+      {/* Offline Vector Mode Banner */}
+      {isOfflineBasemap && (
+        <div className="pointer-events-auto absolute top-4 right-4 z-[1000] flex items-center gap-2.5 rounded-xl border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs font-medium text-amber-900 shadow-md backdrop-blur-xs">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <div>
+            <span className="font-bold block">
+              {isBn ? "অফলাইন ভেক্টর মোড (টাইলস ব্যতিরেকে)" : "Offline Vector Mode"}
+            </span>
+            <span className="text-[11px] text-amber-800">
+              {isBn
+                ? "BBS সীমানা ও সেন্সর স্তর সম্পূর্ণ সক্রিয়"
+                : "BBS 2020 boundaries & sensor overlays active"}
+            </span>
+          </div>
+        </div>
+      )}
+
       <MapContainer
         center={center}
         zoom={zoom}
         scrollWheelZoom={false}
         className="h-full w-full"
-        style={{ background: "#eef4ec" }}
+        style={{
+          background: isOfflineBasemap
+            ? "radial-gradient(#d3e3d1 1.2px, #f4f8f3 1.2px)"
+            : "#eef4ec",
+          backgroundSize: isOfflineBasemap ? "20px 20px" : "auto",
+        }}
       >
         <MapController center={center} zoom={zoom} bounds={mapBounds} />
 
-        {/* High-quality CartoDB Voyager Tile Layer */}
+        {/* High-quality CartoDB Voyager Tile Layer with graceful error recovery */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noreferrer">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           maxZoom={19}
+          eventHandlers={{
+            tileerror: () => {
+              setIsOfflineBasemap(true);
+            },
+          }}
         />
 
         {/* Official BBS 2020 Admin-2 Boundary Polygon */}
