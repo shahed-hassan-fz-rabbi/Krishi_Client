@@ -25,7 +25,12 @@
   --km-climate: #2878c8; /* Climate Blue */
   --km-purple: #8b75d7; /* Purple Accent */
   --km-amber: #e6a23c; /* Amber */
+  --km-amber-strong: #b45309; /* Amber for text: readable on light surfaces */
   --km-danger: #d95d59; /* Risk Red */
+  --km-danger-strong: #b23b38; /* Danger for text: readable on light surfaces */
+  --km-purple-strong: #6d4fc4; /* Purple for text: readable on light surfaces */
+  --km-emerald-text: #0f6c49; /* Emerald for text: readable on light surfaces */
+  --km-climate-text: #1d5fa3; /* Climate blue for text: readable on light surfaces */
 
   /* sidebar chrome */
   --km-sidebar: #123d2b;
@@ -51,6 +56,12 @@
 
   /* sage works on dark, others stay constant */
   --km-sage: #1c332a;
+  /* Dark surfaces need the brighter brand colors for text contrast */
+  --km-amber-strong: #e6a23c;
+  --km-danger-strong: #ef8b88;
+  --km-purple-strong: #a78bfa;
+  --km-emerald-text: #34d399;
+  --km-climate-text: #7ab3f0;
 
   --km-sidebar: #10261c;
   --km-sidebar-text: #e7f2ea;
@@ -79,7 +90,12 @@
   --color-climate: var(--km-climate);
   --color-purple: var(--km-purple);
   --color-amber: var(--km-amber);
+  --color-amber-strong: var(--km-amber-strong);
   --color-danger: var(--km-danger);
+  --color-danger-strong: var(--km-danger-strong);
+  --color-purple-strong: var(--km-purple-strong);
+  --color-emerald-text: var(--km-emerald-text);
+  --color-climate-text: var(--km-climate-text);
 
   --color-sidebar: var(--km-sidebar);
   --color-sidebar-text: var(--km-sidebar-text);

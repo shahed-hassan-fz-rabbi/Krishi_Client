@@ -1,15 +1,19 @@
 /** Risk / status badges. Colors map to approved palette; never decorative-only. */
 
 const toneClasses = {
-  low: "bg-sage text-forest dark:text-sage", // soft green chip
-  emerald: "bg-emerald/15 text-emerald",
-  moderate: "bg-amber/15 text-amber",
-  high: "bg-danger/12 text-danger",
-  purple: "bg-purple/15 text-purple",
-  blue: "bg-climate/12 text-climate",
+  // Text tones use *-strong variants: the raw brand amber/danger/purple fail
+  // WCAG AA (4.5:1) as text on light surfaces. The *-strong tokens flip to the
+  // brighter brand color in dark mode, so one class works in both themes.
+  // dark: sage text on the dark sage bg would be invisible → use content color
+  low: "bg-sage text-forest dark:text-content", // soft green chip
+  emerald: "bg-emerald/15 text-emerald-text",
+  moderate: "bg-amber/15 text-amber-strong",
+  high: "bg-danger/12 text-danger-strong",
+  purple: "bg-purple/15 text-purple-strong",
+  blue: "bg-climate/12 text-climate-text",
   neutral: "bg-surface-2 text-muted",
   outline: "border border-line text-muted",
-  sage: "bg-sage/20 text-forest",
+  sage: "bg-sage/20 text-forest dark:text-content",
 };
 
 export function Badge({ tone = "neutral", children, className = "" }) {

@@ -15,22 +15,37 @@ import {
 
 /**
  * HandoffSowingChart
- * Visualizes the 25-year historical distribution of:
- * 1. Sowing Window Dry Days (Nov 1–20)
+ * Visualizes the historical distribution of:
+ * 1. Sowing Window Dry Days (window comes from the transition config)
  * 2. Longest Consecutive Dry Run (workability window)
- * 3. Workability Threshold (≥ 5 consecutive dry days)
+ * 3. Workability Threshold (>= minConsecutiveDryDays consecutive dry days)
+ *
+ * expectedDays is the expected number of sowing-window calendar days from the
+ * backend config; when unavailable no day-count total is invented and the
+ * y-domain falls back to the data range.
+ *
+ * fmt optionally localizes every rendered number (Bengali digits in Bangla);
+ * phrases below use the labels.* overrides so tooltips stay in-language.
  */
 export function HandoffSowingChart({
   data = [],
-  title = "25-Year Sowing Opportunity Climatology",
-  minConsecutiveDryDays = 5,
+  title = "Historical Sowing Opportunity Climatology",
+  minConsecutiveDryDays = null,
+  expectedDays = null,
+  fmt = null,
   labels = {
-    dryDays: "Dry Days (Nov 1–20)",
+    dryDays: "Dry Days",
     dryRun: "Max Consecutive Dry Run (days)",
-    threshold: "Workable Threshold (≥5d)",
+    threshold: null,
     rain: "Sowing Rain",
+    daysUnit: " d",
+    tooltipDays: "days",
+    tooltipConsecutive: "consecutive days",
+    tooltipSeasonYear: "Season Year:",
   },
 }) {
+  const num = (v) => (typeof fmt === "function" ? fmt(v) : String(v));
+  const daysUnit = labels.daysUnit ?? "d";
   if (!data || data.length === 0) {
     return (
       <div className="flex h-72 w-full items-center justify-center text-sm text-muted">
@@ -38,6 +53,9 @@ export function HandoffSowingChart({
       </div>
     );
   }
+
+  const hasThreshold = Number.isFinite(Number(minConsecutiveDryDays))
+    && minConsecutiveDryDays !== null;
 
   return (
     <div className="h-80 w-full" role="img" aria-label={title}>
@@ -49,15 +67,16 @@ export function HandoffSowingChart({
             tickLine={false}
             axisLine={{ stroke: "var(--km-border)" }}
             tick={{ fill: "var(--km-text-muted)", fontSize: 11 }}
+            tickFormatter={(y) => num(y)}
             interval={1}
           />
           <YAxis
-            domain={[0, 20]}
+            domain={[0, expectedDays ?? "auto"]}
             tickLine={false}
             axisLine={false}
             tick={{ fill: "var(--km-text-muted)", fontSize: 11 }}
             width={36}
-            unit=" d"
+            tickFormatter={(v) => `${num(v)}\u00A0${daysUnit}`}
           />
           <Tooltip
             contentStyle={{
@@ -69,28 +88,39 @@ export function HandoffSowingChart({
               boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
             }}
             formatter={(value, name) => {
-              if (name === labels.dryDays) return [`${value} / 20 days`, name];
-              if (name === labels.dryRun) return [`${value} consecutive days`, name];
-              return [`${value}`, name];
+              if (name === labels.dryDays) {
+                return [`${num(value)}${expectedDays ? ` / ${num(expectedDays)}` : ""} ${labels.tooltipDays}`, name];
+              }
+              if (name === labels.dryRun) return [`${num(value)} ${labels.tooltipConsecutive}`, name];
+              return [`${num(value)}`, name];
             }}
-            labelFormatter={(label) => `Season Year: ${label}`}
+            labelFormatter={(label) => `${labels.tooltipSeasonYear} ${num(label)}`}
           />
           <Legend
             wrapperStyle={{ fontSize: 12, paddingTop: 10 }}
             iconType="circle"
+            // Series-colored legend text (#0284c7 / #10b981) fails 4.5:1 on
+            // light backgrounds; keep the series color on the dot, darken text.
+            formatter={(value) => (
+              <span style={{ color: "var(--km-text-muted)" }}>{value}</span>
+            )}
           />
-          <ReferenceLine
-            y={minConsecutiveDryDays}
-            stroke="#f59e0b"
-            strokeDasharray="4 4"
-            strokeWidth={1.5}
-            label={{
-              value: labels.threshold,
-              fill: "#d97706",
-              fontSize: 11,
-              position: "insideTopLeft",
-            }}
-          />
+          {hasThreshold ? (
+            <ReferenceLine
+              y={minConsecutiveDryDays}
+              stroke="#f59e0b"
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+              label={{
+                value: labels.threshold,
+                // amber-strong token: #d97706 fails AA as 11px text on light bg
+                fill: "var(--km-amber-strong)",
+                fontSize: 11,
+                fontWeight: 500,
+                position: "insideTopLeft",
+              }}
+            />
+          ) : null}
           <Bar
             dataKey="dry_days_sowing"
             name={labels.dryDays}
