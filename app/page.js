@@ -29,9 +29,9 @@ const featureItems = [
   { icon: CloudRain, titleKey: "featureRainfall", descKey: "featureRainfallDesc", tone: "climate" },
   { icon: Thermometer, titleKey: "featureTemp", descKey: "featureTempDesc", tone: "amber" },
   { icon: MapPin, titleKey: "featureDistrict", descKey: "featureDistrictDesc", tone: "emerald" },
-  { icon: Database, titleKey: "featureEvidence", descKey: "featureEvidenceDesc", tone: "purple" },
-  { icon: Languages, titleKey: "featureLanguage", descKey: "featureLanguageDesc", tone: "purple" },
-  { icon: ShieldCheck, titleKey: "featureTransparency", descKey: "featureTransparencyDesc", tone: "amber" },
+  { icon: Database, titleKey: "featureEvidence", descKey: "featureEvidenceDesc", tone: "emerald" },
+  { icon: Languages, titleKey: "featureLanguage", descKey: "featureLanguageDesc", tone: "neutral" },
+  { icon: ShieldCheck, titleKey: "featureTransparency", descKey: "featureTransparencyDesc", tone: "emerald" },
 ];
 
 const steps = [
@@ -138,17 +138,17 @@ export default function LandingPage() {
               <Card key={f.titleKey} className="transition-shadow hover:shadow-km-md">
                 <CardBody>
                   <span
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl border border-line ${
                       f.tone === "climate"
-                        ? "bg-climate/12 text-climate"
-                        : f.tone === "purple"
-                          ? "bg-purple/12 text-purple"
-                          : f.tone === "amber"
-                            ? "bg-amber/12 text-amber"
-                            : "bg-sage text-emerald"
+                        ? "bg-climate/10 text-climate"
+                        : f.tone === "amber"
+                          ? "bg-amber/10 text-amber-strong dark:text-amber"
+                          : f.tone === "neutral"
+                            ? "bg-surface-2 text-content"
+                            : "bg-emerald/10 text-emerald-strong dark:text-emerald"
                     }`}
                   >
-                    <f.icon className="h-6 w-6" aria-hidden="true" />
+                    <f.icon className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
                   </span>
                   <h3 className="mt-4 text-lg font-semibold text-content">{t(f.titleKey)}</h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{t(f.descKey)}</p>
@@ -172,11 +172,13 @@ export default function LandingPage() {
               {steps.map((s, i) => (
                 <div key={s.n} className="relative">
                   <div className="rounded-xl border border-line bg-bg p-6 h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald text-sm font-bold text-white">
-                        {s.n}
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald">
+                        Step 0{s.n}
                       </span>
-                      <s.icon className="h-5 w-5 text-emerald" aria-hidden="true" />
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface shadow-km-sm">
+                        <s.icon className="h-4.5 w-4.5 text-emerald" strokeWidth={1.8} aria-hidden="true" />
+                      </span>
                     </div>
                     <h3 className="text-base font-semibold text-content mb-2">{t(s.titleKey)}</h3>
                     <p className="text-sm text-muted leading-relaxed">{t(s.descKey)}</p>

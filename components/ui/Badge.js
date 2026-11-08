@@ -1,3 +1,5 @@
+import { AlertCircle } from "lucide-react";
+
 /** Risk / status badges. Colors map to approved palette; never decorative-only. */
 
 const toneClasses = {
@@ -49,11 +51,8 @@ export function RiskBadge({ level = "insufficient", label }) {
 /** SampleBadge — REQUIRED on any card backed by demo data until NASA integration. */
 export function SampleBadge({ label }) {
   return (
-    <Badge tone="amber" className="border border-amber/30">
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
-        <circle cx="5" cy="9" r="1" />
-        <rect x="4" y="1" width="2" height="6" rx="1" />
-      </svg>
+    <Badge tone="moderate" className="border border-amber/30">
+      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} aria-hidden="true" />
       {label}
     </Badge>
   );

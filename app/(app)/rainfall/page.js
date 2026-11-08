@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CalendarRange,
+  ChevronDown,
   CloudRain,
   Droplets,
   Info,
@@ -144,11 +145,11 @@ export default function RainfallPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* District selector */}
-          <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
-            <MapPin className="h-4 w-4 text-emerald" aria-hidden="true" />
+          <div className="relative flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
+            <MapPin className="h-4 w-4 text-emerald shrink-0" aria-hidden="true" />
             <select
               aria-label={t("landing.supportedDistricts")}
-              className="bg-transparent text-sm font-medium text-content focus:outline-none cursor-pointer"
+              className="bg-transparent pr-6 text-sm font-medium text-content focus:outline-none cursor-pointer appearance-none"
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
             >
@@ -158,6 +159,7 @@ export default function RainfallPage() {
                 </option>
               ))}
             </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" aria-hidden="true" />
           </div>
 
           <div className="hidden items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-muted sm:flex">

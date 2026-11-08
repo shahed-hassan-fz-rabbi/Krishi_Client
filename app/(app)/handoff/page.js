@@ -6,6 +6,7 @@ import {
   Calendar,
   Check,
   CheckCircle2,
+  ChevronDown,
   Copy,
   FileText,
   Filter,
@@ -14,7 +15,7 @@ import {
   MapPin,
   Printer,
   RefreshCw,
-  Sparkles,
+  Thermometer,
   TrendingUp,
   Wheat,
 } from "lucide-react";
@@ -380,18 +381,19 @@ export default function HandoffPage() {
               {strings.transitionLabel || "Crop Transition"}
             </label>
             <div className="relative">
+              <Wheat className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald" aria-hidden="true" />
               <select
                 id="handoff-transition"
                 value={transition}
                 onChange={(e) => setTransition(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content transition-colors focus:border-emerald focus:outline-none"
+                className="w-full appearance-none rounded-lg border border-line bg-surface pl-9 pr-8 py-2 text-sm text-content transition-colors focus:border-emerald focus:outline-none"
               >
                 <option value="aman-mustard">
                   {strings.amanMustard || "T. Aman Rice → Mustard (Rabi Oilseed)"}
                 </option>
                 <option value="boro-aus">{strings.boroAus || "Boro Rice → Aus Rice"}</option>
               </select>
-              <Wheat className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-muted" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" aria-hidden="true" />
             </div>
           </div>
 
@@ -401,11 +403,12 @@ export default function HandoffPage() {
               {strings.districtLabel || "District"}
             </label>
             <div className="relative">
+              <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald" aria-hidden="true" />
               <select
                 id="handoff-district"
                 value={selectedDistrict}
                 onChange={(e) => setSelectedDistrict(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-line bg-surface px-3 py-2 text-sm text-content transition-colors focus:border-emerald focus:outline-none"
+                className="w-full appearance-none rounded-lg border border-line bg-surface pl-9 pr-8 py-2 text-sm text-content transition-colors focus:border-emerald focus:outline-none"
               >
                 {districts && districts.length > 0 ? (
                   districts.map((d) => (
@@ -423,7 +426,7 @@ export default function HandoffPage() {
                   </>
                 )}
               </select>
-              <MapPin className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-muted" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" aria-hidden="true" />
             </div>
           </div>
 
@@ -500,8 +503,8 @@ export default function HandoffPage() {
               hint={strings.kpiOctLateRainDesc || "Mean Oct 16–31 rainfall shift (P1 vs P2)"}
             />
             <MetricCard
-              icon={Sparkles}
-              tone="purple"
+              icon={Thermometer}
+              tone="climate"
               label={strings.kpiSowingTmin || "Germination Min Temp"}
               value={`${locNum(sowingTminMean, locale)}`}
               unit="°C"

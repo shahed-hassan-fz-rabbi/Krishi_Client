@@ -41,13 +41,13 @@ export function BottomNav() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[10px] leading-tight transition-colors ${
+                className={`flex flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[10px] font-medium leading-tight transition-colors ${
                   active ? "text-emerald" : "text-muted hover:text-content"
                 }`}
               >
                 <Icon
                   className="h-5 w-5"
-                  strokeWidth={active ? 2.4 : 1.8}
+                  strokeWidth={active ? 2.0 : 1.75}
                   aria-hidden="true"
                 />
                 <span className="max-w-[9ch] truncate">{t(key)}</span>
