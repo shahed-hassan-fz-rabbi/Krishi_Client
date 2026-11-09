@@ -1,11 +1,33 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   fetchCropPlanningRecommendations,
   createFarm,
 } from "../services/api.js";
 import { translations } from "../lib/i18n/translations.js";
+import {
+  buildCropPlanningPayload,
+  getCropPlanningErrorMessage,
+  validateCropPlanningForm,
+} from "../lib/cropPlanningForm.js";
+
+const validForm = {
+  districtCode: "cumilla",
+  upazila: "Burichang",
+  village: "Sujanagar",
+  area: "37.5",
+  unit: "decimal",
+  landType: "medium_high",
+  soilType: "clay_loam",
+  drainage: "good",
+  irrigationAvailability: "available",
+  waterSource: "deep_tubewell",
+  seasonPreference: "Robi",
+  preferredCrop: "mustard",
+};
+const validUpazilas = [{ nameEn: "Burichang" }];
 
 test("My Farm Planning: Client API Contracts & Translations Suite", async (t) => {
   await t.test("fetchCropPlanningRecommendations issues POST request to /crop-planning/recommendations", async () => {
@@ -70,6 +92,15 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
       "irrigationLabel",
       "analyzeButton",
       "analyzing",
+      "districtRequired",
+      "upazilaRequired",
+      "invalidUpazila",
+      "areaRequired",
+      "networkError",
+      "unauthorized",
+      "serverError",
+      "evaluationFailed",
+      "noRecommendations",
       "resultsTitle",
       "aiSummaryTitle",
       "aiDisclaimer",
@@ -103,5 +134,41 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
     assert.ok(enPlan.suitability?.potential);
     assert.ok(bnPlan.suitability?.supported);
     assert.ok(bnPlan.suitability?.potential);
+  });
+
+  await t.test("form validation rejects missing, invalid, and non-positive fields", () => {
+    assert.equal(validateCropPlanningForm(validForm, validUpazilas), null);
+    assert.equal(validateCropPlanningForm({ ...validForm, districtCode: "" }, validUpazilas), "districtRequired");
+    assert.equal(validateCropPlanningForm({ ...validForm, upazila: "" }, validUpazilas), "upazilaRequired");
+    assert.equal(validateCropPlanningForm({ ...validForm, upazila: "Other District" }, validUpazilas), "invalidUpazila");
+    assert.equal(validateCropPlanningForm({ ...validForm, area: "" }, validUpazilas), "areaRequired");
+    assert.equal(validateCropPlanningForm({ ...validForm, area: "-3" }, validUpazilas), "areaRequired");
+  });
+
+  await t.test("request payload preserves entered profile and uses numeric area", () => {
+    const payload = buildCropPlanningPayload(validForm, "bn");
+    assert.equal(payload.districtCode, "cumilla");
+    assert.equal(payload.upazila, "Burichang");
+    assert.equal(payload.land.area, 37.5);
+    assert.equal(payload.water.waterSource, "deep_tubewell");
+    assert.equal(payload.preferences.preferredCrop, "mustard");
+    assert.equal(payload.language, "bn");
+  });
+
+  await t.test("planning page wires the button to one guarded submit state", () => {
+    const source = readFileSync(new URL("../app/(app)/my-farm/plan/page.js", import.meta.url), "utf8");
+    assert.match(source, /<form noValidate onSubmit=\{handleEvaluate\}/);
+    assert.match(source, /type="submit"\s+disabled=\{loading\}/);
+    assert.match(source, /if \(evaluationInFlight\.current\) return/);
+    assert.match(source, /evaluationInFlight\.current = true/);
+    assert.match(source, /evaluationInFlight\.current = false/);
+  });
+
+  await t.test("request failures map to useful localized UI messages", () => {
+    const translate = (key) => key;
+    assert.equal(getCropPlanningErrorMessage({ error: { code: "NETWORK_ERROR" } }, translate), "myFarm.planning.networkError");
+    assert.equal(getCropPlanningErrorMessage({ status: 401 }, translate), "myFarm.planning.unauthorized");
+    assert.equal(getCropPlanningErrorMessage({ status: 503 }, translate), "myFarm.planning.serverError");
+    assert.equal(getCropPlanningErrorMessage({ status: 400, error: { message: "Invalid district" } }, translate), "Invalid district");
   });
 });

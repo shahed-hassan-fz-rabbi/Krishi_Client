@@ -109,6 +109,21 @@ export async function fetchClimateSummary(district = "chattogram", options = {})
   return request(`/climate/summary?${params.toString()}`, { timeoutMs: 30000 });
 }
 
+/** Latest stored daily NASA POWER observations; historical records are not forecasts. */
+export async function fetchClimateLatest(district = "cumilla") {
+  return request(`/climate/latest?district=${encodeURIComponent(district)}`);
+}
+
+/** Latest GPM IMERG Final V07 half-hourly record and validated local-day summary. */
+export async function fetchPrecipitationLatest(district = "cumilla") {
+  return request(`/precipitation/latest?district=${encodeURIComponent(district)}`);
+}
+
+/** Cross-dataset availability, observation coverage and ingestion provenance. */
+export async function fetchEnvironmentalDataSources() {
+  return request("/data-sources");
+}
+
 /**
  * GET /api/v1/climate/rainfall?district=chattogram[&from=...&to=...&grouping=monthly|annual|seasonal|daily]
  * Aggregated rainfall series and historical normals.
@@ -181,6 +196,22 @@ export async function logoutUser() {
   return request("/auth/logout", {
     method: "POST",
   });
+}
+
+/**
+ * GET /api/v1/auth/google/status
+ * Check if Google OAuth 2.0 is configured on backend.
+ */
+export async function fetchGoogleAuthStatus() {
+  return request("/auth/google/status");
+}
+
+/**
+ * Returns the backend Google OAuth initiation URL.
+ */
+export function getGoogleAuthEndpoint() {
+  const baseUrl = getApiBaseUrl();
+  return `${baseUrl}/auth/google`;
 }
 
 /**
@@ -498,6 +529,7 @@ export async function fetchCropPlanningRecommendations(payload) {
   return request("/crop-planning/recommendations", {
     method: "POST",
     body: JSON.stringify(payload),
+    timeoutMs: 45000,
   });
 }
 

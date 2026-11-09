@@ -9,7 +9,6 @@ import {
   Layers,
   MapPin,
   Plus,
-  Sparkles,
   Sprout,
   Tractor,
   Trash2,
@@ -145,7 +144,7 @@ export default function MyFarmPage() {
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-700 dark:bg-surface-2 dark:text-muted">
             {status || "Active"}
           </span>
         );
@@ -162,10 +161,10 @@ export default function MyFarmPage() {
               <Tractor className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+              <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
                 {t("myFarm.title")}
               </h1>
-              <p className="text-sm text-stone-600 dark:text-stone-400">
+              <p className="text-sm text-stone-600 dark:text-muted">
                 {t("myFarm.subtitle")}
               </p>
             </div>
@@ -175,9 +174,8 @@ export default function MyFarmPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/my-farm/plan"
-            className="inline-flex items-center gap-2 rounded-xl border border-forest-600 bg-white px-4 py-2.5 text-sm font-semibold text-forest-700 shadow-xs transition hover:bg-forest-50 dark:border-forest-500/50 dark:bg-stone-900 dark:text-forest-400 dark:hover:bg-forest-950/40"
+            className="inline-flex items-center justify-center rounded-xl border border-forest-600 bg-white px-4 py-2.5 text-sm font-semibold text-forest-700 shadow-xs transition hover:bg-forest-50 dark:border-forest-500/50 dark:bg-surface dark:text-forest-400 dark:hover:bg-forest-950/40"
           >
-            <Sparkles className="h-4 w-4 text-forest-600 dark:text-forest-400" />
             {t("myFarm.planning.planWithAi") || "Plan a Crop with AI"}
           </Link>
           <Link
@@ -211,9 +209,9 @@ export default function MyFarmPage() {
       {/* Summary KPI Cards */}
       {user && summary && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.stats.totalFarms")}
               </span>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
@@ -221,18 +219,18 @@ export default function MyFarmPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-stone-900 dark:text-stone-100">
+              <span className="text-3xl font-bold text-stone-900 dark:text-content">
                 {summary.totalFarms}
               </span>
-              <span className="text-xs text-stone-500 dark:text-stone-400">
+              <span className="text-xs text-stone-500 dark:text-muted">
                 {lang === "bn" ? "প্লট নিবন্ধিত" : "plots registered"}
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.stats.totalArea")}
               </span>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
@@ -240,18 +238,18 @@ export default function MyFarmPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-stone-900 dark:text-stone-100">
+              <span className="text-3xl font-bold text-stone-900 dark:text-content">
                 {summary.totalAreaDecimal}
               </span>
-              <span className="text-xs text-stone-500 dark:text-stone-400">
+              <span className="text-xs text-stone-500 dark:text-muted">
                 {lang === "bn" ? "শতাংশ (Decimal)" : "decimals"}
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.stats.activeCrops")}
               </span>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
@@ -259,10 +257,10 @@ export default function MyFarmPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-stone-900 dark:text-stone-100">
+              <span className="text-3xl font-bold text-stone-900 dark:text-content">
                 {summary.uniqueCropsCount || 0}
               </span>
-              <span className="text-xs text-stone-500 dark:text-stone-400">
+              <span className="text-xs text-stone-500 dark:text-muted">
                 {lang === "bn" ? "ধরনের ফসল" : "crop types"}
               </span>
             </div>
@@ -272,17 +270,17 @@ export default function MyFarmPage() {
 
       {/* Activity Overview Card */}
       {user && activityOverview && activityOverview.hasFarms && (
-        <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-stone-800">
+        <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
                 <ListTodo className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h2 className="text-base font-bold text-stone-900 dark:text-content">
                   {t("myFarm.activities.title") || "Farm Activities & Timeline Tasks"}
                 </h2>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-stone-500 dark:text-muted">
                   {t("myFarm.activities.subtitle") || "Actionable agricultural task tracking grounded in official crop lifecycle guidance"}
                 </p>
               </div>
@@ -298,7 +296,7 @@ export default function MyFarmPage() {
                 {lang === "bn" ? "আসন্ন: " : "Upcoming: "}
                 {activityOverview.counts?.upcomingTotal || 0}
               </span>
-              <span className="rounded-lg bg-stone-100 px-2.5 py-1 font-semibold text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+              <span className="rounded-lg bg-stone-100 px-2.5 py-1 font-semibold text-stone-700 dark:bg-surface-2 dark:text-muted">
                 {lang === "bn" ? "সম্পন্ন: " : "Completed: "}
                 {activityOverview.counts?.completed || 0}
               </span>
@@ -323,7 +321,7 @@ export default function MyFarmPage() {
                   {activityOverview.todayActivities.map((act) => (
                     <div
                       key={act._id}
-                      className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3.5 transition hover:border-forest-300 dark:border-stone-800 dark:bg-stone-950/30 dark:hover:border-forest-700"
+                      className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3.5 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
@@ -337,11 +335,11 @@ export default function MyFarmPage() {
                               </span>
                             )}
                           </div>
-                          <h4 className="mt-1 text-sm font-semibold text-stone-900 dark:text-stone-100">
+                          <h4 className="mt-1 text-sm font-semibold text-stone-900 dark:text-content">
                             {act.title}
                           </h4>
                           {act.description && (
-                            <p className="mt-0.5 text-xs text-stone-600 line-clamp-1 dark:text-stone-400">
+                            <p className="mt-0.5 text-xs text-stone-600 line-clamp-1 dark:text-muted">
                               {act.description}
                             </p>
                           )}
@@ -371,7 +369,7 @@ export default function MyFarmPage() {
                             onClick={() => handleQuickStatus(act.farmId, act._id, "SKIPPED")}
                             disabled={updatingTaskId === act._id}
                             title={t("myFarm.activities.actions.markSkipped") || "Mark Skipped"}
-                            className="rounded-lg border border-stone-200 bg-white p-1.5 text-stone-500 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400"
+                            className="rounded-lg border border-stone-200 bg-white p-1.5 text-stone-500 hover:bg-stone-100 dark:border-line dark:bg-surface dark:text-muted"
                           >
                             <SkipForward className="h-3.5 w-3.5" />
                           </button>
@@ -381,7 +379,7 @@ export default function MyFarmPage() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
+                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-line dark:text-muted">
                   <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-500/60 mb-1" />
                   {t("myFarm.activities.noTasksToday") || "No activities scheduled for today."}
                 </div>
@@ -405,7 +403,7 @@ export default function MyFarmPage() {
                   {activityOverview.upcomingActivities.slice(0, 4).map((act) => (
                     <div
                       key={act._id}
-                      className="rounded-xl border border-stone-200/80 bg-stone-50/30 p-3 transition hover:border-forest-300 dark:border-stone-800 dark:bg-stone-950/20 dark:hover:border-forest-700 flex items-center justify-between gap-3"
+                      className="rounded-xl border border-stone-200/80 bg-stone-50/30 p-3 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700 flex items-center justify-between gap-3"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -416,7 +414,7 @@ export default function MyFarmPage() {
                             {act.scheduledDate}
                           </span>
                         </div>
-                        <h4 className="text-xs font-medium text-stone-900 truncate dark:text-stone-100">
+                        <h4 className="text-xs font-medium text-stone-900 truncate dark:text-content">
                           {act.title}
                         </h4>
                       </div>
@@ -432,7 +430,7 @@ export default function MyFarmPage() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
+                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-line dark:text-muted">
                   {t("myFarm.activities.noUpcomingTasks") || "No upcoming activities scheduled."}
                 </div>
               )}
@@ -447,7 +445,7 @@ export default function MyFarmPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-56 animate-pulse rounded-2xl border border-stone-200 bg-stone-100 p-6 dark:border-stone-800 dark:bg-stone-900/50"
+              className="h-56 animate-pulse rounded-2xl border border-stone-200 bg-stone-100 p-6 dark:border-line dark:bg-surface"
             />
           ))}
         </div>
@@ -463,22 +461,21 @@ export default function MyFarmPage() {
         </div>
       ) : farms.length === 0 ? (
         /* Empty State */
-        <div className="rounded-2xl border-2 border-dashed border-stone-200 bg-white p-12 text-center dark:border-stone-800 dark:bg-stone-900/50">
+        <div className="rounded-2xl border-2 border-dashed border-stone-200 bg-white p-12 text-center dark:border-line dark:bg-surface">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
             <Tractor className="h-8 w-8" />
           </div>
-          <h3 className="mt-4 text-lg font-bold text-stone-900 dark:text-stone-100">
+          <h3 className="mt-4 text-lg font-bold text-stone-900 dark:text-content">
             {t("myFarm.noFarmsTitle")}
           </h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-stone-600 dark:text-stone-400">
+          <p className="mx-auto mt-2 max-w-md text-sm text-stone-600 dark:text-muted">
             {t("myFarm.noFarmsDesc")}
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/my-farm/plan"
-              className="inline-flex items-center gap-2 rounded-xl border border-forest-600 bg-white px-5 py-2.5 text-sm font-semibold text-forest-700 shadow-xs transition hover:bg-forest-50 dark:border-forest-500/50 dark:bg-stone-900 dark:text-forest-400 dark:hover:bg-forest-950/40"
+              className="inline-flex items-center justify-center rounded-xl border border-forest-600 bg-white px-5 py-2.5 text-sm font-semibold text-forest-700 shadow-xs transition hover:bg-forest-50 dark:border-forest-500/50 dark:bg-surface dark:text-forest-400 dark:hover:bg-forest-950/40"
             >
-              <Sparkles className="h-4 w-4" />
               {t("myFarm.planning.planWithAi") || "Plan a Crop with AI"}
             </Link>
             <Link
@@ -496,16 +493,16 @@ export default function MyFarmPage() {
           {farms.map((farm) => (
             <div
               key={farm._id}
-              className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
+              className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-line dark:bg-surface"
             >
               <div>
                 {/* Header: Name and status badge */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-bold text-stone-900 dark:text-stone-100">
+                    <h3 className="truncate text-lg font-bold text-stone-900 dark:text-content">
                       {farm.farmName}
                     </h3>
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-stone-500 dark:text-muted">
                       <MapPin className="h-3.5 w-3.5 shrink-0 text-forest-600 dark:text-forest-400" />
                       <span className="truncate">
                         {farm.location?.upazila}, {farm.location?.district}
@@ -517,40 +514,40 @@ export default function MyFarmPage() {
                 </div>
 
                 {/* Details Section */}
-                <div className="mt-5 space-y-3 rounded-xl bg-stone-50 p-4 dark:bg-stone-950/50">
+                <div className="mt-5 space-y-3 rounded-xl bg-stone-50 p-4 dark:bg-bg">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-stone-500 dark:text-stone-400">
+                    <span className="text-stone-500 dark:text-muted">
                       {t("myFarm.fields.cropCode")}:
                     </span>
-                    <span className="font-semibold text-stone-900 dark:text-stone-100">
+                    <span className="font-semibold text-stone-900 dark:text-content">
                       {farm.crop?.cropName}
                       {farm.crop?.variety ? ` (${farm.crop.variety})` : ""}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-stone-500 dark:text-stone-400">
+                    <span className="text-stone-500 dark:text-muted">
                       {t("myFarm.fields.landArea")}:
                     </span>
-                    <span className="font-semibold text-stone-900 dark:text-stone-100">
+                    <span className="font-semibold text-stone-900 dark:text-content">
                       {farm.land?.area} {farm.land?.unit}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-stone-500 dark:text-stone-400">
+                    <span className="text-stone-500 dark:text-muted">
                       {t("myFarm.fields.plantingDate")}:
                     </span>
-                    <span className="font-medium text-stone-700 dark:text-stone-300">
+                    <span className="font-medium text-stone-700 dark:text-muted">
                       {farm.crop?.plantingDate}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-stone-500 dark:text-stone-400">
+                    <span className="text-stone-500 dark:text-muted">
                       {t("myFarm.fields.irrigationAvailability")}:
                     </span>
-                    <span className="capitalize text-stone-700 dark:text-stone-300">
+                    <span className="capitalize text-stone-700 dark:text-muted">
                       {farm.water?.irrigationAvailability}
                     </span>
                   </div>
@@ -558,7 +555,7 @@ export default function MyFarmPage() {
               </div>
 
               {/* Card Footer Actions */}
-              <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4 dark:border-stone-800">
+              <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4 dark:border-line">
                 <Link
                   href={`/my-farm/${farm._id}`}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-700 transition hover:text-forest-800 dark:text-forest-400 dark:hover:text-forest-300"
@@ -570,7 +567,7 @@ export default function MyFarmPage() {
                 <div className="flex items-center gap-1">
                   <Link
                     href={`/my-farm/${farm._id}/edit`}
-                    className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+                    className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 dark:text-muted dark:hover:bg-surface-2 dark:hover:text-stone-200"
                     title={t("myFarm.editFarm")}
                   >
                     <Edit3 className="h-4 w-4" />

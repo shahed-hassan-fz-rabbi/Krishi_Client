@@ -8,6 +8,7 @@ import {
   Marker,
   Popup,
   Circle,
+  CircleMarker,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -85,6 +86,7 @@ export default function DistrictGisMap({
   layersData,
   activeLayers = {
     boundary: true,
+    gpm: true,
     smap: true,
     modis: true,
     climate: true,
@@ -146,6 +148,8 @@ export default function DistrictGisMap({
 
   const climateLoc = sensors?.climate?.location;
   const climatePos = climateLoc ? [climateLoc.latitude, climateLoc.longitude] : null;
+  const gpm = sensors?.precipitation;
+  const gpmPos = gpm?.location ? [gpm.location.latitude, gpm.location.longitude] : null;
 
   return (
     <div className="relative h-[620px] w-full overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
@@ -277,13 +281,26 @@ export default function DistrictGisMap({
                 <div className="text-ink-muted">
                   <strong>{isBn ? "সময়মান:" : "Time Standard:"}</strong> LST (Local Solar Time)
                 </div>
+                {Object.keys(sensors.climate.observations || {}).length > 0 && <div className="border-t pt-1 text-[11px] text-ink-muted">
+                  {Object.entries(sensors.climate.observations).map(([key, item]) => <div key={key}>{key}: {item.value} {item.unit} · {isBn ? "পর্যবেক্ষণ" : "observed"} {item.observationDate}</div>)}
+                </div>}
                 <div className="text-[11px] text-ink-muted/90 bg-surface-2 p-1.5 rounded mt-1">
-                  {sensors.climate.description}
+                  {sensors.climate.limitation || sensors.climate.description}
                 </div>
               </div>
             </Popup>
           </Marker>
         )}
+
+        {activeLayers.gpm && gpmPos && gpm && <CircleMarker center={gpmPos} radius={10} pathOptions={{ color: "#075985", weight: 2, fillColor: "#38bdf8", fillOpacity: 0.8 }}>
+          <Popup className="km-gis-popup"><div className="p-1 space-y-1.5 text-xs">
+            <div className="font-bold text-sm border-b pb-1">NASA GPM IMERG Final V07</div>
+            <div>{isBn ? "পর্যবেক্ষণের তারিখ:" : "Observation date:"} {gpm.observation.dailySummary.dateLabel}</div>
+            <div>{isBn ? "দৈনিক বৃষ্টিপাত:" : "Daily rainfall:"} {gpm.observation.dailySummary.completeness === "complete" ? `${gpm.observation.dailySummary.totalPrecipitationMm} mm` : (isBn ? "উপলব্ধ নয় — অসম্পূর্ণ দিন" : "Unavailable — incomplete day")}</div>
+            <div>{gpm.observation.dailySummary.validIntervals}/48 {isBn ? "বৈধ অর্ধঘণ্টা ব্যবধান" : "valid half-hour intervals"} · {gpm.nativeResolution}</div>
+            <div className="border-t pt-1 text-[10px] text-ink-muted">{gpm.spatialDisclosure}</div>
+          </div></Popup>
+        </CircleMarker>}
 
         {/* NASA SMAP Soil Moisture Observation Pin */}
         {activeLayers.smap && smapPos && smapObs && (
@@ -377,6 +394,10 @@ export default function DistrictGisMap({
           <div className="flex items-center gap-2">
             <span className="inline-block h-3 w-3 rounded-full bg-[#2878c8] border border-white"></span>
             <span>NASA POWER Climate Reference</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full bg-[#2f8fd3] border border-white"></span>
+            <span>GPM IMERG precipitation grid</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="inline-block h-2 w-5 rounded border border-amber-500 border-dashed bg-amber-400/10"></span>

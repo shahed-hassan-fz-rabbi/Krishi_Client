@@ -7,6 +7,7 @@ import {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
+  Bot,
   Calendar,
   CheckCircle2,
   ChevronRight,
@@ -305,10 +306,10 @@ function FarmDetailsContent() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-10 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
+        <div className="h-10 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-surface-2" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-900" />
-          <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-900" />
+          <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
+          <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
         </div>
       </div>
     );
@@ -323,7 +324,7 @@ function FarmDetailsContent() {
         <div className="mt-4">
           <Link
             href="/my-farm"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-stone-800 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-900 dark:bg-stone-700 dark:hover:bg-stone-600"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-stone-800 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-900 dark:bg-surface-2 dark:hover:bg-surface"
           >
             <ArrowLeft className="h-4 w-4" />
             {t("myFarm.backToList")}
@@ -345,14 +346,14 @@ function FarmDetailsContent() {
           <div className="flex items-center gap-2">
             <Link
               href="/my-farm"
-              className="inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
+              className="inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-800 dark:text-muted dark:hover:text-stone-200"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               {t("myFarm.backToList")}
             </Link>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+            <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
               {farm.farmName}
             </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
@@ -360,7 +361,7 @@ function FarmDetailsContent() {
               {t(`myFarm.status.${farm.status}`) || farm.status}
             </span>
           </div>
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-stone-500 dark:text-muted">
             <MapPin className="h-3.5 w-3.5 text-forest-600 dark:text-forest-400" />
             {farm.location?.upazila}, {farm.location?.district}
             {farm.location?.village ? ` • ${farm.location.village}` : ""}
@@ -377,7 +378,7 @@ function FarmDetailsContent() {
           </Link>
           <Link
             href={`/my-farm/${farm._id}/edit`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 dark:border-line dark:bg-surface-2 dark:text-muted dark:hover:bg-surface-2"
           >
             <Edit3 className="h-3.5 w-3.5" />
             {t("myFarm.editFarm")}
@@ -396,45 +397,45 @@ function FarmDetailsContent() {
       {/* Grid: Land/Location & Soil/Water */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Land & Location */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-          <div className="flex items-center gap-2 border-b border-stone-100 pb-3 dark:border-stone-800">
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+          <div className="flex items-center gap-2 border-b border-stone-100 pb-3 dark:border-line">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
               <Layers className="h-4 w-4" />
             </div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-stone-900 dark:text-content">
               {t("myFarm.details.locationLand")}
             </h2>
           </div>
 
           <div className="mt-4 space-y-3 text-xs">
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.landArea")}</span>
-              <span className="font-bold text-stone-900 dark:text-stone-100">
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.landArea")}</span>
+              <span className="font-bold text-stone-900 dark:text-content">
                 {farm.land?.area} {farm.land?.unit}
               </span>
             </div>
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.landType")}</span>
-              <span className="capitalize font-medium text-stone-900 dark:text-stone-100">
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.landType")}</span>
+              <span className="capitalize font-medium text-stone-900 dark:text-content">
                 {farm.land?.landType?.replace("_", " ")}
               </span>
             </div>
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.district")}</span>
-              <span className="font-medium text-stone-900 dark:text-stone-100">
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.district")}</span>
+              <span className="font-medium text-stone-900 dark:text-content">
                 {farm.location?.district} ({farm.location?.districtCode})
               </span>
             </div>
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.upazila")}</span>
-              <span className="font-medium text-stone-900 dark:text-stone-100">
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.upazila")}</span>
+              <span className="font-medium text-stone-900 dark:text-content">
                 {farm.location?.upazila}
               </span>
             </div>
             {farm.location?.village && (
               <div className="flex justify-between py-1">
-                <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.village")}</span>
-                <span className="font-medium text-stone-900 dark:text-stone-100">
+                <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.village")}</span>
+                <span className="font-medium text-stone-900 dark:text-content">
                   {farm.location?.village}
                 </span>
               </div>
@@ -443,38 +444,38 @@ function FarmDetailsContent() {
         </div>
 
         {/* Soil & Water Profile */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-          <div className="flex items-center gap-2 border-b border-stone-100 pb-3 dark:border-stone-800">
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+          <div className="flex items-center gap-2 border-b border-stone-100 pb-3 dark:border-line">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
               <Droplets className="h-4 w-4" />
             </div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-stone-900 dark:text-content">
               {t("myFarm.details.soilWater")}
             </h2>
           </div>
 
           <div className="mt-4 space-y-3 text-xs">
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.soilType")}</span>
-              <span className="capitalize font-medium text-stone-900 dark:text-stone-100">
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.soilType")}</span>
+              <span className="capitalize font-medium text-stone-900 dark:text-content">
                 {farm.soil?.type}
               </span>
             </div>
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.drainage")}</span>
-              <span className="capitalize font-medium text-stone-900 dark:text-stone-100">
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.drainage")}</span>
+              <span className="capitalize font-medium text-stone-900 dark:text-content">
                 {farm.soil?.drainage}
               </span>
             </div>
-            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-stone-800/50">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.irrigationAvailability")}</span>
+            <div className="flex justify-between py-1 border-b border-stone-50 dark:border-line">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.irrigationAvailability")}</span>
               <span className="capitalize font-bold text-emerald-700 dark:text-emerald-400">
                 {farm.water?.irrigationAvailability}
               </span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-stone-500 dark:text-stone-400">{t("myFarm.fields.waterSource")}</span>
-              <span className="font-medium text-stone-900 dark:text-stone-100">
+              <span className="text-stone-500 dark:text-muted">{t("myFarm.fields.waterSource")}</span>
+              <span className="font-medium text-stone-900 dark:text-content">
                 {farm.water?.waterSource || "None recorded"}
               </span>
             </div>
@@ -483,17 +484,17 @@ function FarmDetailsContent() {
       </div>
 
       {/* PHASE 9.2: CROP LIFECYCLE ENGINE TIMELINE */}
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-stone-800">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-700 text-white dark:bg-forest-600">
               <CalendarRange className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
+              <h2 className="text-base font-bold text-stone-900 dark:text-content">
                 {t("myFarm.lifecycle.title")}
               </h2>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
+              <p className="text-xs text-stone-500 dark:text-muted">
                 {t("myFarm.lifecycle.subtitle")}
               </p>
             </div>
@@ -511,7 +512,7 @@ function FarmDetailsContent() {
                 });
                 setShowCreateModal(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-forest-600 bg-white px-3 py-1.5 text-xs font-semibold text-forest-700 shadow-xs hover:bg-forest-50 dark:border-forest-500/50 dark:bg-stone-800 dark:text-forest-400 dark:hover:bg-forest-950/40"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-forest-600 bg-white px-3 py-1.5 text-xs font-semibold text-forest-700 shadow-xs hover:bg-forest-50 dark:border-forest-500/50 dark:bg-surface-2 dark:text-forest-400 dark:hover:bg-forest-950/40"
             >
               <Plus className="h-3.5 w-3.5" />
               {t("myFarm.activities.addCustomActivity") || "Add Custom Task"}
@@ -519,7 +520,7 @@ function FarmDetailsContent() {
             <button
               onClick={handleGenerateTasks}
               disabled={generatingTasks}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 disabled:opacity-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 disabled:opacity-50 dark:border-line dark:bg-surface-2 dark:text-muted dark:hover:bg-surface-2"
             >
               <ListTodo className="h-3.5 w-3.5" />
               {generatingTasks
@@ -529,7 +530,7 @@ function FarmDetailsContent() {
             <button
               onClick={handleRefreshLifecycle}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 disabled:opacity-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 disabled:opacity-50 dark:border-line dark:bg-surface-2 dark:text-muted dark:hover:bg-surface-2"
             >
               <RotateCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
               {refreshing ? t("myFarm.lifecycle.refreshing") : t("myFarm.lifecycle.refreshButton")}
@@ -541,19 +542,19 @@ function FarmDetailsContent() {
         {overview && (
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {/* KPI 1: Days Since Planting */}
-            <div className="rounded-xl border border-stone-200/80 bg-stone-50/70 p-4 dark:border-stone-800 dark:bg-stone-950/40">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+            <div className="rounded-xl border border-stone-200/80 bg-stone-50/70 p-4 dark:border-line dark:bg-bg">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.lifecycle.daysSincePlanting")}
               </span>
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
+                <span className="text-2xl font-bold text-stone-900 dark:text-content">
                   {overview.daysSincePlanting !== null ? overview.daysSincePlanting : "—"}
                 </span>
-                <span className="text-xs text-stone-500 dark:text-stone-400">
+                <span className="text-xs text-stone-500 dark:text-muted">
                   / {overview.totalDurationDays} {lang === "bn" ? "দিন" : "days"}
                 </span>
               </div>
-              <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+              <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                 {lang === "bn" ? "রোপণ তারিখ:" : "Planting:"} {farm.crop?.plantingDate || "None"}
               </p>
             </div>
@@ -592,12 +593,12 @@ function FarmDetailsContent() {
             </div>
 
             {/* KPI 3: Next Estimated Stage */}
-            <div className="rounded-xl border border-stone-200/80 bg-stone-50/70 p-4 dark:border-stone-800 dark:bg-stone-950/40">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+            <div className="rounded-xl border border-stone-200/80 bg-stone-50/70 p-4 dark:border-line dark:bg-bg">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.lifecycle.nextStage")}
               </span>
               <div className="mt-1">
-                <span className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                <span className="text-sm font-bold text-stone-900 dark:text-content">
                   {overview.nextStage
                     ? lang === "bn"
                       ? overview.nextStage.stageNameBn
@@ -641,8 +642,8 @@ function FarmDetailsContent() {
                       isCurr
                         ? "border-emerald-600 bg-emerald-500 text-white shadow-md shadow-emerald-500/20 animate-pulse"
                         : isDone
-                        ? "border-emerald-600 bg-white text-emerald-600 dark:bg-stone-900 dark:text-emerald-400"
-                        : "border-stone-300 bg-white text-stone-400 dark:border-stone-700 dark:bg-stone-900"
+                        ? "border-emerald-600 bg-white text-emerald-600 dark:bg-surface dark:text-emerald-400"
+                        : "border-stone-300 bg-white text-stone-400 dark:border-line dark:bg-surface"
                     }`}
                   >
                     {isDone ? (
@@ -657,12 +658,12 @@ function FarmDetailsContent() {
                     className={`flex-1 rounded-xl border p-4 transition ${
                       isCurr
                         ? "border-emerald-500 bg-emerald-50/30 shadow-xs ring-1 ring-emerald-500/20 dark:border-emerald-600 dark:bg-emerald-950/20"
-                        : "border-stone-200 bg-stone-50/30 dark:border-stone-800 dark:bg-stone-950/30"
+                        : "border-stone-200 bg-stone-50/30 dark:border-line dark:bg-bg"
                     }`}
                   >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+                        <h3 className="text-sm font-bold text-stone-900 dark:text-content">
                           {lang === "bn" ? stg.stageNameBn : stg.stageNameEn}
                         </h3>
                         {/* Status Badge */}
@@ -672,36 +673,36 @@ function FarmDetailsContent() {
                             {t("myFarm.lifecycle.statusBadge.current")}
                           </span>
                         ) : isDone ? (
-                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-surface-2 dark:text-muted">
                             {t("myFarm.lifecycle.statusBadge.completed")}
                           </span>
                         ) : (
-                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-500 dark:bg-stone-800 dark:text-stone-400">
+                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-500 dark:bg-surface-2 dark:text-muted">
                             {t("myFarm.lifecycle.statusBadge.upcoming")}
                           </span>
                         )}
                       </div>
 
                       {/* Estimated Dates */}
-                      <div className="text-xs font-medium text-stone-600 dark:text-stone-400">
+                      <div className="text-xs font-medium text-stone-600 dark:text-muted">
                         {stg.estimatedStartDate && stg.estimatedEndDate ? (
                           <span>
                             {stg.estimatedStartDate} — {stg.estimatedEndDate}{" "}
                             <span className="text-[11px] text-stone-400">({stg.durationDays}d)</span>
                           </span>
                         ) : (
-                          <span className="italic">{t("myFarm.lifecycle.statusBadge.unknown")}</span>
+                          <span>{t("myFarm.lifecycle.statusBadge.unknown")}</span>
                         )}
                       </div>
                     </div>
 
                     {/* Meteorological Hazards & Agronomic Guidance */}
                     {stg.weatherHazards && (
-                      <div className="mt-3 rounded-lg border border-stone-200/60 bg-white p-3 text-xs dark:border-stone-800 dark:bg-stone-900">
-                        <span className="font-semibold text-stone-700 dark:text-stone-300">
+                      <div className="mt-3 rounded-lg border border-stone-200/60 bg-white p-3 text-xs dark:border-line dark:bg-surface">
+                        <span className="font-semibold text-stone-700 dark:text-muted">
                           {t("myFarm.lifecycle.hazardsTitle")}:
                         </span>
-                        <p className="mt-0.5 text-stone-600 dark:text-stone-400">
+                        <p className="mt-0.5 text-stone-600 dark:text-muted">
                           {stg.weatherHazards}
                         </p>
                       </div>
@@ -709,14 +710,14 @@ function FarmDetailsContent() {
 
                     {/* Stage Metrics Grid */}
                     <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-                      <div className="flex items-center gap-1.5 text-stone-600 dark:text-stone-400">
+                      <div className="flex items-center gap-1.5 text-stone-600 dark:text-muted">
                         <Droplets className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                         <span>
                           {t("myFarm.lifecycle.waterTitle")}:{" "}
                           <strong>{stg.waterRequirementMm} mm</strong>
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-stone-600 dark:text-stone-400">
+                      <div className="flex items-center gap-1.5 text-stone-600 dark:text-muted">
                         <Calendar className="h-3.5 w-3.5 text-forest-600 dark:text-forest-400" />
                         <span>
                           {lang === "bn" ? "মেট সপ্তাহ:" : "Met Weeks:"}{" "}
@@ -736,7 +737,7 @@ function FarmDetailsContent() {
                           a.status !== "SKIPPED"
                       );
                       return (
-                        <div className="mt-4 border-t border-stone-200/70 pt-3 dark:border-stone-800">
+                        <div className="mt-4 border-t border-stone-200/70 pt-3 dark:border-line">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-forest-800 dark:text-forest-300 flex items-center gap-1">
                               <ListTodo className="h-3 w-3" />
@@ -752,12 +753,12 @@ function FarmDetailsContent() {
                               {stageActs.map((act) => (
                                 <div
                                   key={act._id}
-                                  className="rounded-lg border border-stone-200/80 bg-white p-3 shadow-2xs dark:border-stone-800 dark:bg-stone-900"
+                                  className="rounded-lg border border-stone-200/80 bg-white p-3 shadow-2xs dark:border-line dark:bg-surface"
                                 >
                                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div className="flex-1 min-w-0">
                                       <div className="flex flex-wrap items-center gap-1.5">
-                                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-surface-2 dark:text-muted">
                                           {t(`myFarm.activities.types.${act.activityType}`) || act.activityType}
                                         </span>
                                         {act.sourceType === "OFFICIAL_GUIDANCE" ? (
@@ -770,7 +771,7 @@ function FarmDetailsContent() {
                                           </span>
                                         )}
                                         <span className="text-[10px] text-stone-400 font-mono">
-                                          📅 {act.scheduledDate}
+                                          <Calendar className="mr-1 inline h-3 w-3" aria-hidden="true" />{act.scheduledDate}
                                         </span>
                                         {act.status === "IN_PROGRESS" && (
                                           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300 animate-pulse">
@@ -779,11 +780,11 @@ function FarmDetailsContent() {
                                         )}
                                       </div>
 
-                                      <h4 className="mt-1 text-xs font-semibold text-stone-900 dark:text-stone-100">
+                                      <h4 className="mt-1 text-xs font-semibold text-stone-900 dark:text-content">
                                         {act.title}
                                       </h4>
                                       {act.description && (
-                                        <p className="mt-0.5 text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+                                        <p className="mt-0.5 text-[11px] text-stone-600 dark:text-muted leading-relaxed">
                                           {act.description}
                                         </p>
                                       )}
@@ -812,7 +813,7 @@ function FarmDetailsContent() {
                                       <button
                                         onClick={() => handleQuickStatus(act, "SKIPPED")}
                                         title={t("myFarm.activities.actions.markSkipped") || "Mark Skipped"}
-                                        className="rounded-lg border border-stone-200 bg-white p-1 text-stone-500 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400"
+                                        className="rounded-lg border border-stone-200 bg-white p-1 text-stone-500 hover:bg-stone-100 dark:border-line dark:bg-surface dark:text-muted"
                                       >
                                         <SkipForward className="h-3 w-3" />
                                       </button>
@@ -823,7 +824,7 @@ function FarmDetailsContent() {
                                           setShowRescheduleModal(true);
                                         }}
                                         title={t("myFarm.activities.actions.reschedule") || "Reschedule"}
-                                        className="rounded-lg border border-stone-200 bg-white p-1 text-stone-500 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400"
+                                        className="rounded-lg border border-stone-200 bg-white p-1 text-stone-500 hover:bg-stone-100 dark:border-line dark:bg-surface dark:text-muted"
                                       >
                                         <Calendar className="h-3 w-3" />
                                       </button>
@@ -842,7 +843,7 @@ function FarmDetailsContent() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-[11px] text-stone-400 italic">
+                            <p className="text-[11px] text-stone-400">
                               {lang === "bn" ? "এই পর্যায়ে কোনো অপেক্ষমাণ কাজ নেই।" : "No pending activities for this stage."}
                             </p>
                           )}
@@ -855,7 +856,7 @@ function FarmDetailsContent() {
             })}
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-6 text-center text-xs text-stone-600 dark:border-stone-800 dark:bg-stone-950">
+          <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-6 text-center text-xs text-stone-600 dark:border-line dark:bg-bg">
             {t("myFarm.lifecycle.missingPlantingDate")}
           </div>
         )}
@@ -871,9 +872,9 @@ function FarmDetailsContent() {
           );
           if (unassigned.length === 0) return null;
           return (
-            <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-stone-950/30">
+            <div className="mt-8 rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-line dark:bg-bg">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-muted flex items-center gap-1.5">
                   <ListTodo className="h-3.5 w-3.5 text-forest-700" />
                   {lang === "bn" ? "অতিরিক্ত খামার কাজ" : "Additional Farm Tasks"}
                 </span>
@@ -885,18 +886,18 @@ function FarmDetailsContent() {
                 {unassigned.map((act) => (
                   <div
                     key={act._id}
-                    className="rounded-lg border border-stone-200/80 bg-white p-3 shadow-2xs dark:border-stone-800 dark:bg-stone-900 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+                    className="rounded-lg border border-stone-200/80 bg-white p-3 shadow-2xs dark:border-line dark:bg-surface flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
                           {t("myFarm.activities.sourceBadge.custom") || "Farmer Self-Reported"}
                         </span>
-                        <span className="text-[10px] text-stone-400 font-mono">📅 {act.scheduledDate}</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] text-stone-400 font-mono"><Calendar className="h-3 w-3" aria-hidden="true" />{act.scheduledDate}</span>
                       </div>
-                      <h4 className="mt-1 text-xs font-semibold text-stone-900 dark:text-stone-100">{act.title}</h4>
+                      <h4 className="mt-1 text-xs font-semibold text-stone-900 dark:text-content">{act.title}</h4>
                       {act.description && (
-                        <p className="mt-0.5 text-[11px] text-stone-600 dark:text-stone-400">{act.description}</p>
+                        <p className="mt-0.5 text-[11px] text-stone-600 dark:text-muted">{act.description}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -922,11 +923,11 @@ function FarmDetailsContent() {
         })()}
 
         {/* Activity History & Log Section */}
-        <div className="mt-8 border-t border-stone-200 pt-6 dark:border-stone-800">
+        <div className="mt-8 border-t border-stone-200 pt-6 dark:border-line">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <History className="h-4 w-4 text-forest-700 dark:text-forest-400" />
-              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
+              <h3 className="text-sm font-bold text-stone-900 dark:text-content">
                 {t("myFarm.activities.historyTitle") || "Activity History & Log"}
               </h3>
             </div>
@@ -940,7 +941,7 @@ function FarmDetailsContent() {
             const historyActs = activities.filter((a) => a.status === "COMPLETED" || a.status === "SKIPPED");
             if (historyActs.length === 0) {
               return (
-                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
+                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-line dark:text-muted">
                   {t("myFarm.activities.noHistory") || "No completed or skipped activities yet."}
                 </div>
               );
@@ -950,7 +951,7 @@ function FarmDetailsContent() {
                 {historyActs.map((act) => (
                   <div
                     key={act._id}
-                    className="rounded-xl border border-stone-200/70 bg-stone-50/40 p-3.5 transition dark:border-stone-800 dark:bg-stone-950/20"
+                    className="rounded-xl border border-stone-200/70 bg-stone-50/40 p-3.5 transition dark:border-line dark:bg-bg"
                   >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex-1">
@@ -961,11 +962,11 @@ function FarmDetailsContent() {
                               {t("myFarm.activities.taskStatus.completed") || "Completed"}
                             </span>
                           ) : (
-                            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+                            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-surface-2 dark:text-muted">
                               {t("myFarm.activities.taskStatus.skipped") || "Skipped"}
                             </span>
                           )}
-                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-surface-2 dark:text-muted">
                             {t(`myFarm.activities.types.${act.activityType}`) || act.activityType}
                           </span>
                           <span className="text-[10px] text-stone-400 font-mono">
@@ -973,12 +974,13 @@ function FarmDetailsContent() {
                           </span>
                           {act.completedAt && (
                             <span className="text-[10px] text-emerald-600 font-mono dark:text-emerald-400">
-                              ✓ {new Date(act.completedAt).toLocaleDateString()}
+                              <CheckCircle2 className="mr-1 inline h-3 w-3" aria-hidden="true" />
+                              {new Date(act.completedAt).toLocaleDateString()}
                             </span>
                           )}
                         </div>
 
-                        <h4 className="mt-1 text-xs font-semibold text-stone-900 dark:text-stone-100">
+                        <h4 className="mt-1 text-xs font-semibold text-stone-900 dark:text-content">
                           {act.title}
                         </h4>
                         {act.completionNote && (
@@ -1005,13 +1007,13 @@ function FarmDetailsContent() {
         </div>
 
         {/* Nutrients Integrity Notice */}
-        <div className="mt-6 border-t border-stone-100 pt-4 text-xs text-stone-500 dark:border-stone-800 dark:text-stone-400">
+        <div className="mt-6 border-t border-stone-100 pt-4 text-xs text-stone-500 dark:border-line dark:text-muted">
           <p className="flex items-start gap-1.5">
             <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
             <span>{t("myFarm.lifecycle.nutrientsNotice")}</span>
           </p>
           {lifecycle?.provenance && (
-            <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-500">
+            <p className="mt-1 text-[11px] text-stone-400 dark:text-muted">
               {t("myFarm.lifecycle.sourceLabel")}: {lifecycle.provenance.sourcePublisher} •{" "}
               {lifecycle.provenance.sourceDocumentTitle}
             </p>
@@ -1021,17 +1023,17 @@ function FarmDetailsContent() {
 
       {/* PHASE 9.4: NASA ENVIRONMENTAL INTELLIGENCE MODULE */}
       <div className="space-y-6">
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-stone-800">
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-700 text-white dark:bg-forest-600">
                 <Satellite className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h2 className="text-base font-bold text-stone-900 dark:text-content">
                   {t("myFarm.environment.title")}
                 </h2>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-stone-500 dark:text-muted">
                   {t("myFarm.environment.subtitle")}
                 </p>
               </div>
@@ -1039,7 +1041,7 @@ function FarmDetailsContent() {
 
             <div className="flex flex-wrap items-center gap-2">
               {environment?.rainfallAndClimate?.provenance && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-stone-100 px-2.5 py-1 text-[11px] font-semibold tracking-wider text-stone-800 dark:bg-stone-800 dark:text-stone-200">
+                <span className="inline-flex items-center gap-1 rounded-md bg-stone-100 px-2.5 py-1 text-[11px] font-semibold tracking-wider text-stone-800 dark:bg-surface-2 dark:text-content">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   {environment.rainfallAndClimate.provenance}
                 </span>
@@ -1053,7 +1055,7 @@ function FarmDetailsContent() {
           </div>
 
           {/* Regional Grid Proxy Disclosure */}
-          <div className="mt-3 flex items-start gap-2 rounded-xl bg-stone-50 p-3 text-xs text-stone-600 dark:bg-stone-950/40 dark:text-stone-400">
+          <div className="mt-3 flex items-start gap-2 rounded-xl bg-stone-50 p-3 text-xs text-stone-600 dark:bg-bg dark:text-muted">
             <Info className="h-4 w-4 shrink-0 text-stone-500 mt-0.5" />
             <p>
               <strong>{lang === "bn" ? "আঞ্চলিক গ্রিড প্রক্সি:" : "Regional Grid Resolution:"}</strong>{" "}
@@ -1063,10 +1065,10 @@ function FarmDetailsContent() {
 
           {envLoading ? (
             <div className="mt-6 space-y-4">
-              <div className="h-20 animate-pulse rounded-xl bg-stone-100 dark:bg-stone-800/40" />
+              <div className="h-20 animate-pulse rounded-xl bg-stone-100 dark:bg-surface-2" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-28 animate-pulse rounded-xl bg-stone-100 dark:bg-stone-800/40" />
+                  <div key={i} className="h-28 animate-pulse rounded-xl bg-stone-100 dark:bg-surface-2" />
                 ))}
               </div>
             </div>
@@ -1085,10 +1087,10 @@ function FarmDetailsContent() {
                       {t("myFarm.environment.sectionD")}
                     </h3>
                   </div>
-                  <p className="mt-2 text-xs leading-relaxed text-stone-800 dark:text-stone-200">
+                  <p className="mt-2 text-xs leading-relaxed text-stone-800 dark:text-content">
                     {lang === "bn" ? environment.summary.bn : environment.summary.en}
                   </p>
-                  <p className="mt-3 border-t border-forest-100/80 pt-2 text-[11px] text-stone-500 dark:border-forest-900/30 dark:text-stone-400">
+                  <p className="mt-3 border-t border-forest-100/80 pt-2 text-[11px] text-stone-500 dark:border-forest-900/30 dark:text-muted">
                     {t("myFarm.environment.consultOfficer")}
                   </p>
                 </div>
@@ -1096,11 +1098,11 @@ function FarmDetailsContent() {
 
               {/* LIFECYCLE-AWARE ENVIRONMENTAL SYNTHESIS */}
               {environment?.lifecycleContext?.highlights?.length > 0 && (
-                <div className="rounded-2xl border border-stone-200 bg-stone-50/70 p-5 dark:border-stone-800 dark:bg-stone-800/30">
-                  <div className="flex items-center justify-between border-b border-stone-200/60 pb-3 dark:border-stone-700/60">
+                <div className="rounded-2xl border border-stone-200 bg-stone-50/70 p-5 dark:border-line dark:bg-surface-2">
+                  <div className="flex items-center justify-between border-b border-stone-200/60 pb-3 dark:border-line">
                     <div className="flex items-center gap-2">
                       <CalendarRange className="h-4 w-4 text-forest-700 dark:text-forest-400" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-content">
                         {t("myFarm.environment.lifecycleIntegration")}
                       </h3>
                     </div>
@@ -1118,22 +1120,22 @@ function FarmDetailsContent() {
                     ).map((hl, i) => (
                       <div
                         key={i}
-                        className="rounded-xl border border-stone-200/80 bg-white p-3.5 shadow-2xs dark:border-stone-700 dark:bg-stone-900"
+                        className="rounded-xl border border-stone-200/80 bg-white p-3.5 shadow-2xs dark:border-line dark:bg-surface"
                       >
-                        <span className="text-[11px] font-bold text-stone-900 dark:text-stone-100">
+                        <span className="text-[11px] font-bold text-stone-900 dark:text-content">
                           {hl.metric}
                         </span>
-                        <p className="mt-1 text-xs text-stone-700 dark:text-stone-300">
+                        <p className="mt-1 text-xs text-stone-700 dark:text-muted">
                           {hl.observation}
                         </p>
-                        <p className="mt-1.5 text-[10px] text-stone-400 dark:text-stone-500">
+                        <p className="mt-1.5 text-[10px] text-stone-400 dark:text-muted">
                           {hl.caveat}
                         </p>
                       </div>
                     ))}
                   </div>
 
-                  <p className="mt-3 text-[11px] text-stone-500 dark:text-stone-400">
+                  <p className="mt-3 text-[11px] text-stone-500 dark:text-muted">
                     {lang === "bn"
                       ? environment.lifecycleContext.scientificAdvisoryBn
                       : environment.lifecycleContext.scientificAdvisory}
@@ -1144,14 +1146,14 @@ function FarmDetailsContent() {
               {/* SECTION A: RAINFALL & CLIMATE CONTEXT — NASA POWER */}
               {environment?.rainfallAndClimate && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-stone-100 pb-2 dark:border-stone-800">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-2 dark:border-line">
                     <div className="flex items-center gap-2">
                       <CloudRain className="h-4 w-4 text-sky-600 dark:text-sky-400" />
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-content">
                         {t("myFarm.environment.sectionA")}
                       </h3>
                     </div>
-                    <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                    <span className="text-[11px] text-stone-500 dark:text-muted">
                       {environment.rainfallAndClimate.observationPeriod}
                     </span>
                   </div>
@@ -1159,70 +1161,70 @@ function FarmDetailsContent() {
                   {/* 4 Parameter KPI Cards */}
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Rainfall */}
-                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-stone-950/40">
-                      <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-line dark:bg-bg">
+                      <span className="text-[11px] font-semibold text-stone-500 dark:text-muted">
                         {t("myFarm.environment.rainfall")}
                       </span>
                       <div className="mt-1 flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                          {environment.rainfallAndClimate.latestObservations?.rainfall?.value ?? "0.0"}
+                        <span className="text-2xl font-bold text-stone-900 dark:text-content">
+                          {environment.rainfallAndClimate.latestObservations?.rainfall?.value ?? "—"}
                         </span>
                         <span className="text-xs text-stone-500">
                           {environment.rainfallAndClimate.latestObservations?.rainfall?.unit || "mm/day"}
                         </span>
                       </div>
-                      <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                      <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                         {t("myFarm.environment.observedDate")}:{" "}
                         {environment.rainfallAndClimate.latestObservations?.rainfall?.dateLabel || "Latest archive"}
                       </p>
                     </div>
 
                     {/* Temperature */}
-                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-stone-950/40">
-                      <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-line dark:bg-bg">
+                      <span className="text-[11px] font-semibold text-stone-500 dark:text-muted">
                         {t("myFarm.environment.temperature")}
                       </span>
                       <div className="mt-1 flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                          {environment.rainfallAndClimate.latestObservations?.temperature?.t2m ?? "24.5"}
+                        <span className="text-2xl font-bold text-stone-900 dark:text-content">
+                          {environment.rainfallAndClimate.latestObservations?.temperature?.t2m ?? "—"}
                         </span>
                         <span className="text-xs text-stone-500">°C</span>
                       </div>
-                      <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                      <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                         Max: {environment.rainfallAndClimate.latestObservations?.temperature?.tmax ?? "N/A"}° | Min:{" "}
                         {environment.rainfallAndClimate.latestObservations?.temperature?.tmin ?? "N/A"}°
                       </p>
                     </div>
 
                     {/* Relative Humidity */}
-                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-stone-950/40">
-                      <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-line dark:bg-bg">
+                      <span className="text-[11px] font-semibold text-stone-500 dark:text-muted">
                         {t("myFarm.environment.relativeHumidity")}
                       </span>
                       <div className="mt-1 flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                          {environment.rainfallAndClimate.latestObservations?.relativeHumidity?.value ?? "78.5"}
+                        <span className="text-2xl font-bold text-stone-900 dark:text-content">
+                        {environment.rainfallAndClimate.latestObservations?.relativeHumidity?.value ?? "—"}
                         </span>
                         <span className="text-xs text-stone-500">%</span>
                       </div>
-                      <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                      <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                         {lang === "bn" ? "বার্ষিক গড়:" : "Annual Normal:"}{" "}
-                        {environment.rainfallAndClimate.annualSummary?.annualRhMeanPercent || "78.8"}%
+                        {environment.rainfallAndClimate.annualSummary?.annualRhMeanPercent ?? "—"}%
                       </p>
                     </div>
 
                     {/* Solar Radiation */}
-                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-stone-800 dark:bg-stone-950/40">
-                      <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
+                    <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 dark:border-line dark:bg-bg">
+                      <span className="text-[11px] font-semibold text-stone-500 dark:text-muted">
                         {t("myFarm.environment.solarRadiation")}
                       </span>
                       <div className="mt-1 flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                          {environment.rainfallAndClimate.latestObservations?.solarRadiation?.value ?? "16.2"}
+                        <span className="text-2xl font-bold text-stone-900 dark:text-content">
+                          {environment.rainfallAndClimate.latestObservations?.solarRadiation?.value ?? "—"}
                         </span>
                         <span className="text-xs text-stone-500">MJ/m²/day</span>
                       </div>
-                      <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                      <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                         {t("myFarm.environment.observedDate")}:{" "}
                         {environment.rainfallAndClimate.latestObservations?.solarRadiation?.dateLabel || "Latest archive"}
                       </p>
@@ -1231,9 +1233,9 @@ function FarmDetailsContent() {
 
                   {/* Recent Archived Daily Rainfall Bar Strip */}
                   {environment.rainfallAndClimate.recentRainfallTrend?.length > 0 && (
-                    <div className="rounded-xl border border-stone-200 bg-stone-50/40 p-4 dark:border-stone-800 dark:bg-stone-950/30">
-                      <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-400 mb-3">
-                        <span className="font-semibold text-stone-900 dark:text-stone-100">
+                    <div className="rounded-xl border border-stone-200 bg-stone-50/40 p-4 dark:border-line dark:bg-bg">
+                      <div className="flex items-center justify-between text-xs text-stone-600 dark:text-muted mb-3">
+                        <span className="font-semibold text-stone-900 dark:text-content">
                           {t("myFarm.environment.recentTrendTitle")}
                         </span>
                         <span className="text-[11px]">
@@ -1257,7 +1259,7 @@ function FarmDetailsContent() {
                                 className={`w-full rounded-t transition-all ${
                                   val > 0
                                     ? "bg-sky-500 dark:bg-sky-400"
-                                    : "bg-stone-200 dark:bg-stone-700"
+                                    : "bg-stone-200 dark:bg-surface-2"
                                 }`}
                                 title={`${d.dateLabel}: ${val} mm`}
                               />
@@ -1273,23 +1275,23 @@ function FarmDetailsContent() {
 
                   {/* 25-Year Historical Monthly Normals Strip */}
                   {environment.rainfallAndClimate.monthlyNormals?.length > 0 && (
-                    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs dark:border-stone-800 dark:bg-stone-900">
-                      <span className="block text-xs font-semibold text-stone-900 dark:text-stone-100 mb-3">
+                    <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs dark:border-line dark:bg-surface">
+                      <span className="block text-xs font-semibold text-stone-900 dark:text-content mb-3">
                         {t("myFarm.environment.monthlyNormalsTitle")}
                       </span>
                       <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5 text-center">
                         {environment.rainfallAndClimate.monthlyNormals.map((m) => (
                           <div
                             key={m.month}
-                            className="rounded-lg border border-stone-100 bg-stone-50/70 p-1.5 dark:border-stone-800 dark:bg-stone-800/40"
+                            className="rounded-lg border border-stone-100 bg-stone-50/70 p-1.5 dark:border-line dark:bg-surface-2"
                           >
-                            <span className="block text-[10px] font-bold text-stone-600 dark:text-stone-400">
+                            <span className="block text-[10px] font-bold text-stone-600 dark:text-muted">
                               {m.monthNameEn}
                             </span>
                             <span className="block text-[11px] font-bold text-sky-700 dark:text-sky-300 mt-0.5">
                               {m.rainfallMeanMm} mm
                             </span>
-                            <span className="block text-[10px] text-stone-500 dark:text-stone-400">
+                            <span className="block text-[10px] text-stone-500 dark:text-muted">
                               {m.temperatureMeanC}°C
                             </span>
                           </div>
@@ -1298,22 +1300,49 @@ function FarmDetailsContent() {
                     </div>
                   )}
 
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                  <p className="text-[11px] text-stone-500 dark:text-muted">
                     {t("myFarm.environment.griddedDisclaimer")}
                   </p>
                 </div>
+              )}
+
+              {environment?.precipitation && (
+                <section className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5 shadow-xs dark:border-sky-900 dark:bg-sky-950/20" aria-label="GPM rainfall context">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-stone-900 dark:text-content">{lang === "bn" ? "NASA GPM IMERG বৃষ্টিপাত" : "NASA GPM IMERG Precipitation"}</h3>
+                      <p className="mt-1 text-xs text-stone-600 dark:text-muted">{environment.precipitation.product} · {environment.precipitation.spatialResolution}</p>
+                    </div>
+                    <span className="rounded-full bg-sky-100 px-2.5 py-1 text-[10px] font-semibold text-sky-900 dark:bg-sky-900/50 dark:text-sky-200">{environment.precipitation.provenance || environment.precipitation.status}</span>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-sky-100 bg-white/80 p-3 dark:border-line dark:bg-surface">
+                      <span className="block text-[10px] text-stone-500 dark:text-muted">{lang === "bn" ? "বাংলাদেশ সময়ের পর্যবেক্ষণ দিন" : "Bangladesh-local observation day"}</span>
+                      <span className="mt-1 block font-mono text-sm font-bold text-stone-900 dark:text-content">{environment.precipitation.dailySummary?.dateLabel || "—"}</span>
+                    </div>
+                    <div className="rounded-xl border border-sky-100 bg-white/80 p-3 dark:border-line dark:bg-surface">
+                      <span className="block text-[10px] text-stone-500 dark:text-muted">{lang === "bn" ? "দৈনিক বৃষ্টিপাত" : "Daily precipitation"}</span>
+                      <span className="mt-1 block font-mono text-sm font-bold text-stone-900 dark:text-content">{environment.precipitation.dailySummary?.completeness === "complete" ? `${environment.precipitation.dailySummary.totalPrecipitationMm} mm` : (lang === "bn" ? "অসম্পূর্ণ — মোট দেখানো হয়নি" : "Incomplete — total withheld")}</span>
+                    </div>
+                    <div className="rounded-xl border border-sky-100 bg-white/80 p-3 dark:border-line dark:bg-surface">
+                      <span className="block text-[10px] text-stone-500 dark:text-muted">{lang === "bn" ? "বৈধ অর্ধঘণ্টা ব্যবধান" : "Valid half-hour intervals"}</span>
+                      <span className="mt-1 block font-mono text-sm font-bold text-stone-900 dark:text-content">{environment.precipitation.dailySummary?.validIntervals ?? 0}/48</span>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-[11px] text-stone-600 dark:text-muted">{environment.precipitation.limitations}</p>
+                </section>
               )}
 
               {/* SECTION B & C: SATELLITE SOIL MOISTURE (SMAP) & VEGETATION (MODIS) */}
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 {/* SECTION B: NASA SMAP */}
                 {environment?.soilMoisture && (
-                  <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
+                  <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
                     <div>
-                      <div className="flex items-center justify-between border-b border-stone-100 pb-2.5 dark:border-stone-800">
+                      <div className="flex items-center justify-between border-b border-stone-100 pb-2.5 dark:border-line">
                         <div className="flex items-center gap-2">
                           <Droplets className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-content">
                             {t("myFarm.environment.sectionB")}
                           </h3>
                         </div>
@@ -1323,40 +1352,40 @@ function FarmDetailsContent() {
                       </div>
 
                       <div className="mt-4 flex items-baseline gap-2">
-                        <span className="text-3xl font-extrabold text-stone-900 dark:text-stone-100">
+                        <span className="text-3xl font-extrabold text-stone-900 dark:text-content">
                           {environment.soilMoisture.soilMoisture ?? "0.4259"}
                         </span>
-                        <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
+                        <span className="text-xs font-medium text-stone-500 dark:text-muted">
                           {environment.soilMoisture.unit || "m³/m³"}
                         </span>
                       </div>
 
-                      <div className="mt-3 space-y-1.5 text-xs text-stone-600 dark:text-stone-300">
-                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-stone-800/50">
+                      <div className="mt-3 space-y-1.5 text-xs text-stone-600 dark:text-muted">
+                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-line">
                           <span className="text-stone-400">{t("myFarm.environment.observedDate")}</span>
-                          <span className="font-semibold text-stone-800 dark:text-stone-200">
+                          <span className="font-semibold text-stone-800 dark:text-content">
                             {environment.soilMoisture.observationDate} ({environment.soilMoisture.orbit} pass)
                           </span>
                         </div>
                         {environment.soilMoisture.surfaceTemperatureC !== null && (
-                          <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-stone-800/50">
+                          <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-line">
                             <span className="text-stone-400">
                               {lang === "bn" ? "মাটির তাপমাত্রা:" : "Skin Temp:"}
                             </span>
-                            <span className="font-semibold text-stone-800 dark:text-stone-200">
+                            <span className="font-semibold text-stone-800 dark:text-content">
                               {environment.soilMoisture.surfaceTemperatureC} °C
                             </span>
                           </div>
                         )}
-                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-stone-800/50">
+                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-line">
                           <span className="text-stone-400">{t("myFarm.environment.measurementDepth")}</span>
-                          <span className="font-medium text-stone-700 dark:text-stone-300">
+                          <span className="font-medium text-stone-700 dark:text-muted">
                             Top 0-5 cm topsoil
                           </span>
                         </div>
                         <div className="flex justify-between py-0.5">
                           <span className="text-stone-400">{t("myFarm.environment.spatialResolution")}</span>
-                          <span className="font-medium text-stone-700 dark:text-stone-300">
+                          <span className="font-medium text-stone-700 dark:text-muted">
                             9 km grid posting
                           </span>
                         </div>
@@ -1367,7 +1396,7 @@ function FarmDetailsContent() {
                       </p>
                     </div>
 
-                    <p className="mt-4 border-t border-stone-100 pt-3 text-[11px] text-stone-400 dark:border-stone-800 dark:text-stone-500">
+                    <p className="mt-4 border-t border-stone-100 pt-3 text-[11px] text-stone-400 dark:border-line dark:text-muted">
                       {t("myFarm.environment.smapDisclaimer")}
                     </p>
                   </div>
@@ -1375,12 +1404,12 @@ function FarmDetailsContent() {
 
                 {/* SECTION C: NASA MODIS */}
                 {environment?.vegetation && (
-                  <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
+                  <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
                     <div>
-                      <div className="flex items-center justify-between border-b border-stone-100 pb-2.5 dark:border-stone-800">
+                      <div className="flex items-center justify-between border-b border-stone-100 pb-2.5 dark:border-line">
                         <div className="flex items-center gap-2">
                           <Leaf className="h-4 w-4 text-forest-600 dark:text-forest-400" />
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-content">
                             {t("myFarm.environment.sectionC")}
                           </h3>
                         </div>
@@ -1391,7 +1420,7 @@ function FarmDetailsContent() {
 
                       <div className="mt-4 flex items-baseline gap-3">
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-3xl font-extrabold text-stone-900 dark:text-stone-100">
+                          <span className="text-3xl font-extrabold text-stone-900 dark:text-content">
                             {environment.vegetation.ndvi ?? "0.3323"}
                           </span>
                           <span className="text-xs font-medium text-stone-500">NDVI</span>
@@ -1403,22 +1432,22 @@ function FarmDetailsContent() {
                         )}
                       </div>
 
-                      <div className="mt-3 space-y-1.5 text-xs text-stone-600 dark:text-stone-300">
-                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-stone-800/50">
+                      <div className="mt-3 space-y-1.5 text-xs text-stone-600 dark:text-muted">
+                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-line">
                           <span className="text-stone-400">{t("myFarm.environment.observedDate")}</span>
-                          <span className="font-semibold text-stone-800 dark:text-stone-200">
+                          <span className="font-semibold text-stone-800 dark:text-content">
                             {environment.vegetation.observationDate} (16-day window)
                           </span>
                         </div>
-                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-stone-800/50">
+                        <div className="flex justify-between py-0.5 border-b border-stone-50 dark:border-line">
                           <span className="text-stone-400">{t("myFarm.environment.spatialResolution")}</span>
-                          <span className="font-medium text-stone-700 dark:text-stone-300">
+                          <span className="font-medium text-stone-700 dark:text-muted">
                             {environment.vegetation.spatialResolution || "250-meter pixel"}
                           </span>
                         </div>
                         <div className="flex justify-between py-0.5">
                           <span className="text-stone-400">{t("myFarm.environment.retrievalQuality")}</span>
-                          <span className="font-medium text-stone-700 dark:text-stone-300">
+                          <span className="font-medium text-stone-700 dark:text-muted">
                             Pixel Reliability: {environment.vegetation.quality?.pixelReliability ?? 0}
                           </span>
                         </div>
@@ -1429,7 +1458,7 @@ function FarmDetailsContent() {
                       </p>
                     </div>
 
-                    <p className="mt-4 border-t border-stone-100 pt-3 text-[11px] text-stone-400 dark:border-stone-800 dark:text-stone-500">
+                    <p className="mt-4 border-t border-stone-100 pt-3 text-[11px] text-stone-400 dark:border-line dark:text-muted">
                       {t("myFarm.environment.modisDisclaimer")}
                     </p>
                   </div>
@@ -1443,17 +1472,17 @@ function FarmDetailsContent() {
       {/* MODAL 1: ADD CUSTOM FARM ACTIVITY */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-surface border border-stone-200 dark:border-line">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-line">
               <div className="flex items-center gap-2">
                 <ListTodo className="h-5 w-5 text-forest-700 dark:text-forest-400" />
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-base font-bold text-stone-900 dark:text-content">
                   {t("myFarm.activities.modal.createTitle") || "Add Farm Activity"}
                 </h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
+                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-surface-2"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1461,7 +1490,7 @@ function FarmDetailsContent() {
 
             <form onSubmit={handleCreateCustom} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                   {t("myFarm.activities.modal.titleLabel") || "Task Title"} *
                 </label>
                 <input
@@ -1470,19 +1499,19 @@ function FarmDetailsContent() {
                   value={customForm.title}
                   onChange={(e) => setCustomForm((p) => ({ ...p, title: e.target.value }))}
                   placeholder={t("myFarm.activities.modal.titlePlaceholder") || "e.g., Weed clearing, Apply mulch"}
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                     {t("myFarm.activities.modal.typeLabel") || "Activity Type"}
                   </label>
                   <select
                     value={customForm.activityType}
                     onChange={(e) => setCustomForm((p) => ({ ...p, activityType: e.target.value }))}
-                    className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                    className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                   >
                     <option value="general_management">{t("myFarm.activities.types.general_management") || "General Management"}</option>
                     <option value="field_preparation">{t("myFarm.activities.types.field_preparation") || "Field Preparation"}</option>
@@ -1498,7 +1527,7 @@ function FarmDetailsContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                     {t("myFarm.activities.modal.dateLabel") || "Scheduled Date"} *
                   </label>
                   <input
@@ -1506,19 +1535,19 @@ function FarmDetailsContent() {
                     required
                     value={customForm.scheduledDate}
                     onChange={(e) => setCustomForm((p) => ({ ...p, scheduledDate: e.target.value }))}
-                    className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                    className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                   {t("myFarm.activities.modal.stageLabel") || "Related Growth Stage (Optional)"}
                 </label>
                 <select
                   value={customForm.relatedStageCode}
                   onChange={(e) => setCustomForm((p) => ({ ...p, relatedStageCode: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   <option value="">{lang === "bn" ? "কোনো নির্দিষ্ট পর্যায় নয় (সাধারণ কাজ)" : "None / General Farm Task"}</option>
                   {stages.map((stg) => (
@@ -1530,7 +1559,7 @@ function FarmDetailsContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                   {t("myFarm.activities.modal.descLabel") || "Description (Optional)"}
                 </label>
                 <textarea
@@ -1538,15 +1567,15 @@ function FarmDetailsContent() {
                   value={customForm.description}
                   onChange={(e) => setCustomForm((p) => ({ ...p, description: e.target.value }))}
                   placeholder={t("myFarm.activities.modal.descPlaceholder") || "Provide helpful notes or instructions"}
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100 dark:border-line">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300"
+                  className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-line dark:text-muted"
                 >
                   {t("myFarm.activities.modal.cancel") || "Cancel"}
                 </button>
@@ -1565,11 +1594,11 @@ function FarmDetailsContent() {
       {/* MODAL 2: COMPLETE ACTIVITY WITH OPTIONAL NOTE */}
       {showCompleteModal && selectedActivity && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-surface border border-stone-200 dark:border-line">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-line">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-base font-bold text-stone-900 dark:text-content">
                   {t("myFarm.activities.modal.completeTitle") || "Mark Activity as Completed"}
                 </h3>
               </div>
@@ -1578,18 +1607,18 @@ function FarmDetailsContent() {
                   setShowCompleteModal(false);
                   setSelectedActivity(null);
                 }}
-                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
+                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-surface-2"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="mt-3">
-              <p className="text-xs text-stone-600 dark:text-stone-300 font-medium">
+              <p className="text-xs text-stone-600 dark:text-muted font-medium">
                 {selectedActivity.title}
               </p>
               <div className="mt-3">
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                   {t("myFarm.activities.modal.completionNote") || "Completion Note (Optional)"}
                 </label>
                 <textarea
@@ -1597,19 +1626,19 @@ function FarmDetailsContent() {
                   value={completionNote}
                   onChange={(e) => setCompletionNote(e.target.value)}
                   placeholder={t("myFarm.activities.modal.notePlaceholder") || "Describe how the task went, inputs used, or field observations..."}
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-emerald-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-emerald-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                 />
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-end gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+            <div className="mt-4 flex items-center justify-end gap-2 pt-2 border-t border-stone-100 dark:border-line">
               <button
                 type="button"
                 onClick={() => {
                   setShowCompleteModal(false);
                   setSelectedActivity(null);
                 }}
-                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300"
+                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-line dark:text-muted"
               >
                 {t("myFarm.activities.modal.cancel") || "Cancel"}
               </button>
@@ -1628,11 +1657,11 @@ function FarmDetailsContent() {
       {/* MODAL 3: RESCHEDULE ACTIVITY */}
       {showRescheduleModal && selectedActivity && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-surface border border-stone-200 dark:border-line">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-line">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-forest-700 dark:text-forest-400" />
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-base font-bold text-stone-900 dark:text-content">
                   {t("myFarm.activities.modal.rescheduleTitle") || "Reschedule Activity"}
                 </h3>
               </div>
@@ -1641,18 +1670,18 @@ function FarmDetailsContent() {
                   setShowRescheduleModal(false);
                   setSelectedActivity(null);
                 }}
-                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800"
+                className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-surface-2"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="mt-3">
-              <p className="text-xs text-stone-600 dark:text-stone-300 font-medium">
+              <p className="text-xs text-stone-600 dark:text-muted font-medium">
                 {selectedActivity.title}
               </p>
               <div className="mt-3">
-                <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-muted">
                   {t("myFarm.activities.modal.newDate") || "New Scheduled Date"}
                 </label>
                 <input
@@ -1660,19 +1689,19 @@ function FarmDetailsContent() {
                   required
                   value={newScheduledDate}
                   onChange={(e) => setNewScheduledDate(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none dark:border-line dark:bg-surface-2 dark:text-content"
                 />
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-end gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+            <div className="mt-4 flex items-center justify-end gap-2 pt-2 border-t border-stone-100 dark:border-line">
               <button
                 type="button"
                 onClick={() => {
                   setShowRescheduleModal(false);
                   setSelectedActivity(null);
                 }}
-                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300"
+                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-line dark:text-muted"
               >
                 {t("myFarm.activities.modal.cancel") || "Cancel"}
               </button>
@@ -1696,10 +1725,10 @@ export default function FarmDetailsPage() {
     <Suspense
       fallback={
         <div className="space-y-6">
-          <div className="h-10 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
+          <div className="h-10 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-surface-2" />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-900" />
-            <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-900" />
+            <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
+            <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
           </div>
         </div>
       }

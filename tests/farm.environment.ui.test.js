@@ -3,6 +3,11 @@ import assert from "node:assert/strict";
 
 import { fetchFarmEnvironment } from "../services/api.js";
 import { translations } from "../lib/i18n/translations.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
 
 test("My Farm Environment: Client API Contracts & Translations Suite (Phase 9.4)", async (t) => {
   await t.test("fetchFarmEnvironment requests /farms/:id/environment with credentials", async () => {
@@ -100,5 +105,13 @@ test("My Farm Environment: Client API Contracts & Translations Suite (Phase 9.4)
     assert.ok(bnEnv.provenance?.snapshot);
     assert.ok(bnEnv.provenance?.cache);
     assert.ok(bnEnv.provenance?.unavailable);
+  });
+
+  await t.test("My Farm displays GPM completeness and never substitutes absent rainfall with zero", () => {
+    const page = fs.readFileSync(path.resolve(here, "../app/(app)/my-farm/[id]/page.js"), "utf8");
+    assert.match(page, /environment\?\.precipitation/);
+    assert.match(page, /validIntervals/);
+    assert.match(page, /Incomplete — total withheld/);
+    assert.doesNotMatch(page, /latestObservations\?\.rainfall\?\.value \?\? "0\.0"/);
   });
 });

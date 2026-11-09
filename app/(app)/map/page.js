@@ -14,6 +14,7 @@ import {
   Leaf,
   MapPin,
   RefreshCw,
+  CloudRain,
   ShieldAlert,
   ShieldCheck,
   Thermometer,
@@ -57,6 +58,7 @@ export default function MapPage() {
   // Layer toggles
   const [activeLayers, setActiveLayers] = useState({
     boundary: true,
+    gpm: true,
     smap: true,
     modis: true,
     climate: true,
@@ -190,6 +192,17 @@ export default function MapPage() {
 
         <button
           type="button"
+          onClick={() => toggleLayer("gpm")}
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
+            activeLayers.gpm ? "bg-sky-100 text-sky-800 border border-sky-300" : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+          }`}
+        >
+          <Check size={12} strokeWidth={2.5} className={activeLayers.gpm ? "opacity-100" : "opacity-0"} />
+          <CloudRain size={12} strokeWidth={2} />
+          {isBn ? "বৃষ্টিপাত (GPM)" : "Rainfall (GPM)"}
+        </button>
+        <button
+          type="button"
           onClick={() => toggleLayer("smap")}
           className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
             activeLayers.smap
@@ -258,7 +271,20 @@ export default function MapPage() {
       )}
 
       {/* Sensor Intelligence Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2"><CloudRain size={16} className="text-sky-700" /><h3 className="font-bold text-sm text-ink">{isBn ? "বৃষ্টিপাত (GPM IMERG)" : "Rainfall (GPM IMERG)"}</h3></div>
+          </CardHeader>
+          <CardBody className="space-y-2 text-xs">
+            {layersData?.sensors?.precipitation ? <>
+              <div className="text-lg font-bold text-ink">{layersData.sensors.precipitation.observation.dailySummary.completeness === "complete" ? `${layersData.sensors.precipitation.observation.dailySummary.totalPrecipitationMm} mm` : (isBn ? "সম্পূর্ণ দৈনিক মোট নেই" : "No complete daily total")}</div>
+              <div className="text-ink-muted">{isBn ? "পর্যবেক্ষণের তারিখ:" : "Observation date:"} {layersData.sensors.precipitation.observation.dailySummary.dateLabel} · {layersData.sensors.precipitation.observation.dailySummary.validIntervals}/48 {isBn ? "বৈধ" : "valid intervals"}</div>
+              <div className="text-ink-muted">{layersData.sensors.precipitation.nativeResolution}</div>
+              <p className="text-[11px] text-ink-muted">{layersData.sensors.precipitation.spatialDisclosure}</p>
+            </> : <p className="text-ink-muted">{isBn ? "GPM পর্যবেক্ষণ নেই" : "No GPM observations available"}</p>}
+          </CardBody>
+        </Card>
         {/* SMAP Soil Moisture Card */}
         <Card>
           <CardHeader>

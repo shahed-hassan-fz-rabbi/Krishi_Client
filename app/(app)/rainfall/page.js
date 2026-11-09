@@ -20,7 +20,7 @@ import { Table, TBody, TD, THead, TR } from "@/components/ui/Table.js";
 import { Tooltip } from "@/components/ui/Tooltip.js";
 import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
-import { fetchRainfall } from "@/services/api.js";
+import { fetchPrecipitationLatest, fetchRainfall } from "@/services/api.js";
 
 const MONTH_NAMES_EN = [
   "January", "February", "March", "April", "May", "June",
@@ -38,6 +38,7 @@ export default function RainfallPage() {
 
   const [monthlyData, setMonthlyData] = useState(null);
   const [seasonalData, setSeasonalData] = useState(null);
+  const [gpmData, setGpmData] = useState(null);
   const [metaData, setMetaData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -50,9 +51,10 @@ export default function RainfallPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [mRes, sRes] = await Promise.all([
+      const [mRes, sRes, gRes] = await Promise.all([
         fetchRainfall(districtCode, { grouping: "monthly" }),
         fetchRainfall(districtCode, { grouping: "seasonal" }),
+        fetchPrecipitationLatest(districtCode).catch(() => null),
       ]);
 
       if (latestDistrictRef.current !== districtCode) return;
@@ -67,6 +69,7 @@ export default function RainfallPage() {
       if (sRes.success && sRes.data) {
         setSeasonalData(sRes.data);
       }
+      setGpmData(gRes?.success && gRes.data ? { ...gRes.data, meta: gRes.meta } : null);
     } catch (err) {
       if (latestDistrictRef.current === districtCode) {
         setError(err.message || "Failed to load rainfall intelligence");
@@ -201,6 +204,18 @@ export default function RainfallPage() {
       )}
 
       {/* Monthly chart & Seasonal overview */}
+      <Card>
+        <CardHeader title={locale === "bn" ? "NASA GPM IMERG Final V07 পর্যবেক্ষণ" : "NASA GPM IMERG Final V07 Observation"}
+          description={locale === "bn" ? "অর্ধঘণ্টার স্যাটেলাইট বৃষ্টিপাত; দৈনিক মোট কেবল ৪৮/৪৮ বৈধ ব্যবধানে" : "Half-hourly satellite precipitation; daily total requires 48/48 valid intervals"} />
+        <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div><p className="text-xs text-muted">{locale === "bn" ? "পর্যবেক্ষণের দিন (UTC+6)" : "Observation day (UTC+6)"}</p><p className="font-mono font-semibold text-content">{gpmData?.latestDailySummary?.dateLabel || "—"}</p></div>
+          <div><p className="text-xs text-muted">{locale === "bn" ? "সম্পূর্ণ দৈনিক মোট" : "Complete daily total"}</p><p className="font-mono font-semibold text-content">{gpmData?.latestDailySummary?.completeness === "complete" && gpmData.latestDailySummary.validIntervals === 48 ? `${gpmData.latestDailySummary.totalPrecipitationMm} mm` : (locale === "bn" ? "অসম্পূর্ণ/অনুপস্থিত — মোট দেখানো হয়নি" : "Incomplete/unavailable — total withheld")}</p></div>
+          <div><p className="text-xs text-muted">{locale === "bn" ? "বৈধ ব্যবধান" : "Valid intervals"}</p><p className="font-mono font-semibold text-content">{gpmData?.latestDailySummary?.validIntervals ?? 0}/48</p></div>
+          <div><p className="text-xs text-muted">{locale === "bn" ? "সর্বশেষ ব্যবধান; পর্যবেক্ষণ সময়" : "Latest interval; observation time"}</p><p className="font-mono text-xs text-content">{gpmData?.latestInterval?.intervalStartUtc ? new Date(gpmData.latestInterval.intervalStartUtc).toISOString() : "—"}</p></div>
+          <p className="sm:col-span-2 lg:col-span-4 text-xs text-muted">{gpmData?.meta?.limitations?.join(" ") || "NASA GPM IMERG is a regional ~0.1° grid estimate, not a farm rain gauge. No offline GPM snapshot is configured."}</p>
+        </CardBody>
+      </Card>
+
       {!isLoading && monthlyData && (
         <>
           <section>

@@ -35,14 +35,14 @@ export function BottomNav() {
     >
       <ul className="mx-auto flex max-w-md items-stretch">
         {items.map(({ href, icon: Icon, key }) => {
-          const active = pathname === href;
+          const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <li key={href} className="flex-1">
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[10px] font-medium leading-tight transition-colors ${
-                  active ? "text-emerald" : "text-muted hover:text-content"
+                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-1 pb-1 pt-1.5 text-[10px] font-medium leading-tight transition-colors ${
+                  active ? "bg-forest text-white" : "text-muted hover:text-content"
                 }`}
               >
                 <Icon

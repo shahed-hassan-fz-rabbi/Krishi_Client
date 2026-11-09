@@ -26,7 +26,7 @@ import { Table, TBody, TD, THead, TR } from "@/components/ui/Table.js";
 import { Tooltip } from "@/components/ui/Tooltip.js";
 import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
-import { fetchClimateSummary } from "@/services/api.js";
+import { fetchClimateSummary, fetchEnvironmentalDataSources } from "@/services/api.js";
 
 const MONTH_NAMES_EN = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -52,7 +52,18 @@ export default function DashboardPage() {
   const [summaryDistrict, setSummaryDistrict] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [environmentalSources, setEnvironmentalSources] = useState([]);
   const latestDistrictRef = useRef(selectedDistrict);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchEnvironmentalDataSources()
+      .then((response) => {
+        if (mounted && Array.isArray(response?.data)) setEnvironmentalSources(response.data);
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   const loadDashboardData = useCallback(async (districtCode) => {
     latestDistrictRef.current = districtCode;
@@ -205,6 +216,22 @@ export default function DashboardPage() {
       ? currentDistrictObj?.nameBn || currentDistrictObj?.nameEn || "চট্টগ্রাম"
       : currentDistrictObj?.nameEn || "Chattogram";
 
+  const environmentalRow = (datasetKey, name, scope) => {
+    const source = environmentalSources.find((item) => item.datasetKey === datasetKey);
+    const isAvailable = source?.availability === "available";
+    const observedDates = source?.firstObservationDate && source?.lastObservationDate
+      ? `${source.firstObservationDate} – ${source.lastObservationDate}`
+      : null;
+    const countNote = isAvailable
+      ? `${Number(source.observationCount).toLocaleString()} ${locale === "bn" ? "পর্যবেক্ষণ" : "observations"}${observedDates ? ` · ${observedDates}` : ""}`
+      : source?.availability === "database_unavailable"
+        ? locale === "bn" ? "ডেটাবেস সংযোগ নেই" : "Database unavailable"
+        : source?.availability === "not_ingested"
+          ? locale === "bn" ? "সংরক্ষিত পর্যবেক্ষণ নেই" : "No observations stored"
+          : locale === "bn" ? "প্রাপ্যতা অজানা" : "Availability not loaded";
+    return { name, scope, status: source?.availability || "unavailable", note: countNote };
+  };
+
   const datasetRows = [
     {
       name: "NASA POWER — Agroclimatology Point Series (6 Parameters)",
@@ -214,24 +241,9 @@ export default function DashboardPage() {
         ? `${Number(metaData.valid_observations || 0).toLocaleString()} / ${Number(metaData.total_observations || 0).toLocaleString()} valid observations · ${metaData.coverage_percent ?? "—"}% coverage`
         : "—",
     },
-    {
-      name: "GPM IMERG V07 (Final Run)",
-      scope: "Daily high-resolution satellite precipitation",
-      status: "planned",
-      note: "Planned Phase 4",
-    },
-    {
-      name: "SMAP SPL3SMP_E V006",
-      scope: "Surface soil moisture (9 km gridded)",
-      status: "planned",
-      note: "Planned Phase 4",
-    },
-    {
-      name: "MODIS MOD13Q1.061",
-      scope: "NDVI / EVI vegetation health indices",
-      status: "planned",
-      note: "Planned Phase 4",
-    },
+    environmentalRow("nasa:gpm:imerg:3imerghh:v07", "GPM IMERG V07 (Final Run)", "Bangladesh UTC+06 daily precipitation; complete only with 48/48 valid intervals"),
+    environmentalRow("nasa:smap:spl3smp_e:v006", "SMAP SPL3SMP_E V006", "Surface soil moisture (9 km gridded); retrieval quality shown"),
+    environmentalRow("nasa:modis:mod13q1:v061", "MODIS MOD13Q1.061", "NDVI / EVI 16-day composites; marginal quality distinguished"),
   ];
 
   return (
@@ -490,12 +502,18 @@ export default function DashboardPage() {
                     </TD>
                     <TD className="text-muted">{d.scope}</TD>
                     <TD>
-                      <Badge tone={d.status === "configured" ? "neutral" : "purple"}>
-                        {d.status === "configured"
+                      <Badge tone={d.status === "available" || d.status === "configured" ? "neutral" : "purple"}>
+                        {d.status === "available"
+                          ? locale === "bn" ? "পর্যবেক্ষণ উপলভ্য" : "Historical observations available"
+                          : d.status === "configured"
                           ? locale === "bn"
                             ? "কনফিগার করা · ডেটা স্বাধীনভাবে যাচাই হয়নি"
                             : "Configured · data not independently verified"
-                          : t("dashboard.pendingUntil")}
+                          : d.status === "database_unavailable"
+                            ? locale === "bn" ? "ডেটাবেস সংযোগ নেই" : "Database unavailable"
+                            : d.status === "not_ingested"
+                              ? locale === "bn" ? "সংরক্ষিত পর্যবেক্ষণ নেই" : "No observations stored"
+                              : locale === "bn" ? "প্রাপ্যতা অজানা" : "Availability not loaded"}
                       </Badge>
                     </TD>
                   </TR>

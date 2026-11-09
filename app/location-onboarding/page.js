@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, Navigation, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { MapPin, Navigation, ArrowRight, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { BrandMark } from "@/components/layout/BrandMark.js";
 import { Button } from "@/components/ui/Button.js";
@@ -52,6 +52,16 @@ export default function LocationOnboardingPage() {
 
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 lg:py-12">
         <div className="w-full max-w-2xl">
+          <div className="mb-4">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-xs font-medium text-muted hover:text-emerald transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Dashboard</span>
+            </Link>
+          </div>
+
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald/10 px-3 py-1 text-xs font-medium text-emerald mb-3">
               <MapPin className="h-3.5 w-3.5" />

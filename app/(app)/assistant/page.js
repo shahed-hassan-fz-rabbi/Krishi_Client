@@ -1180,7 +1180,7 @@ function AssistantContent() {
                         {voiceLang === "bn-BD" ? "বাংলা (bn-BD)" : "English (en-US)"}
                       </span>
                     </div>
-                    <div className="text-xs text-content truncate mt-0.5 italic">
+                    <div className="text-xs text-content truncate mt-0.5">
                       {interimTranscript ? `“${interimTranscript}”` : t("assistant.voiceInterimPlaceholder")}
                     </div>
                   </div>
@@ -1370,7 +1370,7 @@ function AssistantContent() {
                 <h3 className="text-sm font-bold text-content">Important to Know</h3>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 leading-relaxed pl-1">
+              <ul className="space-y-2 text-xs text-muted leading-relaxed pl-1">
                 <li className="flex items-start gap-1.5">
                   <span className="text-muted leading-tight">•</span>
                   <span>এটি ঐতিহাসিক জলবায়ু তথ্যের ভিত্তিতে বিশ্লেষণ, ভবিষ্যৎ আবহাওয়ার পূর্বাভাস নয়।</span>

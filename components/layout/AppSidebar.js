@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,7 +20,6 @@ import {
   Plus,
   ScanLine,
   Settings,
-  Sparkles,
   Sprout,
   Tractor,
   Trash2,
@@ -63,7 +62,7 @@ function NavList({ onNavigate }) {
     <nav className="space-y-1 px-3 py-3" aria-label="Application">
       {appNav.map(({ href, key }) => {
         const Icon = icons[href] || ScanLine;
-        const active = pathname === href;
+        const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             key={href}
@@ -72,7 +71,7 @@ function NavList({ onNavigate }) {
             aria-current={active ? "page" : undefined}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
               active
-                ? "bg-sidebar-hover font-semibold text-white shadow-2xs"
+                ? "bg-white font-semibold text-forest shadow-sm ring-1 ring-white/15"
                 : "text-sidebar-text/80 hover:bg-sidebar-hover hover:text-white"
             }`}
           >
@@ -159,7 +158,7 @@ function SidebarInner({ onNavigate, showClose = false, onCloseMobile = null }) {
   };
 
   return (
-    <div className="flex h-full flex-col bg-sidebar text-sidebar-text">
+    <div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-text">
       {/* Brand Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-white/5">
         <BrandMark />
@@ -169,7 +168,7 @@ function SidebarInner({ onNavigate, showClose = false, onCloseMobile = null }) {
             <button
               type="button"
               onClick={onCloseMobile}
-              aria-label="Close menu"
+              aria-label={isBn ? "মেনু বন্ধ করুন" : "Close menu"}
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white/70 hover:bg-white/10 cursor-pointer"
             >
               <X className="h-4 w-4" />
@@ -179,7 +178,7 @@ function SidebarInner({ onNavigate, showClose = false, onCloseMobile = null }) {
       </div>
 
       {/* Scrollable Center: Navigation + Chat History */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
         <NavList onNavigate={onNavigate} />
 
         {/* Chat History Section */}
@@ -214,7 +213,7 @@ function SidebarInner({ onNavigate, showClose = false, onCloseMobile = null }) {
                   {isBn ? "লোড হচ্ছে..." : "Loading history..."}
                 </div>
               ) : conversations.length === 0 ? (
-                <div className="px-2 py-2 text-[11px] text-sidebar-muted/70 italic">
+                <div className="px-2 py-2 text-[11px] text-sidebar-muted/70">
                   {isBn ? "কোনো সংরক্ষিত আলোচনা নেই" : "No saved chats yet"}
                 </div>
               ) : (
@@ -271,20 +270,6 @@ function SidebarInner({ onNavigate, showClose = false, onCloseMobile = null }) {
         </div>
       </div>
 
-      {/* NASA Data badge card at bottom */}
-      <div className="px-3 pb-2 pt-1 border-t border-white/5">
-        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-emerald-950 via-emerald-900/60 to-emerald-950 p-2.5 shadow-2xs">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-              <Sparkles className="h-3.5 w-3.5" />
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-white">NASA Data Grounded</div>
-              <div className="text-[10px] text-emerald-200/80">POWER • SMAP • MODIS</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* User Profile & Account Footer */}
       <div className="border-t border-white/10 px-3 py-3">
@@ -350,8 +335,40 @@ export function AppSidebar() {
 
 /** Mobile top bar with hamburger overlay sidebar */
 export function MobileTopbar() {
-  const { t } = useLang();
+  const { t, locale } = useLang();
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef(null);
+  const drawerRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement;
+    const menuButton = menuButtonRef.current;
+    document.body.style.overflow = "hidden";
+    drawerRef.current?.querySelector('button[aria-label="Close menu"], button[aria-label="মেনু বন্ধ করুন"]')?.focus();
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Tab" && drawerRef.current) {
+        const focusable = [...drawerRef.current.querySelectorAll('a[href], button:not([disabled])')];
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+      (menuButton || previousFocus)?.focus?.();
+    };
+  }, [open]);
 
   return (
     <>
@@ -363,6 +380,7 @@ export function MobileTopbar() {
           <ThemeSwitcher />
           <button
             type="button"
+            ref={menuButtonRef}
             onClick={() => setOpen(true)}
             aria-label="Open menu"
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line text-content hover:bg-surface-hover cursor-pointer"
@@ -373,13 +391,13 @@ export function MobileTopbar() {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={locale === "bn" ? "নেভিগেশন মেনু" : "Navigation menu"}>
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute inset-y-0 left-0 w-72 shadow-xl">
+          <div ref={drawerRef} className="absolute inset-y-0 left-0 w-[min(18rem,calc(100vw-2.5rem))] shadow-xl">
             <SidebarInner
               showClose
               onNavigate={() => setOpen(false)}

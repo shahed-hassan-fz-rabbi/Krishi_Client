@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/voice.input.test.js tests/voice.output.test.js tests/auth.history.ui.test.js tests/map.offline.test.js tests/farm.ui.test.js tests/farm.lifecycle.ui.test.js tests/farm.planning.ui.test.js tests/farm.environment.ui.test.js tests/farm.activity.ui.test.js tests/farm.notification.ui.test.js"
+    "test": "node --test tests/voice.input.test.js tests/voice.output.test.js tests/auth.history.ui.test.js tests/map.offline.test.js tests/farm.ui.test.js tests/farm.lifecycle.ui.test.js tests/farm.planning.ui.test.js tests/farm.environment.ui.test.js tests/farm.activity.ui.test.js tests/farm.notification.ui.test.js tests/auth.location.test.js tests/auth.ui.alignment.test.js tests/theme.tokens.test.js tests/navigation.layout.test.js tests/global.icon.audit.test.js tests/home.page.audit.test.js tests/ticker.headlines.test.js"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

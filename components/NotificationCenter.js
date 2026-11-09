@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Bell,
+  ArrowRight,
   Check,
   CheckCheck,
   Clock,
@@ -310,7 +311,8 @@ export function NotificationCenter({ variant = "default" }) {
                             onClick={() => setIsOpen(false)}
                             className="font-medium text-primary hover:underline"
                           >
-                            {t("myFarm.notifications.viewFarm")} →
+                            {t("myFarm.notifications.viewFarm")}
+                            <ArrowRight className="ml-1 inline h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
                           </Link>
                         ) : null}
 

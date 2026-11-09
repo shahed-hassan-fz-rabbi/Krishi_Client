@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { resolveThemePreference } from "../lib/theme.js";
 
 const STORAGE_KEY = "km-theme";
 
@@ -10,9 +11,9 @@ const ThemeContext = createContext({ theme: "light", setTheme: () => {}, toggleT
  * Light/Dark theme provider.
  * - Initial appearance is applied pre-paint by the inline script in app/layout.js,
  *   so there is no flash of the wrong theme.
- * - The stored preference is ONLY written when the user actually changes the theme
- *   (never on mount) — otherwise a mount-time write would clobber the saved value
- *   under React Strict Mode's double-invoked effects.
+ * - The preference is only written when the user changes the theme.
+ * - The initial class is reconciled from storage once; it is not briefly removed
+ *   by an effect running with the default light state after the pre-paint script.
  */
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState("light");
@@ -21,22 +22,22 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "dark" || stored === "light")
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setThemeState(stored);
-      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) setThemeState("dark");
+      const nextTheme = resolveThemePreference(
+        stored,
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      );
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setThemeState(nextTheme);
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
     } catch {
       /* private mode — keep default */
     }
   }, []);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
-
   const setTheme = useCallback((next) => {
     const value = next === "dark" ? "dark" : "light";
     setThemeState(value);
+    document.documentElement.classList.toggle("dark", value === "dark");
     try {
       localStorage.setItem(STORAGE_KEY, value);
     } catch {

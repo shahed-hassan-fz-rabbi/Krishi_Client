@@ -341,7 +341,7 @@ export default function SoilMoisturePage() {
                         </TD>
                         <TD className="font-mono font-medium">
                           {row.soilMoisture !== null ? `${row.soilMoisture} m³/m³` : (
-                            <span className="text-ink-muted italic">Swath Gap (-9999.0)</span>
+                            <span className="text-ink-muted">Swath Gap (-9999.0)</span>
                           )}
                         </TD>
                         <TD>

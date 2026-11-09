@@ -24,7 +24,7 @@ const authLinks = [
 
 /** Public website header (landing). Not authentication — app is open-access for now. */
 export function PublicHeader() {
-  const { t } = useLang();
+  const { t, locale } = useLang();
   const { user, isAuthenticated, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -77,8 +77,14 @@ export function PublicHeader() {
 
         <button
           type="button"
+          aria-expanded={open}
+          aria-controls="public-mobile-navigation"
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface md:hidden"
-          aria-label={open ? "Close menu" : "Open menu"}
+          aria-label={
+            open
+              ? locale === "bn" ? "মেনু বন্ধ করুন" : "Close menu"
+              : locale === "bn" ? "মেনু খুলুন" : "Open menu"
+          }
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -87,7 +93,7 @@ export function PublicHeader() {
 
       {open ? (
         <div className="border-t border-line bg-surface px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-1" aria-label="Mobile">
+          <nav id="public-mobile-navigation" className="flex flex-col gap-1" aria-label="Mobile">
             {links.map((l) => (
               <Link
                 key={l.href}
@@ -145,7 +151,7 @@ export function PublicHeader() {
 export function PublicFooter() {
   const { t } = useLang();
   return (
-    <footer className="mt-20 bg-forest text-sidebar-text">
+    <footer className="bg-forest text-sidebar-text">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
@@ -186,22 +192,22 @@ export function PublicFooter() {
             <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.features")}</h3>
             <ul className="space-y-2 text-sm text-sidebar-muted">
               <li>
-                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                <Link href="/climate" className="hover:text-sidebar-text transition-colors">
                   {t("nav.climate")}
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                <Link href="/rainfall" className="hover:text-sidebar-text transition-colors">
                   {t("nav.rainfall")}
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                <Link href="/soil-moisture" className="hover:text-sidebar-text transition-colors">
                   {t("nav.soilMoisture")}
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
+                <Link href="/vegetation" className="hover:text-sidebar-text transition-colors">
                   {t("nav.vegetation")}
                 </Link>
               </li>
@@ -236,9 +242,9 @@ export function PublicFooter() {
           <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("landing.poweredByLabel")}</h3>
           <div className="grid gap-2 text-sm text-sidebar-muted sm:grid-cols-2 lg:grid-cols-4">
             <p>NASA POWER · Agroclimatology Daily</p>
-            <p>SMAP SPL3SMP_E · planned</p>
-            <p>GPM IMERG · planned</p>
-            <p>MODIS MOD13Q1 · planned</p>
+            <p>SMAP SPL3SMP_E · historical observations</p>
+            <p>GPM IMERG V07 · historical observations</p>
+            <p>MODIS MOD13Q1 · 16-day composites</p>
           </div>
         </div>
 

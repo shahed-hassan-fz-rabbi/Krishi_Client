@@ -162,8 +162,8 @@ function EditFarmContent() {
   if (loading) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 py-8">
-        <div className="h-8 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
-        <div className="h-96 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-900" />
+        <div className="h-8 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-surface-2" />
+        <div className="h-96 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
       </div>
     );
   }
@@ -190,7 +190,7 @@ function EditFarmContent() {
       <div className="flex items-center justify-between">
         <Link
           href={`/my-farm/${farmId}`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 transition hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 transition hover:text-stone-900 dark:text-muted dark:hover:text-stone-100"
         >
           <ArrowLeft className="h-4 w-4" />
           {t("myFarm.details.overview")}
@@ -198,10 +198,10 @@ function EditFarmContent() {
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
           {t("myFarm.editFarm")}
         </h1>
-        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+        <p className="mt-1 text-xs text-stone-500 dark:text-muted">
           {staticLocation.cropName} • {staticLocation.upazila}, {staticLocation.district}
         </p>
       </div>
@@ -213,37 +213,37 @@ function EditFarmContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-stone-800 dark:bg-stone-900">
+      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
         {/* Farm Name */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
             {t("myFarm.fields.farmName")} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.farmName}
             onChange={(e) => updateField("farmName", e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
           />
         </div>
 
         {/* Village */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
             {t("myFarm.fields.village")}
           </label>
           <input
             type="text"
             value={formData.village}
             onChange={(e) => updateField("village", e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
           />
         </div>
 
         {/* Land Area and Unit */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
               {t("myFarm.fields.landArea")} <span className="text-red-500">*</span>
             </label>
             <input
@@ -251,18 +251,18 @@ function EditFarmContent() {
               step="0.1"
               value={formData.area}
               onChange={(e) => updateField("area", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
               {t("myFarm.fields.landUnit")}
             </label>
             <select
               value={formData.unit}
               onChange={(e) => updateField("unit", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
             >
               {LAND_UNITS.map((u) => (
                 <option key={u.code} value={u.code}>
@@ -276,13 +276,13 @@ function EditFarmContent() {
         {/* Irrigation and Water */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
               {t("myFarm.fields.irrigationAvailability")}
             </label>
             <select
               value={formData.irrigationAvailability}
               onChange={(e) => updateField("irrigationAvailability", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
             >
               <option value="available">Available</option>
               <option value="limited">Limited</option>
@@ -291,14 +291,14 @@ function EditFarmContent() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
               {t("myFarm.fields.waterSource")}
             </label>
             <input
               type="text"
               value={formData.waterSource}
               onChange={(e) => updateField("waterSource", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
             />
           </div>
         </div>
@@ -306,39 +306,39 @@ function EditFarmContent() {
         {/* Variety and Planting Date */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
               {t("myFarm.fields.variety")}
             </label>
             <input
               type="text"
               value={formData.variety}
               onChange={(e) => updateField("variety", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
               {t("myFarm.fields.plantingDate")}
             </label>
             <input
               type="date"
               value={formData.plantingDate}
               onChange={(e) => updateField("plantingDate", e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+              className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
             />
           </div>
         </div>
 
         {/* Status */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
             Status
           </label>
           <select
             value={formData.status}
             onChange={(e) => updateField("status", e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
           >
             <option value="active">Active</option>
             <option value="harvested">Harvested</option>
@@ -349,22 +349,22 @@ function EditFarmContent() {
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
             {t("myFarm.fields.notes")}
           </label>
           <textarea
             rows={3}
             value={formData.notes}
             onChange={(e) => updateField("notes", e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 border-t border-stone-100 pt-4 dark:border-stone-800">
+        <div className="flex items-center justify-end gap-3 border-t border-stone-100 pt-4 dark:border-line">
           <Link
             href={`/my-farm/${farmId}`}
-            className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+            className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-line dark:bg-surface-2 dark:text-muted dark:hover:bg-surface-2"
           >
             Cancel
           </Link>
@@ -391,8 +391,8 @@ export default function EditFarmPage() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-2xl space-y-4 py-8">
-          <div className="h-8 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-stone-800" />
-          <div className="h-96 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-900" />
+          <div className="h-8 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-surface-2" />
+          <div className="h-96 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
         </div>
       }
     >

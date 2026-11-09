@@ -20,30 +20,6 @@ import { Table, TBody, TD, THead, TR } from "@/components/ui/Table.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { fetchDataSources } from "@/services/api.js";
 
-const PLANNED_DATASETS = [
-  {
-    name: "GPM IMERG V07 (Final Run)",
-    provider: "NASA Goddard Space Flight Center / JAXA",
-    scope: "High-resolution satellite precipitation (0.1° × 0.1° gridded)",
-    purpose: "Fine-grained precipitation and dry spell validation",
-    status: "Planned (Phase 4)",
-  },
-  {
-    name: "SMAP SPL3SMP_E V006",
-    provider: "NASA Jet Propulsion Laboratory (JPL)",
-    scope: "Enhanced surface soil moisture (9 km gridded)",
-    purpose: "Surface soil moisture context; not root-zone moisture or a field measurement.",
-    status: "Planned (Phase 4)",
-  },
-  {
-    name: "MODIS MOD13Q1.061",
-    provider: "NASA LP DAAC / USGS EROS",
-    scope: "16-day composite vegetation indices (NDVI / EVI, 250 m)",
-    purpose: "Crop canopy vigor, greenness tracking, and vegetative stage monitoring",
-    status: "Planned (Phase 4)",
-  },
-];
-
 export default function DataSourcesPage() {
   const { t } = useLang();
   const [datasets, setDatasets] = useState([]);
@@ -87,7 +63,7 @@ export default function DataSourcesPage() {
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
             NASA Earth Science
           </Badge>
-          <span className="text-xs text-muted">Provenance Standard: LST</span>
+          <span className="text-xs text-muted">{t("dataSources.provenanceStandard") || "Observation dates and ingestion times are reported separately"}</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
           {t("dataSources.title")}
@@ -130,9 +106,9 @@ export default function DataSourcesPage() {
                 title={ds.product}
                 description={ds.provider}
                 action={
-                  <Badge tone="emerald">
+                  <Badge tone={ds.availability === "available" ? "emerald" : "amber"}>
                     <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t("dataSources.activeDatasetBadge")}
+                    {ds.availability || t("dataSources.activeDatasetBadge")}
                   </Badge>
                 }
               />
@@ -148,7 +124,10 @@ export default function DataSourcesPage() {
                       {Number.isFinite(ds.observationCount) ? ds.observationCount.toLocaleString() : "—"}
                     </p>
                     <p className="text-xs text-muted mt-0.5">
-                      {t("dataSources.lastVerified")}: {formatDate(ds.coverage?.lastVerifiedAt)}
+                    {ds.availability === "available" ? (t("dataSources.lastIngested") || "Last ingested") + ": " + formatDate(ds.lastIngestedAt) : ds.availability}
+                    </p>
+                    <p className="text-[11px] text-muted mt-1">
+                      {Object.entries(ds.districtCoverage || {}).map(([district, count]) => `${district}: ${count.toLocaleString()}`).join(" · ") || "No district records"}
                     </p>
                   </div>
 
@@ -158,7 +137,7 @@ export default function DataSourcesPage() {
                       {t("dataSources.coveragePeriod")}
                     </p>
                     <p className="text-lg font-bold text-content mt-1">
-                      {formatDate(ds.coverage?.firstObservedDate)} – {formatDate(ds.coverage?.lastObservedDate)}
+                      {formatDate(ds.firstObservationDate)} – {formatDate(ds.lastObservationDate)}
                     </p>
                   </div>
 
@@ -168,7 +147,7 @@ export default function DataSourcesPage() {
                       {t("dataSources.timeStandard")}
                     </p>
                     <p className="text-lg font-bold text-content mt-1">{ds.timeStandard || "—"}</p>
-                    <p className="text-xs text-muted mt-0.5">Local Solar Time</p>
+                    <p className="text-xs text-muted mt-0.5">{ds.timeStandardDisclosure}</p>
                   </div>
 
                   <div className="rounded-lg bg-surface-2 p-3">
@@ -177,7 +156,7 @@ export default function DataSourcesPage() {
                       {t("dataSources.spatialResolution")}
                     </p>
                     <p className="text-lg font-bold text-content mt-1">
-                      {ds.spatialResolutionNote || "—"}
+                      {ds.spatialResolution || ds.spatialResolutionNote || "—"}
                     </p>
                   </div>
                 </div>
@@ -213,6 +192,7 @@ export default function DataSourcesPage() {
                   <p className="text-xs text-muted leading-relaxed">
                     {ds.timeStandardDisclosure}
                   </p>
+                  {ds.qualityPolicy && <p className="text-xs text-muted leading-relaxed"><strong className="text-content">Quality policy:</strong> {ds.qualityPolicy}</p>}
                 </div>
 
                 {/* Official source links */}
@@ -242,35 +222,6 @@ export default function DataSourcesPage() {
           ))}
         </section>
       )}
-
-      {/* Planned Datasets */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-content flex items-center gap-2">
-          <Layers className="h-5 w-5 text-purple" aria-hidden="true" />
-          {t("dataSources.plannedTitle")}
-        </h2>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {PLANNED_DATASETS.map((p) => (
-            <Card key={p.name}>
-              <CardBody className="space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-base font-semibold text-content">{p.name}</h3>
-                  <Badge tone="purple" className="shrink-0 text-xs">
-                    {p.status}
-                  </Badge>
-                </div>
-                <p className="text-xs text-emerald font-medium">{p.provider}</p>
-                <p className="text-xs text-muted leading-relaxed">{p.scope}</p>
-                <div className="pt-2 border-t border-line">
-                  <p className="text-xs font-medium text-content">Agricultural purpose:</p>
-                  <p className="text-xs text-muted mt-0.5">{p.purpose}</p>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-      </section>
 
       {/* Transparency and Scientific Notice */}
       <section>

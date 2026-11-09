@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,11 +21,17 @@ import {
   ChevronRight,
   Check,
   X,
+  LoaderCircle,
 } from "lucide-react";
 
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchCropPlanningRecommendations, createFarm } from "@/services/api.js";
+import {
+  buildCropPlanningPayload,
+  getCropPlanningErrorMessage,
+  validateCropPlanningForm,
+} from "@/lib/cropPlanningForm.js";
 import {
   DISTRICT_UPAZILAS,
   LAND_UNITS,
@@ -73,7 +79,7 @@ const SEASONS = [
 
 export default function CropPlanningPage() {
   const router = useRouter();
-  const { t, lang } = useLang();
+  const { t, locale, lang = locale } = useLang();
   const { user } = useAuth();
 
   // Questionnaire State
@@ -93,6 +99,7 @@ export default function CropPlanningPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const evaluationInFlight = useRef(false);
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
 
@@ -112,6 +119,8 @@ export default function CropPlanningPage() {
   }, [formData.districtCode]);
 
   const updateField = (field, value) => {
+    setError("");
+    setResults(null);
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       if (field === "districtCode") {
@@ -124,41 +133,31 @@ export default function CropPlanningPage() {
 
   const handleEvaluate = async (e) => {
     if (e) e.preventDefault();
+    if (evaluationInFlight.current) return;
+
+    const validationError = validateCropPlanningForm(formData, availableUpazilas);
+    if (validationError) {
+      setError(t(`myFarm.planning.${validationError}`));
+      setResults(null);
+      return;
+    }
+
+    evaluationInFlight.current = true;
     setLoading(true);
     setError("");
+    setResults(null);
 
     try {
-      const payload = {
-        districtCode: formData.districtCode,
-        upazila: formData.upazila,
-        village: formData.village.trim(),
-        land: {
-          area: parseFloat(formData.area) || 50,
-          unit: formData.unit,
-          landType: formData.landType,
-          soilType: formData.soilType,
-          drainage: formData.drainage,
-        },
-        water: {
-          irrigationAvailability: formData.irrigationAvailability,
-          waterSource: formData.waterSource,
-        },
-        preferences: {
-          seasonPreference: formData.seasonPreference || null,
-          preferredCrop: formData.preferredCrop || null,
-        },
-        language: lang === "bn" ? "bn" : "en",
-      };
-
-      const res = await fetchCropPlanningRecommendations(payload);
-      if (res.success && res.data) {
+      const res = await fetchCropPlanningRecommendations(buildCropPlanningPayload(formData, lang));
+      if (res.success && res.data && Array.isArray(res.data.crops)) {
         setResults(res.data);
       } else {
-        setError(res.error?.message || "Failed to generate recommendations.");
+        setError(getCropPlanningErrorMessage(res, t));
       }
     } catch {
-      setError("A network error occurred while evaluating crops. Please try again.");
+      setError(t("myFarm.planning.networkError"));
     } finally {
+      evaluationInFlight.current = false;
       setLoading(false);
     }
   };
@@ -191,9 +190,11 @@ export default function CropPlanningPage() {
     setCreateError("");
 
     const payload = {
+      farmName: setupFarmName.trim(),
       name: setupFarmName.trim(),
       location: {
         districtCode: formData.districtCode,
+        district: formData.districtCode.toLowerCase() === "chattogram" ? "Chattogram" : "Cumilla",
         upazila: formData.upazila,
         village: formData.village.trim(),
       },
@@ -212,6 +213,7 @@ export default function CropPlanningPage() {
       },
       crop: {
         cropCode: selectedCrop.cropCode,
+        cropName: selectedCrop.cropNameEn || selectedCrop.cropNameBn || selectedCrop.cropCode,
         variety: setupVariety.trim(),
         cultivationMethod:
           selectedCrop.cropCode === "mustard" ? "Broadcasting / Line" : "Transplanting",
@@ -237,10 +239,10 @@ export default function CropPlanningPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 py-2">
       {/* Top Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/my-farm"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 transition hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 transition hover:text-stone-900 dark:text-muted dark:hover:text-stone-100"
         >
           <ArrowLeft className="h-4 w-4" />
           {t("myFarm.backToList")}
@@ -252,26 +254,26 @@ export default function CropPlanningPage() {
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
           {t("myFarm.planning.pageTitle")}
         </h1>
-        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
+        <p className="mt-1 text-sm text-stone-600 dark:text-muted">
           {t("myFarm.planning.pageSubtitle")}
         </p>
       </div>
 
       {/* Planning Questionnaire Card */}
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-        <div className="border-b border-stone-100 pb-4 dark:border-stone-800">
-          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+        <div className="border-b border-stone-100 pb-4 dark:border-line">
+          <h2 className="text-base font-semibold text-stone-900 dark:text-content">
             {t("myFarm.planning.questionnaireTitle")}
           </h2>
-          <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+          <p className="mt-0.5 text-xs text-stone-500 dark:text-muted">
             {t("myFarm.planning.questionnaireDesc")}
           </p>
         </div>
 
-        <form onSubmit={handleEvaluate} className="mt-5 space-y-6">
+        <form noValidate onSubmit={handleEvaluate} className="mt-5 space-y-6">
           {/* Section 1: Location & Land */}
           <div>
             <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-forest-700 dark:text-forest-400">
@@ -280,13 +282,14 @@ export default function CropPlanningPage() {
             </h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.districtLabel")} <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.districtCode}
+                  required
                   onChange={(e) => updateField("districtCode", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {DISTRICTS.map((d) => (
                     <option key={d.code} value={d.code}>
@@ -297,13 +300,14 @@ export default function CropPlanningPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.upazilaLabel")} <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.upazila}
+                  required
                   onChange={(e) => updateField("upazila", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {availableUpazilas.map((u) => (
                     <option key={u.code} value={u.nameEn}>
@@ -314,7 +318,7 @@ export default function CropPlanningPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.villageLabel")}
                 </label>
                 <input
@@ -322,12 +326,12 @@ export default function CropPlanningPage() {
                   value={formData.village}
                   onChange={(e) => updateField("village", e.target.value)}
                   placeholder={lang === "bn" ? "উদা: সুজানগর" : "e.g. Sujanagar"}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.landAreaLabel")}
                 </label>
                 <div className="mt-1 flex gap-2">
@@ -335,14 +339,15 @@ export default function CropPlanningPage() {
                     type="number"
                     step="0.1"
                     min="1"
+                    required
                     value={formData.area}
                     onChange={(e) => updateField("area", e.target.value)}
-                    className="w-2/3 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                    className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                   />
                   <select
                     value={formData.unit}
                     onChange={(e) => updateField("unit", e.target.value)}
-                    className="w-1/3 rounded-xl border border-stone-200 bg-white px-2 py-2 text-xs text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                    className="w-28 shrink-0 rounded-xl border border-stone-200 bg-white px-2 py-2 text-xs text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                   >
                     {LAND_UNITS.map((u) => (
                       <option key={u.code} value={u.code}>
@@ -354,13 +359,13 @@ export default function CropPlanningPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.landTypeLabel")}
                 </label>
                 <select
                   value={formData.landType}
                   onChange={(e) => updateField("landType", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {LAND_TYPES.map((lt) => (
                     <option key={lt.code} value={lt.code}>
@@ -371,13 +376,13 @@ export default function CropPlanningPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.soilTypeLabel")}
                 </label>
                 <select
                   value={formData.soilType}
                   onChange={(e) => updateField("soilType", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {SOIL_TYPES.map((st) => (
                     <option key={st.code} value={st.code}>
@@ -390,20 +395,20 @@ export default function CropPlanningPage() {
           </div>
 
           {/* Section 2: Water & Preferences */}
-          <div className="border-t border-stone-100 pt-5 dark:border-stone-800">
+          <div className="border-t border-stone-100 pt-5 dark:border-line">
             <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-forest-700 dark:text-forest-400">
               <Droplets className="h-4 w-4" />
               {lang === "bn" ? "২. পানি ও চাষের পছন্দ" : "2. Water & Preferences"}
             </h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.drainageLabel")}
                 </label>
                 <select
                   value={formData.drainage}
                   onChange={(e) => updateField("drainage", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {DRAINAGE_OPTIONS.map((dr) => (
                     <option key={dr.code} value={dr.code}>
@@ -414,13 +419,13 @@ export default function CropPlanningPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.irrigationLabel")}
                 </label>
                 <select
                   value={formData.irrigationAvailability}
                   onChange={(e) => updateField("irrigationAvailability", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {IRRIGATION_OPTIONS.map((ir) => (
                     <option key={ir.code} value={ir.code}>
@@ -431,13 +436,13 @@ export default function CropPlanningPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-medium text-stone-700 dark:text-muted">
                   {t("myFarm.planning.seasonLabel")}
                 </label>
                 <select
                   value={formData.seasonPreference}
                   onChange={(e) => updateField("seasonPreference", e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 >
                   {SEASONS.map((sn) => (
                     <option key={sn.code} value={sn.code}>
@@ -450,7 +455,7 @@ export default function CropPlanningPage() {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-300">
+            <div id="crop-planning-error" role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-300">
               {error}
             </div>
           )}
@@ -459,9 +464,11 @@ export default function CropPlanningPage() {
             <button
               type="submit"
               disabled={loading}
+              aria-busy={loading}
+              aria-describedby={error ? "crop-planning-error" : undefined}
               className="inline-flex items-center gap-2 rounded-xl bg-forest-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2 disabled:opacity-60 dark:bg-forest-600 dark:hover:bg-forest-500"
             >
-              <Sparkles className="h-4 w-4" />
+              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               {loading
                 ? t("myFarm.planning.analyzing")
                 : t("myFarm.planning.analyzeButton")}
@@ -474,11 +481,11 @@ export default function CropPlanningPage() {
       {results && (
         <div className="space-y-6 pt-2">
           {/* Header of results */}
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-content">
               {t("myFarm.planning.resultsTitle")}
             </h2>
-            <span className="text-xs text-stone-500 dark:text-stone-400">
+            <span className="text-xs text-stone-500 dark:text-muted">
               {lang === "bn"
                 ? `${results.crops?.length || 0} টি বিকল্প পাওয়া গেছে`
                 : `${results.crops?.length || 0} options evaluated`}
@@ -498,31 +505,31 @@ export default function CropPlanningPage() {
               </div>
 
               <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-sky-100 bg-white/80 p-3.5 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
-                  <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
+                <div className="rounded-xl border border-sky-100 bg-white/80 p-3.5 shadow-2xs dark:border-line dark:bg-surface">
+                  <div className="flex items-center justify-between text-xs text-stone-500 dark:text-muted">
                     <span>{t("myFarm.planning.surfaceMoisture")}</span>
                     <span>{results.satelliteContext.soilMoistureProxy?.observedDate || "Latest"}</span>
                   </div>
                   <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-stone-900 dark:text-stone-100">
+                    <span className="text-xl font-bold text-stone-900 dark:text-content">
                       {results.satelliteContext.soilMoistureProxy?.value ?? "0.22"}
                     </span>
                     <span className="text-xs text-stone-500">
                       {results.satelliteContext.soilMoistureProxy?.unit || "m³/m³"}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                  <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                     {results.satelliteContext.soilMoistureProxy?.disclaimer}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-emerald-100 bg-white/80 p-3.5 shadow-2xs dark:border-stone-800 dark:bg-stone-900/80">
-                  <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
+                <div className="rounded-xl border border-emerald-100 bg-white/80 p-3.5 shadow-2xs dark:border-line dark:bg-surface">
+                  <div className="flex items-center justify-between text-xs text-stone-500 dark:text-muted">
                     <span>{t("myFarm.planning.canopyGreenness")}</span>
                     <span>{results.satelliteContext.vegetationIndexProxy?.observedDate || "Latest"}</span>
                   </div>
                   <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-stone-900 dark:text-stone-100">
+                    <span className="text-xl font-bold text-stone-900 dark:text-content">
                       {results.satelliteContext.vegetationIndexProxy?.ndvi !== undefined
                         ? Number(results.satelliteContext.vegetationIndexProxy.ndvi).toFixed(3)
                         : "0.580"}
@@ -531,7 +538,7 @@ export default function CropPlanningPage() {
                       NDVI (0-1)
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                  <p className="mt-1 text-[11px] text-stone-500 dark:text-muted">
                     {results.satelliteContext.vegetationIndexProxy?.disclaimer}
                   </p>
                 </div>
@@ -546,35 +553,40 @@ export default function CropPlanningPage() {
                 <Sparkles className="h-5 w-5 text-forest-600 dark:text-forest-400" />
                 <h3 className="font-semibold">{t("myFarm.planning.aiSummaryTitle")}</h3>
               </div>
-              <div className="mt-3 whitespace-pre-line text-sm leading-relaxed text-stone-800 dark:text-stone-200">
+              <div className="mt-3 whitespace-pre-line text-sm leading-relaxed text-stone-800 dark:text-content">
                 {results.aiExplanation}
               </div>
-              <p className="mt-4 border-t border-forest-100/80 pt-3 text-xs text-stone-500 dark:border-forest-900/30 dark:text-stone-400">
+              <p className="mt-4 border-t border-forest-100/80 pt-3 text-xs text-stone-500 dark:border-forest-900/30 dark:text-muted">
                 {results.citations?.disclaimer || t("myFarm.planning.aiDisclaimer")}
               </p>
             </div>
           )}
 
           {/* Recommended Crop Cards Grid */}
+          {results.crops?.length === 0 && (
+            <div role="status" className="rounded-xl border border-line bg-surface-2 p-5 text-sm text-content">
+              {t("myFarm.planning.noRecommendations")}
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {results.crops?.map((crop) => {
               const isSupported = crop.suitabilityCategory === "supported";
               return (
                 <div
                   key={crop.cropCode}
-                  className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-xs transition hover:border-forest-300 dark:border-stone-800 dark:bg-stone-900 dark:hover:border-forest-700"
+                  className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-xs transition hover:border-forest-300 dark:border-line dark:bg-surface dark:hover:border-forest-700"
                 >
                   <div>
                     {/* Badge and Title */}
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <span className="inline-block rounded-md bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                        <span className="inline-block rounded-md bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-700 dark:bg-surface-2 dark:text-muted">
                           {lang === "bn" ? crop.seasonBn : crop.season}
                         </span>
-                        <h3 className="mt-1.5 text-lg font-bold text-stone-900 dark:text-stone-100">
+                        <h3 className="mt-1.5 text-lg font-bold text-stone-900 dark:text-content">
                           {lang === "bn" ? crop.cropNameBn : crop.cropNameEn}
                         </h3>
-                        <p className="text-xs italic text-stone-500 dark:text-stone-400">
+                        <p className="text-xs  text-stone-500 dark:text-muted">
                           {crop.scientificName}
                         </p>
                       </div>
@@ -598,28 +610,28 @@ export default function CropPlanningPage() {
                     </div>
 
                     {/* Quick Metrics */}
-                    <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-stone-100 bg-stone-50/70 p-3 text-center dark:border-stone-800 dark:bg-stone-800/40">
+                    <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-stone-100 bg-stone-50/70 p-3 text-center dark:border-line dark:bg-surface-2">
                       <div>
-                        <span className="block text-[11px] text-stone-500 dark:text-stone-400">
+                        <span className="block text-[11px] text-stone-500 dark:text-muted">
                           {t("myFarm.planning.plantingWindow")}
                         </span>
-                        <span className="mt-0.5 block text-xs font-bold text-stone-900 dark:text-stone-100">
+                        <span className="mt-0.5 block text-xs font-bold text-stone-900 dark:text-content">
                           {crop.sowingPeriod}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-[11px] text-stone-500 dark:text-stone-400">
+                        <span className="block text-[11px] text-stone-500 dark:text-muted">
                           {t("myFarm.planning.duration")}
                         </span>
-                        <span className="mt-0.5 block text-xs font-bold text-stone-900 dark:text-stone-100">
+                        <span className="mt-0.5 block text-xs font-bold text-stone-900 dark:text-content">
                           {crop.totalDurationDays} {t("myFarm.planning.days")}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-[11px] text-stone-500 dark:text-stone-400">
+                        <span className="block text-[11px] text-stone-500 dark:text-muted">
                           {t("myFarm.planning.waterDemand")}
                         </span>
-                        <span className="mt-0.5 block text-xs font-bold text-stone-900 dark:text-stone-100">
+                        <span className="mt-0.5 block text-xs font-bold text-stone-900 dark:text-content">
                           ~{crop.waterRequirementMmTotal} mm
                         </span>
                       </div>
@@ -635,7 +647,7 @@ export default function CropPlanningPage() {
                           {crop.reasons.map((r, i) => (
                             <li
                               key={i}
-                              className="flex items-start gap-1.5 text-xs text-stone-700 dark:text-stone-300"
+                              className="flex items-start gap-1.5 text-xs text-stone-700 dark:text-muted"
                             >
                               <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                               <span>{r}</span>
@@ -668,14 +680,14 @@ export default function CropPlanningPage() {
                     {/* Recommended Varieties */}
                     {crop.recommendedVarieties?.length > 0 && (
                       <div className="mt-4">
-                        <span className="block text-xs font-medium text-stone-500 dark:text-stone-400">
+                        <span className="block text-xs font-medium text-stone-500 dark:text-muted">
                           {t("myFarm.planning.varietiesTitle")}
                         </span>
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {crop.recommendedVarieties.slice(0, 5).map((v, i) => (
                             <span
                               key={i}
-                              className="rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-xs text-stone-700 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                              className="rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 text-xs text-stone-700 dark:border-line dark:bg-surface-2 dark:text-muted"
                             >
                               {v}
                             </span>
@@ -686,7 +698,7 @@ export default function CropPlanningPage() {
                   </div>
 
                   {/* Action CTA */}
-                  <div className="mt-6 border-t border-stone-100 pt-4 dark:border-stone-800">
+                  <div className="mt-6 border-t border-stone-100 pt-4 dark:border-line">
                     <button
                       onClick={() => openSetupModal(crop)}
                       className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-forest-700 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-forest-800 dark:bg-forest-600 dark:hover:bg-forest-500"
@@ -705,13 +717,13 @@ export default function CropPlanningPage() {
       {/* Select Crop Setup Modal */}
       {setupModalOpen && selectedCrop && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl dark:border-stone-800 dark:bg-stone-900">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-stone-800">
+          <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl dark:border-line dark:bg-surface">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3 dark:border-line">
               <div>
-                <h3 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-base font-bold text-stone-900 dark:text-content">
                   {t("myFarm.planning.selectModalTitle")}
                 </h3>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-stone-500 dark:text-muted">
                   {t("myFarm.planning.selectModalDesc")}
                 </p>
               </div>
@@ -725,32 +737,32 @@ export default function CropPlanningPage() {
 
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
                   {t("myFarm.planning.farmName")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={setupFarmName}
                   onChange={(e) => setSetupFarmName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
                     {t("myFarm.planning.plantingDate")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={setupPlantingDate}
                     onChange={(e) => setSetupPlantingDate(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
                     {lang === "bn" ? "বীজের জাত" : "Cultivar / Variety"}
                   </label>
                   <input
@@ -758,22 +770,22 @@ export default function CropPlanningPage() {
                     value={setupVariety}
                     onChange={(e) => setSetupVariety(e.target.value)}
                     placeholder={lang === "bn" ? "উদা: BRRI dhan89" : "e.g. BRRI dhan89"}
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
                   />
                 </div>
               </div>
 
               {/* Pre-filled summary pills */}
-              <div className="rounded-xl border border-stone-100 bg-stone-50 p-3 text-xs dark:border-stone-800 dark:bg-stone-800/50">
-                <div className="flex flex-wrap gap-2 text-stone-600 dark:text-stone-300">
-                  <span className="font-semibold text-stone-900 dark:text-stone-100">
+              <div className="rounded-xl border border-stone-100 bg-stone-50 p-3 text-xs dark:border-line dark:bg-surface-2">
+                <div className="flex flex-wrap gap-2 text-stone-600 dark:text-muted">
+                  <span className="font-semibold text-stone-900 dark:text-content">
                     {lang === "bn" ? selectedCrop.cropNameBn : selectedCrop.cropNameEn}
                   </span>
-                  <span>•</span>
+                  <span aria-hidden="true" className="h-1 w-1 rounded-full bg-muted" />
                   <span>{formData.districtCode === "cumilla" ? "Cumilla" : "Chattogram"} ({formData.upazila})</span>
-                  <span>•</span>
+                  <span aria-hidden="true" className="h-1 w-1 rounded-full bg-muted" />
                   <span>{formData.area} {formData.unit}</span>
-                  <span>•</span>
+                  <span aria-hidden="true" className="h-1 w-1 rounded-full bg-muted" />
                   <span>{formData.landType}</span>
                 </div>
               </div>
@@ -783,11 +795,11 @@ export default function CropPlanningPage() {
               )}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3 border-t border-stone-100 pt-4 dark:border-stone-800">
+            <div className="mt-6 flex justify-end gap-3 border-t border-stone-100 pt-4 dark:border-line">
               <button
                 type="button"
                 onClick={() => setSetupModalOpen(false)}
-                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50 dark:border-line dark:text-muted dark:hover:bg-surface-2"
               >
                 {lang === "bn" ? "বাতিল" : "Cancel"}
               </button>

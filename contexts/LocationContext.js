@@ -32,6 +32,7 @@ const LocationContext = createContext({
   currentDistrictObj: DEFAULT_DISTRICTS[0],
   isLoadingDistricts: false,
   detectLocation: async () => {},
+  resetDetectionState: () => {},
   detectionStatus: "idle", // idle | detecting | success | error
   detectionMessage: null,
 });
@@ -131,10 +132,20 @@ export function LocationProvider({ children }) {
     districts.find((d) => d.isDefault) ||
     districts[0];
 
+  const resetDetectionState = useCallback(() => {
+    setDetectionStatus("idle");
+    setDetectionMessage(null);
+  }, []);
+
   /**
-   * Browser GPS detection with distance mapping to closest supported district.
+   * Browser GPS / Network Location detection with distance mapping to closest supported district.
+   * Uses non-blocking timeout, duplicate request prevention, and safe fallbacks.
    */
   const detectLocation = useCallback(async () => {
+    if (detectionStatus === "detecting") {
+      return { success: false, error: "alreadyDetecting" };
+    }
+
     if (typeof window === "undefined" || !navigator.geolocation) {
       setDetectionStatus("error");
       setDetectionMessage("geolocationNotSupported");
@@ -145,51 +156,89 @@ export function LocationProvider({ children }) {
     setDetectionMessage(null);
 
     return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLat = position.coords.latitude;
-          const userLon = position.coords.longitude;
+      let settled = false;
 
-          // Find closest supported district
-          let closest = null;
-          let minDistance = Infinity;
-
-          districts.forEach((d) => {
-            const dist = haversineDistanceKm(userLat, userLon, d.latitude, d.longitude);
-            if (dist < minDistance) {
-              minDistance = dist;
-              closest = d;
-            }
-          });
-
-          if (closest) {
-            // Note: Does NOT silently overwrite selectedDistrict here.
-            // Returns the recommendation so the user or caller explicitly confirms.
-            setDetectionStatus("success");
-            setDetectionMessage({
-              district: closest,
-              distanceKm: Math.round(minDistance),
-            });
-            resolve({ success: true, district: closest, distanceKm: minDistance });
-          } else {
-            setDetectionStatus("error");
-            setDetectionMessage("positionUnavailable");
-            resolve({ success: false, error: "positionUnavailable" });
-          }
-        },
-        (err) => {
+      // Application-level safety timer prevents hanging if browser driver stalls
+      const safetyTimer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
           setDetectionStatus("error");
-          let errKey = "unknownError";
-          if (err.code === 1) errKey = "permissionDenied";
-          else if (err.code === 2) errKey = "positionUnavailable";
-          else if (err.code === 3) errKey = "timeout";
-          setDetectionMessage(errKey);
-          resolve({ success: false, error: errKey });
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-      );
+          setDetectionMessage("timeout");
+          resolve({ success: false, error: "timeout" });
+        }
+      }, 8500);
+
+      try {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(safetyTimer);
+
+            const userLat = position?.coords?.latitude;
+            const userLon = position?.coords?.longitude;
+
+            if (typeof userLat !== "number" || typeof userLon !== "number") {
+              setDetectionStatus("error");
+              setDetectionMessage("positionUnavailable");
+              return resolve({ success: false, error: "positionUnavailable" });
+            }
+
+            // Find closest supported district
+            let closest = null;
+            let minDistance = Infinity;
+
+            districts.forEach((d) => {
+              const dist = haversineDistanceKm(userLat, userLon, d.latitude, d.longitude);
+              if (dist < minDistance) {
+                minDistance = dist;
+                closest = d;
+              }
+            });
+
+            if (closest) {
+              setDetectionStatus("success");
+              setDetectionMessage({
+                district: closest,
+                distanceKm: Math.round(minDistance),
+              });
+              resolve({ success: true, district: closest, distanceKm: minDistance });
+            } else {
+              setDetectionStatus("error");
+              setDetectionMessage("positionUnavailable");
+              resolve({ success: false, error: "positionUnavailable" });
+            }
+          },
+          (err) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(safetyTimer);
+
+            setDetectionStatus("error");
+            let errKey = "unknownError";
+            if (err?.code === 1) errKey = "permissionDenied";
+            else if (err?.code === 2) errKey = "positionUnavailable";
+            else if (err?.code === 3) errKey = "timeout";
+            setDetectionMessage(errKey);
+            resolve({ success: false, error: errKey });
+          },
+          {
+            enableHighAccuracy: false, // Prevents hanging on desktops/laptops without satellite GPS
+            timeout: 8000,             // 8s native timeout
+            maximumAge: 300000,        // Accept cached location up to 5 minutes
+          }
+        );
+      } catch {
+        if (!settled) {
+          settled = true;
+          clearTimeout(safetyTimer);
+          setDetectionStatus("error");
+          setDetectionMessage("unknownError");
+          resolve({ success: false, error: "unknownError" });
+        }
+      }
     });
-  }, [districts]);
+  }, [detectionStatus, districts]);
 
   return (
     <LocationContext.Provider
@@ -200,6 +249,7 @@ export function LocationProvider({ children }) {
         currentDistrictObj,
         isLoadingDistricts,
         detectLocation,
+        resetDetectionState,
         detectionStatus,
         detectionMessage,
       }}

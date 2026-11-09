@@ -19,6 +19,17 @@
 
   /* brand — identical in both themes */
   --km-forest: #123d2b; /* Deep Forest Green */
+  --km-forest-50: #f1f7f3;
+  --km-forest-100: #e1eee5;
+  --km-forest-200: #c3ddcb;
+  --km-forest-300: #9bc4a8;
+  --km-forest-400: #6aa57f;
+  --km-forest-500: #43885f;
+  --km-forest-600: #2c6b49;
+  --km-forest-700: #1d5639;
+  --km-forest-800: #123d2b;
+  --km-forest-900: #0d3122;
+  --km-forest-950: #08251a;
   --km-emerald: #16865a; /* Emerald Green */
   --km-emerald-strong: #0f6c49;
   --km-sage: #ddf3e5; /* Soft Sage */
@@ -80,10 +91,23 @@
   --color-surface: var(--km-surface);
   --color-surface-2: var(--km-surface-2);
   --color-content: var(--km-text);
+  --color-ink: var(--km-text);
   --color-muted: var(--km-text-muted);
+  --color-ink-muted: var(--km-text-muted);
   --color-line: var(--km-border);
 
   --color-forest: var(--km-forest);
+  --color-forest-50: var(--km-forest-50);
+  --color-forest-100: var(--km-forest-100);
+  --color-forest-200: var(--km-forest-200);
+  --color-forest-300: var(--km-forest-300);
+  --color-forest-400: var(--km-forest-400);
+  --color-forest-500: var(--km-forest-500);
+  --color-forest-600: var(--km-forest-600);
+  --color-forest-700: var(--km-forest-700);
+  --color-forest-800: var(--km-forest-800);
+  --color-forest-900: var(--km-forest-900);
+  --color-forest-950: var(--km-forest-950);
   --color-emerald: var(--km-emerald);
   --color-emerald-strong: var(--km-emerald-strong);
   --color-sage: var(--km-sage);
@@ -133,5 +157,42 @@
   ::selection {
     background: var(--km-emerald);
     color: #ffffff;
+  }
+}
+
+
+/* ============================================================
+   TV NEWS STYLE AGRICULTURAL TICKER ANIMATION
+   Continuous Right-to-Left Scrolling (ডান দিক থেকে বাম দিকে)
+   ============================================================ */
+@keyframes km-ticker-rtl {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+.animate-km-ticker {
+  display: flex;
+  flex-shrink: 0;
+  will-change: transform;
+  animation: km-ticker-rtl 85s linear infinite;
+}
+
+.km-ticker-container:hover .animate-km-ticker,
+.km-ticker-container:focus-within .animate-km-ticker {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-km-ticker {
+    animation: none !important;
+    transform: none !important;
+  }
+  .km-ticker-scroll {
+    overflow-x: auto !important;
+    scrollbar-width: thin;
   }
 }

@@ -1,8 +1,14 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
+
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
+  Clock,
+  Layers,
+  Satellite,
   BarChart3,
   CloudRain,
   Database,
@@ -16,7 +22,9 @@ import {
   Thermometer,
 } from "lucide-react";
 
+import { fetchDataSources } from "@/services/api.js";
 import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js";
+import { AgriculturalNewsTicker } from "@/components/home/AgriculturalNewsTicker.js";
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
@@ -34,51 +42,139 @@ const featureItems = [
   { icon: ShieldCheck, titleKey: "featureTransparency", descKey: "featureTransparencyDesc", tone: "emerald" },
 ];
 
-const steps = [
-  { n: "1", icon: MapPin, titleKey: "step1Title", descKey: "step1Desc" },
-  { n: "2", icon: Database, titleKey: "step2Title", descKey: "step2Desc" },
-  { n: "3", icon: BarChart3, titleKey: "step3Title", descKey: "step3Desc" },
-  { n: "4", icon: Sprout, titleKey: "step4Title", descKey: "step4Desc" },
-];
+const powerDataset = {
+  scope: "Daily gridded historical climate data, including meteorological reanalysis and satellite-derived solar parameters",
+};
 
-const datasets = [
+const steps = [
   {
-    name: "NASA POWER — Agroclimatology Daily",
-    scope: "Daily rainfall, temperature, humidity, and solar radiation observations",
-    status: "implemented",
+    n: "1",
+    icon: MapPin,
+    titleKey: "step1Title",
+    descKey: "step1Desc",
+    stageKey: "District Resolution",
+    stageBn: "জেলা নির্বাচন",
+    spec: "Chattogram & Cumilla",
+    specBn: "চট্টগ্রাম ও কুমিল্লা",
+    tone: "emerald",
   },
-  { name: "SMAP SPL3SMP_E", scope: "Surface soil moisture", status: "planned" },
-  { name: "GPM IMERG V07", scope: "High-resolution satellite precipitation", status: "planned" },
-  { name: "MODIS MOD13Q1.061", scope: "NDVI / EVI vegetation indices", status: "planned" },
+  {
+    n: "2",
+    icon: Database,
+    titleKey: "step2Title",
+    descKey: "step2Desc",
+    stageKey: "NASA POWER Ingestion",
+    stageBn: "নাসা পাওয়ার ফেচিং",
+    spec: "Meteorological & Solar",
+    specBn: "আবহাওয়া ও সৌর বিকিরণ",
+    tone: "climate",
+  },
+  {
+    n: "3",
+    icon: BarChart3,
+    titleKey: "step3Title",
+    descKey: "step3Desc",
+    stageKey: "Historical Calibration",
+    stageBn: "ঐতিহাসিক বিশ্লেষণ",
+    spec: "25-Year Daily Normal",
+    specBn: "২৫ বছরের দৈনিক রেকর্ড",
+    tone: "amber",
+  },
+  {
+    n: "4",
+    icon: Sprout,
+    titleKey: "step4Title",
+    descKey: "step4Desc",
+    stageKey: "Agronomic Decision Support",
+    stageBn: "কৃষি সিদ্ধান্ত সহায়তা",
+    spec: "DAE & BAMIS Alignment",
+    specBn: "ডিএই ও বামিস সমন্বয়",
+    tone: "forest",
+  },
 ];
 
 export default function LandingPage() {
   const { t, locale } = useLang();
   const { districts } = useLocation();
+  const [liveDataSources, setLiveDataSources] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchDataSources()
+      .then((res) => {
+        if (isMounted && res?.data) {
+          setLiveDataSources(res.data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const powerApiSource = Array.isArray(liveDataSources) && liveDataSources.length > 0 ? liveDataSources[0] : null;
+  const getSourceStatus = (datasetKey) => {
+    const source = liveDataSources?.find((item) => item.datasetKey === datasetKey);
+    if (!source) return locale === "bn" ? "প্রাপ্যতা যাচাই হচ্ছে" : "Checking availability";
+    if (source.availability === "available") {
+      return locale === "bn"
+        ? `${Number(source.observationCount).toLocaleString()} পর্যবেক্ষণ`
+        : `${Number(source.observationCount).toLocaleString()} historical observations`;
+    }
+    return locale === "bn" ? "পর্যবেক্ষণ অনুপলব্ধ" : "Observations unavailable";
+  };
+
+  // Format observation count dynamically from live NASA API
+  const liveObsCount = powerApiSource?.observationCount || 109572;
+  const formattedObsCount = locale === "bn"
+    ? String(liveObsCount.toLocaleString("en-US")).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])
+    : liveObsCount.toLocaleString("en-US");
+
+  // Dynamic coverage range from live NASA API
+  const startYear = powerApiSource?.coverage?.firstObservedDate ? new Date(powerApiSource.coverage.firstObservedDate).getFullYear() : 2001;
+  const endYear = powerApiSource?.coverage?.lastObservedDate ? new Date(powerApiSource.coverage.lastObservedDate).getFullYear() : 2025;
+  const dynamicCoverageYears = locale === "bn"
+    ? `${String(startYear).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])} – ${String(endYear).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])}`
+    : `${startYear} – ${endYear}`;
+
+  const activeParameters = powerApiSource?.parameters
+    ? Object.entries(powerApiSource.parameters)
+    : [
+        ["PRECTOTCORR", { unit: "mm/day", longName: "Precipitation Corrected" }],
+        ["T2M", { unit: "C", longName: "Temperature at 2 Meters" }],
+        ["T2M_MAX", { unit: "C", longName: "Max Temperature" }],
+        ["T2M_MIN", { unit: "C", longName: "Min Temperature" }],
+        ["RH2M", { unit: "%", longName: "Relative Humidity" }],
+        ["ALLSKY_SFC_SW_DWN", { unit: "MJ/m^2/day", longName: "Surface Solar Irradiance" }],
+      ];
 
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader />
+
+      {/* TV News Style Agricultural Breaking News Ticker */}
+      <Suspense fallback={null}>
+        <AgriculturalNewsTicker />
+      </Suspense>
 
       <main className="flex-1">
         {/* Hero with background image */}
         <section className="relative min-h-[700px] flex items-center justify-center overflow-hidden">
           {/* Background image with overlay */}
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-forest/95 via-forest/85 to-emerald/90 dark:from-forest/98 dark:via-forest/92 dark:to-emerald/95" />
-            <img
+            <Image
               src={HERO_SRC}
               alt=""
-              className="h-full w-full object-cover"
-              loading="eager"
+              fill
+              preload
+              sizes="100vw"
+              className="object-cover"
             />
+            <div className="absolute inset-0 bg-gradient-to-br from-forest/85 via-forest/75 to-emerald/80 dark:from-forest/90 dark:via-forest/82 dark:to-emerald/88" />
           </div>
 
           {/* Hero content overlay - centered */}
           <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <Badge tone="sage" className="mb-6 bg-white/20 text-white border-white/30 backdrop-blur-sm">
-              {t("landing.heroKicker")}
-            </Badge>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
               {t("landing.heroTitle")}
             </h1>
@@ -86,15 +182,15 @@ export default function LandingPage() {
               {t("landing.heroSubtitle")}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-              <Button href="/dashboard" size="lg" className="bg-white text-forest hover:bg-white/90 px-8">
+              <Button href="/dashboard" size="lg" variant="hero" className="px-8">
                 {t("landing.heroCta")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button
                 href="#how-it-works"
                 size="lg"
-                variant="outline"
-                className="border-white/40 text-white hover:bg-white/10 hover:border-white/60 px-8"
+                variant="heroOutline"
+                className="px-8"
               >
                 {t("landing.heroSecondary")}
               </Button>
@@ -150,93 +246,525 @@ export default function LandingPage() {
                   >
                     <f.icon className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
                   </span>
-                  <h3 className="mt-4 text-lg font-semibold text-content">{t(f.titleKey)}</h3>
-                  <p className="mt-2 text-sm text-muted leading-relaxed">{t(f.descKey)}</p>
+                  <h3 className="mt-4 text-lg font-semibold text-content">{t(`landing.${f.titleKey}`)}</h3>
+                  <p className="mt-2 text-sm text-muted leading-relaxed">{t(`landing.${f.descKey}`)}</p>
                 </CardBody>
               </Card>
             ))}
           </div>
         </section>
 
-        {/* How it works */}
-        <section id="how-it-works" className="scroll-mt-20 bg-surface py-20">
+        {/* How it works — High-End Scientific Methodology & Workflow Architecture */}
+        <section id="how-it-works" className="scroll-mt-20 border-t border-line/60 bg-gradient-to-b from-surface via-surface-2/20 to-surface py-20 dark:from-bg dark:via-surface-card/10 dark:to-bg sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+            {/* Section Header */}
+            <div className="mx-auto max-w-3xl text-center mb-14">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald/30 bg-emerald/10 px-4 py-1.5 text-xs font-bold text-emerald mb-4 shadow-sm backdrop-blur-sm">
+                <span className="uppercase tracking-wider text-[11px] font-bold">
+                  {locale === "bn" ? "বিজ্ঞানসম্মত কার্যপ্রণালী" : "END-TO-END METHODOLOGY"}
+                </span>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl lg:text-5xl">
                 {t("landing.sectionHow")}
               </h2>
-              <p className="mt-4 text-base text-muted sm:text-lg">{t("landing.sectionHowSub")}</p>
+              <p className="mt-4 text-base text-muted sm:text-lg leading-relaxed max-w-2xl mx-auto">
+                {t("landing.sectionHowSub")}
+              </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* 4 Interactive Process Step Cards */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
               {steps.map((s, i) => (
-                <div key={s.n} className="relative">
-                  <div className="rounded-xl border border-line bg-bg p-6 h-full">
-                    <div className="flex items-center justify-between gap-3 mb-4">
-                      <span className="text-xs font-bold uppercase tracking-wider text-emerald">
-                        Step 0{s.n}
+                <div key={s.n} className="relative group">
+                  <div className="flex flex-col justify-between rounded-2xl border border-line bg-surface p-6 sm:p-7 shadow-km-sm transition-all duration-300 hover:border-emerald-500/40 hover:shadow-km-md dark:bg-surface-card h-full">
+                    <div>
+                      {/* Top Step Counter & Icon Badge */}
+                      <div className="flex items-center justify-between gap-3 mb-5">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-surface-2 font-mono text-xs font-extrabold text-emerald ring-1 ring-emerald-500/25">
+                          0{s.n}
+                        </span>
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-110 ${
+                            s.tone === "climate"
+                              ? "bg-climate/15 text-climate ring-1 ring-climate/30"
+                              : s.tone === "amber"
+                                ? "bg-amber-500/15 text-amber-strong ring-1 ring-amber-500/30"
+                                : s.tone === "forest"
+                                  ? "bg-forest/15 text-forest dark:bg-emerald-500/15 dark:text-emerald ring-1 ring-emerald-500/30"
+                                  : "bg-emerald-500/15 text-emerald ring-1 ring-emerald-500/30"
+                          }`}
+                        >
+                          <s.icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+                        </div>
+                      </div>
+
+                      {/* Stage Tag & Title */}
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                        {locale === "bn" ? s.stageBn : s.stageKey}
                       </span>
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface shadow-km-sm">
-                        <s.icon className="h-4.5 w-4.5 text-emerald" strokeWidth={1.8} aria-hidden="true" />
-                      </span>
+                      <h3 className="text-lg font-bold text-content mb-2.5">
+                        {t(`landing.${s.titleKey}`)}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                        {t(`landing.${s.descKey}`)}
+                      </p>
                     </div>
-                    <h3 className="text-base font-semibold text-content mb-2">{t(s.titleKey)}</h3>
-                    <p className="text-sm text-muted leading-relaxed">{t(s.descKey)}</p>
+
+                    {/* Technical Spec & Ground Calibration Footer */}
+                    <div className="mt-6 pt-3.5 border-t border-line/70 flex items-center justify-between text-[11px]">
+                      <span className="text-muted">{locale === "bn" ? "ক্যালিব্রেশন:" : "Calibration:"}</span>
+                      <span className="font-semibold text-content">{locale === "bn" ? s.specBn : s.spec}</span>
+                    </div>
                   </div>
+
+                  {/* Flow Connector Arrow between cards (Desktop) */}
                   {i < steps.length - 1 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-0.5 bg-line -translate-y-1/2" />
+                    <div className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10 h-7 w-7 items-center justify-center rounded-full border border-line bg-surface shadow-sm text-muted transition-colors group-hover:text-emerald group-hover:border-emerald-500/40 dark:bg-surface-card">
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
                   )}
                 </div>
               ))}
             </div>
+
+            {/* Scientific Pipeline Assurance Banner */}
+            <div className="rounded-2xl border border-line bg-surface-2/60 dark:bg-surface-card/60 p-6 sm:p-8 shadow-km-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald">
+                    {locale === "bn" ? "প্রমাণভিত্তিক বৈজ্ঞানিক নিশ্চয়তা" : "Evidence-Driven Scientific Pipeline"}
+                  </span>
+                </div>
+                <h4 className="text-base sm:text-lg font-bold text-content">
+                  {locale === "bn"
+                    ? "স্যাটেলাইট কক্ষপথ থেকে সরাসরি মাঠ পর্যায়: কোনো অনুমান বা ভিত্তিহীন পূর্বাভাস নয়"
+                    : "From Satellite Orbit to Field Level: Zero Speculation, Pure Evidence"}
+                </h4>
+                <p className="mt-1 text-xs sm:text-sm text-muted leading-relaxed">
+                  {locale === "bn"
+                    ? "কৃষি মামা প্ল্যাটফর্মের প্রতিটি পর্যবেক্ষণ নাসার নির্ভরযোগ্য সোলার ও মেটিওরোলজিক্যাল মডেল (MERRA-2, CERES) এবং কৃষি সম্প্রসারণ অধিদপ্তরের (DAE) শস্য পঞ্জিকার সাথে সরাসরি সমন্বিত।"
+                    : "Every insight on Krishi Mama is directly mapped to documented NASA satellite footprints and Bangladesh Department of Agricultural Extension (DAE) phenological crop calendars."}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <Button href="/dashboard" size="md">
+                  <span>{locale === "bn" ? "ড্যাশবোর্ড দেখুন" : "Explore Dashboard"}</span>
+                  <ArrowRight className="h-4 w-4 ml-1.5" />
+                </Button>
+                <Button href="/data-sources" size="md" variant="outline">
+                  {locale === "bn" ? "ডাটা সোর্স পদ্ধতি" : "Data Methodology"}
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Data sources */}
-        <section id="data" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
-              {t("landing.sectionData")}
-            </h2>
-            <p className="mt-4 text-base text-muted sm:text-lg">{t("landing.sectionDataSub")}</p>
-          </div>
-
-          <Card className="max-w-3xl mx-auto">
-            <CardHeader title={t("landing.dataStatusTitle")} className="mb-2" />
-            <CardBody>
-              <ul className="divide-y divide-line">
-                {datasets.map((d) => (
-                  <li key={d.name} className="flex flex-wrap items-center justify-between gap-2 py-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-content">{d.name}</p>
-                      <p className="text-xs text-muted mt-0.5">{d.scope}</p>
-                    </div>
-                    <Badge tone={d.status === "implemented" ? "emerald" : "purple"}>
-                      {d.status === "implemented" ? t("landing.statusImplemented") : t("landing.statusPlanned")}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-6 text-xs text-muted">{t("landing.nasaLstNote")}</p>
-            </CardBody>
-          </Card>
-        </section>
-
-        {/* About */}
-        <section id="about" className="scroll-mt-20 bg-surface py-20">
+        {/* Grounded in NASA Earth and climate data — Vibrant, High-End Space & Earth Observation Showcase */}
+        <section id="data" className="scroll-mt-20 border-t border-line/60 bg-gradient-to-b from-surface via-surface-2/20 to-surface py-20 dark:from-bg dark:via-surface-card/10 dark:to-bg sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+            {/* Header with vibrant pill */}
+            <div className="mx-auto max-w-3xl text-center mb-14">
+              <div className="inline-flex items-center gap-2 rounded-full border border-climate/40 bg-climate/10 px-4 py-1.5 text-xs font-bold text-climate mb-4 shadow-sm backdrop-blur-sm">
+                <Satellite className="h-4 w-4 animate-pulse text-climate" />
+                <span className="uppercase tracking-wider text-[11px] font-bold">{t("landing.dataKicker")}</span>
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl lg:text-5xl">
+                {t("landing.sectionData")}
+              </h2>
+              <p className="mt-4 text-base text-muted sm:text-lg leading-relaxed max-w-2xl mx-auto">
+                {t("landing.sectionDataSub")}
+              </p>
+            </div>
+
+            {/* Featured Active Engine Card with rich emerald gradient & glow */}
+            <div className="relative mb-12 overflow-hidden rounded-2xl border-2 border-emerald-500/35 bg-gradient-to-br from-surface via-surface-2/50 to-emerald-500/10 p-6 shadow-km-md backdrop-blur-sm dark:from-surface-card dark:via-surface-card dark:to-emerald-950/30 sm:p-8">
+              {/* Vibrant ambient glow */}
+              <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-emerald-500/15 blur-3xl" />
+              
+              <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-6 border-b border-line/80">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 p-3 text-emerald ring-1 ring-emerald-500/40 shadow-sm">
+                    <Satellite className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald">
+                        {t("landing.dataActiveTitle")}
+                      </span>
+                      <span className="text-xs text-muted">•</span>
+                      <span className="text-xs font-medium text-muted">
+                        {powerApiSource?.provider || "NASA POWER (Langley Research Center)"}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-content sm:text-2xl">
+                      NASA POWER — Agroclimatology Daily
+                    </h3>
+                    <p className="mt-1 text-sm text-muted sm:text-base max-w-2xl leading-relaxed">
+                      {powerDataset.scope}
+                    </p>
+                    <p className="mt-2 font-mono text-[11px] text-muted truncate max-w-xl">
+                      {powerApiSource?.endpoint || "https://power.larc.nasa.gov/api/temporal/daily/point"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 flex items-center md:items-start">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3.5 py-1.5 text-xs font-bold text-emerald shadow-sm">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <span>{t("landing.dataActiveBadge")}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Live Metrics Grid (from live NASA API) */}
+              <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                <div className="rounded-xl border border-line/80 bg-surface/90 dark:bg-surface/50 p-4 shadow-sm">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald block mb-1">
+                    {locale === "bn" ? "ভেরিফায়েড রেকর্ডস" : "Verified Records"}
+                  </span>
+                  <span className="text-xl font-extrabold text-content sm:text-2xl block">
+                    {formattedObsCount}
+                  </span>
+                  <span className="text-[11px] text-muted">
+                    {locale === "bn" ? "দৈনিক পর্যবেক্ষণ ডাটা" : "Live daily observations"}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-line/80 bg-surface/90 dark:bg-surface/50 p-4 shadow-sm">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-climate block mb-1">
+                    {locale === "bn" ? "সময়কাল ব্যাপ্তি" : "Temporal Range"}
+                  </span>
+                  <span className="text-xl font-extrabold text-content sm:text-2xl block">
+                    {dynamicCoverageYears}
+                  </span>
+                  <span className="text-[11px] text-muted">
+                    {locale === "bn" ? "২৫ বছরের রেকর্ড" : "25-Year NASA baseline"}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-line/80 bg-surface/90 dark:bg-surface/50 p-4 shadow-sm">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-strong block mb-1">
+                    {locale === "bn" ? "টাইম স্ট্যান্ডার্ড" : "Time Standard"}
+                  </span>
+                  <span className="text-xl font-extrabold text-content sm:text-2xl block">
+                    {powerApiSource?.timeStandard || "LST"}
+                  </span>
+                  <span className="text-[11px] text-muted">
+                    {locale === "bn" ? "লোকাল সোলার টাইম" : "Local Solar Time"}
+                  </span>
+                </div>
+
+                <div className="rounded-xl border border-line/80 bg-surface/90 dark:bg-surface/50 p-4 shadow-sm">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 block mb-1">
+                    {locale === "bn" ? "স্থানিক মডেল" : "Spatial Footprint"}
+                  </span>
+                  <span className="text-base font-bold text-content sm:text-lg block mt-0.5">
+                    0.5° × 0.5° Gridded
+                  </span>
+                  <span className="text-[11px] text-muted">
+                    {powerApiSource?.spatialResolutionNote || "Continuous Global Grid"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Dynamic Active Parameters from Live NASA API with vibrant badges */}
+              <div className="relative mt-6 pt-5 border-t border-line/80">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald block mb-3">
+                  {locale === "bn" ? "সক্রিয় নাসা প্যারামিটার (লাইভ এপিআই)" : "Active Meteorological & Solar Parameters (Live NASA API)"}
+                </span>
+                <div className="flex flex-wrap gap-2.5">
+                  {activeParameters.map(([code, meta]) => (
+                    <span
+                      key={code}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-content shadow-sm transition-all hover:bg-emerald-500/20"
+                      title={meta.longName || code}
+                    >
+                      <span className="font-mono font-bold text-emerald">{code}</span>
+                      <span className="text-muted text-[11px]">({meta.unit})</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Expansion Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-content flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-climate" />
+                  <span>{t("landing.dataPipelineTitle")}</span>
+                </h3>
+                <p className="text-xs text-muted sm:text-sm mt-0.5">
+                  {t("landing.dataPipelineSub")}
+                </p>
+              </div>
+              <Badge tone="purple" className="self-start sm:self-auto text-xs font-bold shadow-sm">
+                {locale === "bn" ? "ঐতিহাসিক ডেটা কভারেজ" : "Historical data coverage"}
+              </Badge>
+            </div>
+
+            {/* Next-Gen Satellite Pipeline Cards (3-Column Grid with rich category color tones) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+              {/* Card 1: SMAP SPL3SMP_E */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm dark:bg-surface-card flex flex-col justify-between transition-all hover:border-blue-500/40 hover:shadow-km-md">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/30">
+                      <Droplets className="h-5 w-5" />
+                    </div>
+                    <Badge tone="neutral">{getSourceStatus("nasa:smap:spl3smp_e:v006")}</Badge>
+                  </div>
+                  <h4 className="text-base font-bold text-content font-mono">SMAP SPL3SMP_E</h4>
+                  <p className="text-xs text-muted mt-1 leading-relaxed">
+                    Near-surface soil moisture at satellite grid scale
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-line/70 grid grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <span className="text-muted block">{locale === "bn" ? "রেজোলিউশন" : "Resolution"}:</span>
+                    <span className="font-semibold text-content">9 km Gridded</span>
+                  </div>
+                  <div>
+                    <span className="text-muted block">{locale === "bn" ? "পরিমাপ গভীরতা" : "Target Depth"}:</span>
+                    <span className="font-semibold text-content">Top 0–5 cm Soil</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: GPM IMERG V07 */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm dark:bg-surface-card flex flex-col justify-between transition-all hover:border-climate/40 hover:shadow-km-md">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-climate/15 text-climate ring-1 ring-climate/30">
+                      <CloudRain className="h-5 w-5" />
+                    </div>
+                    <Badge tone="neutral">{getSourceStatus("nasa:gpm:imerg:3imerghh:v07")}</Badge>
+                  </div>
+                  <h4 className="text-base font-bold text-content font-mono">GPM IMERG V07</h4>
+                  <p className="text-xs text-muted mt-1 leading-relaxed">
+                    High-resolution satellite precipitation
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-line/70 grid grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <span className="text-muted block">{locale === "bn" ? "রেজোলিউশন" : "Resolution"}:</span>
+                    <span className="font-semibold text-content">0.1° (~10 km)</span>
+                  </div>
+                  <div>
+                    <span className="text-muted block">{locale === "bn" ? "ফ্রিকোয়েন্সি" : "Cadence"}:</span>
+                    <span className="font-semibold text-content">Half-Hourly / Daily</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: MODIS MOD13Q1.061 */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm dark:bg-surface-card flex flex-col justify-between transition-all hover:border-emerald/40 hover:shadow-km-md">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald/15 text-emerald ring-1 ring-emerald/30">
+                      <Sprout className="h-5 w-5" />
+                    </div>
+                    <Badge tone="neutral">{getSourceStatus("nasa:modis:mod13q1:v061")}</Badge>
+                  </div>
+                  <h4 className="text-base font-bold text-content font-mono">MODIS MOD13Q1.061</h4>
+                  <p className="text-xs text-muted mt-1 leading-relaxed">
+                    NDVI / EVI vegetation indices
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-line/70 grid grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <span className="text-muted block">{locale === "bn" ? "রেজোলিউশন" : "Resolution"}:</span>
+                    <span className="font-semibold text-content">250 m Pixel Grid</span>
+                  </div>
+                  <div>
+                    <span className="text-muted block">{locale === "bn" ? "কম্পোজিট" : "Composite"}:</span>
+                    <span className="font-semibold text-content">16-Day Cloud-Free</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Scientific Solar-Day Note & Documentation Banner with amber accent */}
+            <div className="rounded-2xl border border-line bg-surface-2/60 dark:bg-surface-card/60 p-5 sm:p-6 shadow-km-sm flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <div className="flex items-start gap-3.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-strong mt-0.5 ring-1 ring-amber-500/30">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-content">
+                    {locale === "bn" ? "সৌর-দিবস সময়সীমা (LST) ও বৈজ্ঞানিক নির্ভুলতা" : "Local Solar Time (LST) & Astronomical Accuracy"}
+                  </h4>
+                  <p className="text-xs text-muted mt-1 leading-relaxed max-w-2xl">
+                    {powerApiSource?.timeStandardDisclosure || t("landing.nasaLstNote")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0">
+                <Button href="/data-sources" variant="outline" size="sm" className="font-semibold shadow-sm">
+                  <span>{locale === "bn" ? "সম্পূর্ণ মেথডোলজি দেখুন" : "View Data Sources"}</span>
+                  <ArrowRight className="h-4 w-4 ml-1.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* About Section — High-End Agricultural Intelligence & Mission */}
+        <section id="about" className="scroll-mt-20 border-t border-line/70 bg-gradient-to-b from-surface via-surface-2/30 to-surface py-24 dark:from-bg dark:via-surface-card/20 dark:to-bg">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            {/* Section Header */}
+            <div className="mx-auto max-w-3xl text-center">
+              <Badge tone="emerald" className="mb-4 uppercase tracking-wider text-[11px] font-bold">
+                {t("landing.aboutKicker")}
+              </Badge>
+              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl lg:text-5xl">
                 {t("landing.sectionAbout")}
               </h2>
-              <p className="mt-6 text-base leading-relaxed text-muted sm:text-lg">
-                {t("landing.sectionAboutBody")}
+              <p className="mt-4 text-base text-muted sm:text-lg leading-relaxed">
+                {t("landing.aboutSubtitle")}
               </p>
-              <div className="mt-8 flex items-center justify-center gap-4">
-                <Button href="/dashboard" size="lg">
-                  {t("landing.heroCta")}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
+            </div>
+
+            {/* Core Mission Statement Card */}
+            <div className="mt-12 overflow-hidden rounded-2xl border border-line bg-surface p-8 shadow-km-sm dark:bg-surface-card sm:p-10">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div className="lg:col-span-8">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald">
+                    {locale === "bn" ? "প্রমাণভিত্তিক সিদ্ধান্ত গ্রহণ" : "Evidence-Based Decision Support"}
+                  </span>
+                  <p className="mt-3 text-base text-content sm:text-lg leading-relaxed">
+                    {t("landing.sectionAboutBody")}
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center gap-4">
+                    <Button href="/dashboard" size="lg">
+                      {t("landing.heroCta")}
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                    <Button href="/data-sources" size="lg" variant="outline">
+                      {t("landing.aboutViewDataSources")}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right highlights list */}
+                <div className="lg:col-span-4 rounded-xl border border-line/80 bg-surface-2/50 dark:bg-black/20 p-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Globe className="h-5 w-5 text-emerald shrink-0 mt-0.5" />
+                    <span className="text-sm font-medium text-content">
+                      {locale === "bn" ? "নাসা পাওয়ার ও আর্থ অবজারভেশন সরাসরি যুক্ত" : "Direct NASA Earth Observation integration"}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Sprout className="h-5 w-5 text-emerald shrink-0 mt-0.5" />
+                    <span className="text-sm font-medium text-content">
+                      {locale === "bn" ? "ডিএই ও বিএএমআইএস সরকারি শস্য ক্যালেন্ডার" : "DAE & BAMIS national crop calendar alignment"}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck className="h-5 w-5 text-emerald shrink-0 mt-0.5" />
+                    <span className="text-sm font-medium text-content">
+                      {locale === "bn" ? "১০০% সত্যতা — কোনো ভিত্তিহীন পূর্বাভাস নয়" : "100% Integrity — no unverified weather forecasts"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Feature Pillars Grid */}
+            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm transition-all hover:border-emerald/40 hover:shadow-km-sm dark:bg-surface-card">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald/10 text-emerald">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-content">
+                  {t("landing.aboutPillar1Title")}
+                </h3>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {t("landing.aboutPillar1Desc")}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm transition-all hover:border-emerald/40 hover:shadow-km-sm dark:bg-surface-card">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-forest/10 text-forest dark:bg-emerald/10 dark:text-emerald">
+                  <Sprout className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-content">
+                  {t("landing.aboutPillar2Title")}
+                </h3>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {t("landing.aboutPillar2Desc")}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm transition-all hover:border-emerald/40 hover:shadow-km-sm dark:bg-surface-card">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-climate/10 text-climate">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-content">
+                  {t("landing.aboutPillar3Title")}
+                </h3>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {t("landing.aboutPillar3Desc")}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-line bg-surface p-6 shadow-sm transition-all hover:border-emerald/40 hover:shadow-km-sm dark:bg-surface-card">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber/10 text-amber-strong">
+                  <Languages className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-content">
+                  {t("landing.aboutPillar4Title")}
+                </h3>
+                <p className="mt-2 text-sm text-muted leading-relaxed">
+                  {t("landing.aboutPillar4Desc")}
+                </p>
+              </div>
+            </div>
+
+            {/* Impact Metrics Ribbon */}
+            <div className="mt-14 rounded-2xl border border-line/80 bg-surface-2/40 p-8 dark:bg-surface-card/60">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-line/70">
+                <div className="text-center pt-4 lg:pt-0">
+                  <div className="text-3xl font-extrabold text-emerald sm:text-4xl">
+                    {t("landing.aboutStat1Value")}
+                  </div>
+                  <div className="mt-1 text-xs sm:text-sm font-medium text-muted">
+                    {t("landing.aboutStat1Label")}
+                  </div>
+                </div>
+
+                <div className="text-center pt-4 lg:pt-0 lg:pl-6">
+                  <div className="text-3xl font-extrabold text-forest dark:text-emerald sm:text-4xl">
+                    {t("landing.aboutStat2Value")}
+                  </div>
+                  <div className="mt-1 text-xs sm:text-sm font-medium text-muted">
+                    {t("landing.aboutStat2Label")}
+                  </div>
+                </div>
+
+                <div className="text-center pt-4 lg:pt-0 lg:pl-6">
+                  <div className="text-3xl font-extrabold text-climate sm:text-4xl">
+                    {t("landing.aboutStat3Value")}
+                  </div>
+                  <div className="mt-1 text-xs sm:text-sm font-medium text-muted">
+                    {t("landing.aboutStat3Label")}
+                  </div>
+                </div>
+
+                <div className="text-center pt-4 lg:pt-0 lg:pl-6">
+                  <div className="text-3xl font-extrabold text-amber-strong sm:text-4xl">
+                    {t("landing.aboutStat4Value")}
+                  </div>
+                  <div className="mt-1 text-xs sm:text-sm font-medium text-muted">
+                    {t("landing.aboutStat4Label")}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

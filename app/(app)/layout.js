@@ -17,11 +17,11 @@ export default function AppLayout({ children }) {
       <Suspense fallback={null}>
         <MobileTopbar />
       </Suspense>
-      <main className="mx-auto max-w-[1440px] px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:pl-64 lg:pb-8">
-        <div className="lg:px-0">
+      <div className="lg:pl-64">
+        <main className="mx-auto w-full max-w-[1440px] px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:pb-8">
           <Suspense fallback={null}>{children}</Suspense>
-        </div>
-      </main>
+        </main>
+      </div>
       <Suspense fallback={null}>
         <BottomNav />
       </Suspense>

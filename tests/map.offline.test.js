@@ -52,3 +52,17 @@ test("Phase 8.2 Client Map: Offline Vector Canvas CSS Pattern", async () => {
   assert.ok(offlineCanvasBackground.includes("radial-gradient"));
   assert.equal(offlineCanvasSize, "20px 20px");
 });
+
+test("Environmental GIS map renders actual source observations with quality and coverage disclosures", () => {
+  const pagePath = path.resolve(__dirname, "../app/(app)/map/page.js");
+  const mapPath = path.resolve(__dirname, "../components/map/DistrictGisMap.js");
+  const page = fs.readFileSync(pagePath, "utf8");
+  const map = fs.readFileSync(mapPath, "utf8");
+  assert.match(page, /toggleLayer\("gpm"\)/);
+  assert.match(page, /validIntervals/);
+  assert.match(map, /CircleMarker/);
+  assert.match(map, /NASA GPM IMERG Final V07/);
+  assert.match(map, /dailySummary\.completeness === "complete"/);
+  assert.match(map, /observations/);
+  assert.match(map, /sensors\.climate\.limitation/);
+});
