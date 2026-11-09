@@ -66,3 +66,15 @@ test("Environmental GIS map renders actual source observations with quality and 
   assert.match(map, /observations/);
   assert.match(map, /sensors\.climate\.limitation/);
 });
+
+test("GIS basemap uses keyless OSM tiles and exposes a visible vector fallback on tile errors", () => {
+  const mapPath = path.resolve(__dirname, "../components/map/DistrictGisMap.js");
+  const map = fs.readFileSync(mapPath, "utf8");
+  assert.match(map, /https:\/\/tile\.openstreetmap\.org\/\{z\}\/\{x\}\/\{y\}\.png/);
+  assert.match(map, /openstreetmap\.org\/copyright/);
+  assert.doesNotMatch(map, /basemaps\.cartocdn\.com/);
+  assert.match(map, /tileerror:\s*\(\)\s*=>\s*\{/);
+  assert.match(map, /Basemap tiles unavailable/);
+  assert.match(map, /Showing BBS 2020 boundaries and selected data layers/);
+  assert.match(map, /aria-live="polite"/);
+});

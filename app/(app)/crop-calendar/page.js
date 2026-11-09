@@ -74,7 +74,7 @@ export default function CropCalendarPage() {
 
   const isBn = locale === "bn";
 
-  const loadData = useCallback(async (districtCode, cropId) => {
+  const loadData = useCallback(async (districtCode, cropId, isCurrent = () => true) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -83,6 +83,7 @@ export default function CropCalendarPage() {
         fetchCropCalendars(districtCode, cropId),
         fetchCropCalendarAlignment(districtCode, cropId),
       ]);
+      if (!isCurrent()) return;
 
       if (cropsRes.success && cropsRes.data) {
         setCropsList(cropsRes.data);
@@ -113,16 +114,23 @@ export default function CropCalendarPage() {
         setAlignmentData(alignRes.data);
       }
     } catch (err) {
-      setError(err.message || (isBn ? "ক্যালেন্ডার উপাত্ত লোড করতে ব্যর্থ" : "Failed to load crop calendar data"));
+      if (isCurrent()) {
+        setError(err.message || (isBn ? "ক্যালেন্ডার উপাত্ত লোড করতে ব্যর্থ" : "Failed to load crop calendar data"));
+      }
     } finally {
-      setIsLoading(false);
+      if (isCurrent()) setIsLoading(false);
     }
   }, [isBn]);
 
   useEffect(() => {
-    if (selectedDistrict && selectedCrop) {
-      loadData(selectedDistrict, selectedCrop);
-    }
+    if (!selectedDistrict || !selectedCrop) return;
+    let isActive = true;
+    Promise.resolve().then(() => {
+      if (isActive) loadData(selectedDistrict, selectedCrop, () => isActive);
+    });
+    return () => {
+      isActive = false;
+    };
   }, [selectedDistrict, selectedCrop, loadData]);
 
   const districtName = isBn ? currentDistrictObj?.nameBn : currentDistrictObj?.nameEn;

@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { prepareSpokenText, detectLanguage } from "@/lib/speechTextHelper.js";
+
+const subscribeToBrowserSupport = () => () => {};
+const getSpeechSynthesisSupport = () =>
+  typeof window !== "undefined" && "speechSynthesis" in window;
+const getServerSupport = () => false;
 
 /**
  * useVoiceOutput
@@ -16,7 +21,11 @@ import { prepareSpokenText, detectLanguage } from "@/lib/speechTextHelper.js";
  * - Safe for Next.js SSR / hydration.
  */
 export function useVoiceOutput() {
-  const [isSupported, setIsSupported] = useState(false);
+  const isSupported = useSyncExternalStore(
+    subscribeToBrowserSupport,
+    getSpeechSynthesisSupport,
+    getServerSupport
+  );
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -31,12 +40,7 @@ export function useVoiceOutput() {
   useEffect(() => {
     isComponentMounted.current = true;
 
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setIsSupported(false);
-      return;
-    }
-
-    setIsSupported(true);
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
     const loadVoices = () => {
       try {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChart3,
   Bot,
@@ -86,41 +86,41 @@ function NavList({ onNavigate }) {
 
 function SidebarInner({ onNavigate, showClose = false, onCloseMobile = null }) {
   const pathname = usePathname();
-  const [activeChatId, setActiveChatId] = useState(null);
+  const searchParams = useSearchParams();
+  const activeChatId = searchParams.get("id");
   const { t, locale } = useLang();
   const { user, isAuthenticated, logout } = useAuth();
   const isBn = locale === "bn";
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      setActiveChatId(params.get("id"));
-    }
-  }, [pathname]);
-
   const [conversations, setConversations] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const loadConversations = useCallback(async () => {
+  const loadConversations = useCallback(async (isCurrent = () => true) => {
     if (!isAuthenticated) {
-      setConversations([]);
+      if (isCurrent()) setConversations([]);
       return;
     }
     setLoadingHistory(true);
     try {
       const res = await fetchAssistantConversations();
-      if (res.success && res.data?.conversations) {
+      if (isCurrent() && res.success && res.data?.conversations) {
         setConversations(res.data.conversations);
       }
     } catch {
       // Ignore network errors in sidebar
     } finally {
-      setLoadingHistory(false);
+      if (isCurrent()) setLoadingHistory(false);
     }
   }, [isAuthenticated]);
 
   useEffect(() => {
-    loadConversations();
+    let isActive = true;
+    Promise.resolve().then(() => {
+      if (isActive) loadConversations(() => isActive);
+    });
+    return () => {
+      isActive = false;
+    };
   }, [loadConversations]);
 
   // Listen for chat updates from Assistant page

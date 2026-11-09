@@ -28,6 +28,9 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { t } = useLang();
   const { login } = useAuth();
+  const errorParam = searchParams.get("error");
+  const messageParam = searchParams.get("message");
+  const queryNoticeKey = `${errorParam || ""}:${messageParam || ""}`;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,20 +39,21 @@ function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleNotice, setGoogleNotice] = useState("");
+  const [dismissedQueryNotice, setDismissedQueryNotice] = useState("");
+
+  const queryError = errorParam === "google_failed" || errorParam === "state_mismatch"
+    ? messageParam || t("auth.googleAuthFailed") || "Google sign-in failed. Please try again."
+    : "";
+  const displayedError = error || queryError;
+  const queryNotice = errorParam === "cancelled" && dismissedQueryNotice !== queryNoticeKey
+    ? t("auth.googleAuthCancelled") || "Google sign-in was cancelled."
+    : "";
+  const displayedGoogleNotice = queryNotice || googleNotice;
 
   // Inspect query params for redirect errors from Google OAuth and verify live configuration
   useEffect(() => {
     let active = true;
-    const errorParam = searchParams.get("error");
-    const messageParam = searchParams.get("message");
-
-    if (errorParam === "cancelled") {
-      setGoogleNotice(t("auth.googleAuthCancelled") || "Google sign-in was cancelled.");
-    } else if (errorParam === "google_failed" || errorParam === "state_mismatch") {
-      setError(
-        messageParam ? decodeURIComponent(messageParam) : t("auth.googleAuthFailed") || "Google sign-in failed. Please try again."
-      );
-    } else if (errorParam === "google_not_configured") {
+    if (errorParam === "google_not_configured") {
       // Re-verify against live backend so stale URL params don't show a false warning
       fetchGoogleAuthStatus()
         .then((res) => {
@@ -62,7 +66,7 @@ function LoginForm() {
         .catch(() => {
           if (active) setGoogleNotice(t("auth.googleNotConfigured"));
         });
-    } else {
+    } else if (!errorParam) {
       // Passive live status check on mount to ensure warning is suppressed when configured
       fetchGoogleAuthStatus()
         .then((res) => {
@@ -76,7 +80,7 @@ function LoginForm() {
     return () => {
       active = false;
     };
-  }, [searchParams, t]);
+  }, [errorParam, t]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -150,17 +154,17 @@ function LoginForm() {
           <p className="mt-1.5 text-sm text-muted">{t("auth.loginSubtitle")}</p>
         </div>
 
-        {error && (
+        {displayedError && (
           <div
             className="mb-5 flex items-start gap-3 rounded-xl bg-danger/10 border border-danger/20 p-3.5 text-xs text-danger"
             role="alert"
           >
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span className="flex-1 leading-relaxed">{error}</span>
+            <span className="flex-1 leading-relaxed">{displayedError}</span>
           </div>
         )}
 
-        {googleNotice && (
+        {displayedGoogleNotice && (
           <div
             className="mb-5 flex items-start gap-3 rounded-xl bg-surface-2 border border-line p-3.5 text-xs text-muted"
             role="status"
@@ -168,11 +172,14 @@ function LoginForm() {
             <Info className="h-4 w-4 shrink-0 mt-0.5 text-emerald" />
             <div className="flex-1 leading-relaxed">
               <p className="font-semibold text-content text-xs mb-0.5">Google Sign-In Notice</p>
-              <p className="text-[11px]">{googleNotice}</p>
+              <p className="text-[11px]">{displayedGoogleNotice}</p>
             </div>
             <button
               type="button"
-              onClick={() => setGoogleNotice("")}
+              onClick={() => {
+                if (queryNotice) setDismissedQueryNotice(queryNoticeKey);
+                setGoogleNotice("");
+              }}
               className="text-muted hover:text-content p-0.5 transition-colors"
               aria-label="Dismiss notice"
             >

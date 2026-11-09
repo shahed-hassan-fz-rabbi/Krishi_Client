@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+
+const subscribeToBrowserSupport = () => () => {};
+const getSpeechRecognitionSupport = () =>
+  typeof window !== "undefined" && Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+const getServerSupport = () => false;
 
 /**
  * useVoiceInput
@@ -18,7 +23,11 @@ export function useVoiceInput({
   onFinalTranscript,
   onInterimTranscript,
 } = {}) {
-  const [isSupported, setIsSupported] = useState(false);
+  const isSupported = useSyncExternalStore(
+    subscribeToBrowserSupport,
+    getSpeechRecognitionSupport,
+    getServerSupport
+  );
   const [isListening, setIsListening] = useState(false);
   const [lang, setLang] = useState(initialLang);
   const [interimTranscript, setInterimTranscript] = useState("");
@@ -35,20 +44,6 @@ export function useVoiceInput({
     onFinalRef.current = onFinalTranscript;
     onInterimRef.current = onInterimTranscript;
   }, [onFinalTranscript, onInterimTranscript]);
-
-  // Synchronize language when initialLang prop changes
-  useEffect(() => {
-    setLang(initialLang);
-  }, [initialLang]);
-
-  // Check Web Speech API availability on mount (client-side only)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      setIsSupported(Boolean(SpeechRecognition));
-    }
-  }, []);
 
   // Stop listening gracefully
   const stopListening = useCallback(() => {

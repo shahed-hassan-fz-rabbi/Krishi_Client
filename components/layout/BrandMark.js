@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Sprout } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
@@ -20,9 +21,11 @@ export function BrandMark({ href = "/", tone = "dark", compact = false }) {
   return (
     <Link href={href} className="inline-flex items-center gap-2.5">
       {logoOk ? (
-        <img
+        <Image
           src={LOGO_SRC}
           alt="Krishi Mama"
+          width={36}
+          height={36}
           onError={() => setLogoOk(false)}
           className="h-9 w-9 shrink-0 rounded-lg bg-surface object-contain shadow-km-sm"
         />

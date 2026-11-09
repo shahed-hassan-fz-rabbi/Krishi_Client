@@ -39,11 +39,11 @@ export function NotificationCenter({ variant = "default" }) {
   const containerRef = useRef(null);
 
   // Load unread count on mount or auth change
-  const refreshUnreadCount = useCallback(async () => {
+  const refreshUnreadCount = useCallback(async (isCurrent = () => true) => {
     if (!isAuthenticated) return;
     try {
       const res = await fetchUnreadNotificationCount();
-      if (res.success && res.data) {
+      if (isCurrent() && res.success && res.data) {
         setUnreadCount(res.data.unreadCount || 0);
       }
     } catch {
@@ -52,11 +52,12 @@ export function NotificationCenter({ variant = "default" }) {
   }, [isAuthenticated]);
 
   // Load notification items
-  const loadNotifications = useCallback(async () => {
+  const loadNotifications = useCallback(async (isCurrent = () => true) => {
     if (!isAuthenticated) return;
     setLoading(true);
     try {
       const res = await fetchNotifications({ unreadOnly: filterUnread });
+      if (!isCurrent()) return;
       if (res.success && res.data) {
         setNotifications(res.data.notifications || []);
         if (typeof res.data.pagination?.unreadCount === "number") {
@@ -64,27 +65,36 @@ export function NotificationCenter({ variant = "default" }) {
         }
       }
     } catch (err) {
-      console.error("Failed to load notifications:", err);
+      if (isCurrent()) console.error("Failed to load notifications:", err);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [isAuthenticated, filterUnread]);
 
   useEffect(() => {
-    refreshUnreadCount();
-    const interval = setInterval(refreshUnreadCount, 45000); // 45s poll
-    const handleUpdate = () => refreshUnreadCount();
+    let isActive = true;
+    Promise.resolve().then(() => {
+      if (isActive) refreshUnreadCount(() => isActive);
+    });
+    const interval = setInterval(() => refreshUnreadCount(() => isActive), 45000); // 45s poll
+    const handleUpdate = () => refreshUnreadCount(() => isActive);
     window.addEventListener("krishi:notification-update", handleUpdate);
     return () => {
+      isActive = false;
       clearInterval(interval);
       window.removeEventListener("krishi:notification-update", handleUpdate);
     };
   }, [refreshUnreadCount]);
 
   useEffect(() => {
-    if (isOpen) {
-      loadNotifications();
-    }
+    if (!isOpen) return;
+    let isActive = true;
+    Promise.resolve().then(() => {
+      if (isActive) loadNotifications(() => isActive);
+    });
+    return () => {
+      isActive = false;
+    };
   }, [isOpen, loadNotifications]);
 
   // Handle outside click to close dropdown

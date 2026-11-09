@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -13,6 +13,24 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+function subscribeToConnectivity(onChange) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("offline", onChange);
+  window.addEventListener("online", onChange);
+  return () => {
+    window.removeEventListener("offline", onChange);
+    window.removeEventListener("online", onChange);
+  };
+}
+
+function getOfflineSnapshot() {
+  return typeof navigator !== "undefined" && !navigator.onLine;
+}
+
+function getServerOfflineSnapshot() {
+  return false;
+}
 
 // Helper component to smoothly pan/zoom to district center
 function MapController({ center, zoom, bounds }) {
@@ -95,23 +113,13 @@ export default function DistrictGisMap({
   isBn = false,
 }) {
   const geoJsonRef = useRef(null);
-  const [isOfflineBasemap, setIsOfflineBasemap] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (!navigator.onLine) {
-        setIsOfflineBasemap(true);
-      }
-      const handleOffline = () => setIsOfflineBasemap(true);
-      const handleOnline = () => setIsOfflineBasemap(false);
-      window.addEventListener("offline", handleOffline);
-      window.addEventListener("online", handleOnline);
-      return () => {
-        window.removeEventListener("offline", handleOffline);
-        window.removeEventListener("online", handleOnline);
-      };
-    }
-  }, []);
+  const isNetworkOffline = useSyncExternalStore(
+    subscribeToConnectivity,
+    getOfflineSnapshot,
+    getServerOfflineSnapshot
+  );
+  const [hasTileError, setHasTileError] = useState(false);
+  const isOfflineBasemap = isNetworkOffline || hasTileError;
 
   const districtMeta = layersData?.district;
   const sensors = layersData?.sensors;
@@ -155,19 +163,19 @@ export default function DistrictGisMap({
     <div className="relative h-[620px] w-full overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
       {/* Offline Vector Mode Banner */}
       {isOfflineBasemap && (
-        <div className="pointer-events-auto absolute top-4 right-4 z-[1000] flex items-center gap-2.5 rounded-xl border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs font-medium text-amber-900 shadow-md backdrop-blur-xs">
+        <div role="status" aria-live="polite" className="pointer-events-auto absolute top-4 right-4 z-[1000] flex items-center gap-2.5 rounded-xl border border-amber-300 bg-amber-50/95 px-3 py-2 text-xs font-medium text-amber-900 shadow-md backdrop-blur-xs">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
           </span>
           <div>
             <span className="font-bold block">
-              {isBn ? "অফলাইন ভেক্টর মোড (টাইলস ব্যতিরেকে)" : "Offline Vector Mode"}
+              {isBn ? "বেসম্যাপ টাইল পাওয়া যাচ্ছে না" : "Basemap tiles unavailable"}
             </span>
             <span className="text-[11px] text-amber-800">
               {isBn
-                ? "BBS সীমানা ও সেন্সর স্তর সম্পূর্ণ সক্রিয়"
-                : "BBS 2020 boundaries & sensor overlays active"}
+                ? "BBS সীমানা ও নির্বাচিত ডেটা স্তর দেখানো হচ্ছে"
+                : "Showing BBS 2020 boundaries and selected data layers"}
             </span>
           </div>
         </div>
@@ -187,14 +195,17 @@ export default function DistrictGisMap({
       >
         <MapController center={center} zoom={zoom} bounds={mapBounds} />
 
-        {/* High-quality CartoDB Voyager Tile Layer with graceful error recovery */}
+        {/* OpenStreetMap standard raster tiles; interactive viewport requests only. */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noreferrer">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
           eventHandlers={{
             tileerror: () => {
-              setIsOfflineBasemap(true);
+              setHasTileError(true);
+            },
+            tileload: () => {
+              setHasTileError(false);
             },
           }}
         />

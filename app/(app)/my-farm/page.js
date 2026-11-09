@@ -41,7 +41,7 @@ export default function MyFarmPage() {
   const [deletingId, setDeletingId] = useState(null);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
-  const loadFarmsAndActivities = useCallback(async () => {
+  const loadFarmsAndActivities = useCallback(async (isCurrent = () => true) => {
     setLoading(true);
     setError(null);
     try {
@@ -49,6 +49,7 @@ export default function MyFarmPage() {
         fetchFarms(),
         fetchActivitiesOverview().catch(() => ({ success: false })),
       ]);
+      if (!isCurrent()) return;
 
       if (farmRes.success && farmRes.data) {
         setFarms(farmRes.data.farms || []);
@@ -66,14 +67,20 @@ export default function MyFarmPage() {
         setActivityOverview(actRes.data);
       }
     } catch {
-      setError("An unexpected network error occurred.");
+      if (isCurrent()) setError("An unexpected network error occurred.");
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadFarmsAndActivities();
+    let isActive = true;
+    Promise.resolve().then(() => {
+      if (isActive) loadFarmsAndActivities(() => isActive);
+    });
+    return () => {
+      isActive = false;
+    };
   }, [loadFarmsAndActivities]);
 
   const handleQuickStatus = async (farmId, activityId, newStatus) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { CloudRain, Layers, ShieldCheck, Sprout } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
@@ -78,9 +79,11 @@ export function AuthHeroPanel({ mode = "login" }) {
       <div className="relative z-10">
         <Link href="/" className="inline-flex items-center gap-2.5 group">
           {logoOk ? (
-            <img
+            <Image
               src={LOGO_SRC}
               alt="Krishi Mama"
+              width={40}
+              height={40}
               onError={() => setLogoOk(false)}
               className="h-10 w-10 shrink-0 rounded-lg bg-white p-1 object-contain shadow-sm border border-white/20 group-hover:scale-105 transition-transform"
             />

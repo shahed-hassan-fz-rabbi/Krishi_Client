@@ -94,12 +94,13 @@ function FarmDetailsContent() {
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [newScheduledDate, setNewScheduledDate] = useState("");
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (isCurrent = () => true) => {
     if (!farmId) return;
     setLoading(true);
     setError(null);
     try {
       const farmRes = await fetchFarmById(farmId);
+      if (!isCurrent()) return;
       if (farmRes.success && farmRes.data) {
         setFarm(farmRes.data);
       } else {
@@ -117,6 +118,7 @@ function FarmDetailsContent() {
         fetchFarmEnvironment(farmId),
         fetchFarmActivities(farmId).catch(() => ({ success: false })),
       ]);
+      if (!isCurrent()) return;
 
       if (lcRes.success && lcRes.data) {
         setLifecycle(lcRes.data);
@@ -130,15 +132,23 @@ function FarmDetailsContent() {
     } catch {
       setError("A network error occurred while loading farm data.");
     } finally {
-      setLoading(false);
-      setLifecycleLoading(false);
-      setEnvLoading(false);
-      setActLoading(false);
+      if (isCurrent()) {
+        setLoading(false);
+        setLifecycleLoading(false);
+        setEnvLoading(false);
+        setActLoading(false);
+      }
     }
   }, [farmId]);
 
   useEffect(() => {
-    loadData();
+    let isActive = true;
+    Promise.resolve().then(() => {
+      if (isActive) loadData(() => isActive);
+    });
+    return () => {
+      isActive = false;
+    };
   }, [loadData]);
 
   const handleGenerateTasks = async () => {

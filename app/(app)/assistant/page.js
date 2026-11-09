@@ -81,7 +81,10 @@ function AssistantContent() {
 
   const [selectedCrop, setSelectedCrop] = useState("all");
   const [farmsList, setFarmsList] = useState([]);
-  const [selectedFarmId, setSelectedFarmId] = useState(urlFarmId || "");
+  const [farmSelection, setFarmSelection] = useState({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
+  const selectedFarmId = farmSelection.queryFarmId === urlFarmId
+    ? farmSelection.farmId
+    : urlFarmId || "";
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -93,11 +96,16 @@ function AssistantContent() {
   const [isGuestSession, setIsGuestSession] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState({});
 
-  useEffect(() => {
-    if (urlFarmId) {
-      setSelectedFarmId(urlFarmId);
+  const handleFarmSelection = (farmId) => {
+    setFarmSelection({ queryFarmId: urlFarmId, farmId });
+    const selectedFarm = farmsList.find((farm) => farm._id === farmId);
+    if (selectedFarm?.location?.districtCode) {
+      setSelectedDistrict(selectedFarm.location.districtCode);
     }
-  }, [urlFarmId]);
+    if (selectedFarm?.crop?.cropCode) {
+      setSelectedCrop(selectedFarm.crop.cropCode);
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -106,29 +114,29 @@ function AssistantContent() {
         const res = await fetchFarms();
         if (res.success && res.data?.farms) {
           setFarmsList(res.data.farms);
+          const queryFarm = res.data.farms.find((farm) => farm._id === urlFarmId);
+          if (queryFarm?.location?.districtCode) {
+            setSelectedDistrict(queryFarm.location.districtCode);
+          }
+          if (queryFarm?.crop?.cropCode) {
+            setSelectedCrop(queryFarm.crop.cropCode);
+          }
         }
       } catch (err) {
         console.error("Failed to load user farms:", err);
       }
     }
     loadFarms();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, urlFarmId, setSelectedDistrict]);
 
   const activeFarm = farmsList.find((f) => f._id === selectedFarmId) || null;
 
-  useEffect(() => {
-    if (activeFarm) {
-      if (activeFarm.location?.districtCode) {
-        setSelectedDistrict(activeFarm.location.districtCode);
-      }
-      if (activeFarm.crop?.cropCode) {
-        setSelectedCrop(activeFarm.crop.cropCode);
-      }
-    }
-  }, [activeFarm, setSelectedDistrict]);
-
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const conversationStateRef = useRef({ conversationId, isGuestSession });
+  useEffect(() => {
+    conversationStateRef.current = { conversationId, isGuestSession };
+  }, [conversationId, isGuestSession]);
 
   // Voice Input (STT) Hook
   const handleFinalTranscript = useCallback((finalText) => {
@@ -196,16 +204,22 @@ function AssistantContent() {
 
   // Load existing conversation when URL id changes
   useEffect(() => {
+    let isMounted = true;
     if (!urlConversationId) {
-      if (conversationId && !isGuestSession) {
-        setConversationId(null);
-        setConversationTitle("");
-        setMessages([]);
+      const previousState = conversationStateRef.current;
+      if (previousState.conversationId && !previousState.isGuestSession) {
+        Promise.resolve().then(() => {
+          if (!isMounted) return;
+          setConversationId(null);
+          setConversationTitle("");
+          setMessages([]);
+        });
       }
-      return;
+      return () => {
+        isMounted = false;
+      };
     }
 
-    let isMounted = true;
     async function loadSavedConversation() {
       setIsLoading(true);
       setError(null);
@@ -250,12 +264,14 @@ function AssistantContent() {
       }
     }
 
-    loadSavedConversation();
+    Promise.resolve().then(() => {
+      if (isMounted) loadSavedConversation();
+    });
 
     return () => {
       isMounted = false;
     };
-  }, [urlConversationId, isBn, setSelectedDistrict]);
+  }, [urlConversationId, isBn, setSelectedDistrict, setSelectedCrop]);
 
   // Handle New Conversation
   const handleNewConversation = useCallback(() => {
@@ -624,7 +640,7 @@ function AssistantContent() {
               <Tractor className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-emerald" />
               <select
                 value={selectedFarmId}
-                onChange={(e) => setSelectedFarmId(e.target.value)}
+                onChange={(e) => handleFarmSelection(e.target.value)}
                 aria-label="Select farm"
                 className="appearance-none rounded-xl border border-line bg-surface-2 dark:bg-surface pl-8 pr-7 py-2 text-xs font-medium text-content hover:border-emerald/40 focus:outline-none focus:ring-1 focus:ring-emerald cursor-pointer shadow-2xs max-w-[160px] truncate"
               >
@@ -715,7 +731,7 @@ function AssistantContent() {
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedFarmId("")}
+                onClick={() => handleFarmSelection("")}
                 className="text-xs text-emerald-700 dark:text-emerald-300 hover:underline shrink-0 font-medium cursor-pointer"
               >
                 {isBn ? "ফিল্টার সরান" : "Clear Filter"}
