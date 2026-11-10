@@ -170,7 +170,9 @@ export function NotificationCenter({ variant = "default" }) {
         className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors cursor-pointer ${
           isDarkVariant
             ? "border border-white/10 text-white/80 hover:bg-white/10 hover:text-white"
-            : "border border-line text-content hover:bg-surface-hover"
+            : variant === "toolbar"
+              ? "border border-transparent text-muted hover:bg-surface-2 hover:text-content"
+              : "border border-line text-content hover:bg-surface-hover"
         }`}
       >
         <Bell className="h-4 w-4" />

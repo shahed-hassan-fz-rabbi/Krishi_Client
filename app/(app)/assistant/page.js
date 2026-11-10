@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ChevronUp,
   CloudRain,
+  Copy,
   Database,
   Edit2,
   FileText,
@@ -71,8 +72,8 @@ function AssistantContent() {
   const urlConversationId = searchParams.get("id");
   const urlFarmId = searchParams.get("farmId");
 
-  const { locale, setLocale, t } = useLang();
-  const { theme, toggleTheme } = useTheme();
+  const { locale, t } = useLang();
+  const { theme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { selectedDistrict, setSelectedDistrict, districts } = useLocation();
 
@@ -95,6 +96,16 @@ function AssistantContent() {
   const [newTitleValue, setNewTitleValue] = useState("");
   const [isGuestSession, setIsGuestSession] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState({});
+  const [copiedId, setCopiedId] = useState(null);
+  const [failedPrompt, setFailedPrompt] = useState("");
+
+  const handleCopyMessage = (msgId, text) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(msgId);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
 
   const handleFarmSelection = (farmId) => {
     setFarmSelection({ queryFarmId: urlFarmId, farmId });
@@ -132,7 +143,10 @@ function AssistantContent() {
   const activeFarm = farmsList.find((f) => f._id === selectedFarmId) || null;
 
   const messagesEndRef = useRef(null);
+  const chatScrollContainerRef = useRef(null);
+  const loadedConvIdRef = useRef(null);
   const textareaRef = useRef(null);
+  const sendInFlightRef = useRef(false);
   const conversationStateRef = useRef({ conversationId, isGuestSession });
   useEffect(() => {
     conversationStateRef.current = { conversationId, isGuestSession };
@@ -197,10 +211,18 @@ function AssistantContent() {
     });
   };
 
-  // Scroll to bottom on messages change
+  // Scroll chat container to bottom on messages change without window jumping
+  const messagesCount = messages.length;
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+    if (messagesCount === 0) return;
+    const container = chatScrollContainerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messagesCount]);
 
   // Load existing conversation when URL id changes
   useEffect(() => {
@@ -215,6 +237,14 @@ function AssistantContent() {
           setMessages([]);
         });
       }
+      loadedConvIdRef.current = null;
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    // Skip redundant network fetch if this conversation is already active in memory
+    if (loadedConvIdRef.current === urlConversationId) {
       return () => {
         isMounted = false;
       };
@@ -229,8 +259,10 @@ function AssistantContent() {
 
         if (res.success && res.data?.conversation) {
           const conv = res.data.conversation;
+          loadedConvIdRef.current = conv._id;
           setConversationId(conv._id);
           setConversationTitle(conv.title || "");
+          setFailedPrompt("");
           if (conv.district) setSelectedDistrict(conv.district);
           if (conv.crop) setSelectedCrop(conv.crop);
 
@@ -240,6 +272,8 @@ function AssistantContent() {
             text: m.content,
             sources: m.sources || [],
             dataDate: m.dataDate || null,
+            observationDate: m.observationDate || null,
+            observationLocation: m.observationLocation || null,
             dataQuality: m.dataQuality || null,
             provenance: m.provenance || [],
             limitations: m.limitations || [],
@@ -277,10 +311,12 @@ function AssistantContent() {
   const handleNewConversation = useCallback(() => {
     stopTts();
     if (isListening) stopListening();
+    loadedConvIdRef.current = null;
     setConversationId(null);
     setConversationTitle("");
     setMessages([]);
     setError(null);
+    setFailedPrompt("");
     setIsGuestSession(false);
     router.replace("/assistant");
     setTimeout(() => {
@@ -308,25 +344,29 @@ function AssistantContent() {
 
   // Send message handler
   const handleSendMessage = useCallback(
-    async (textOverride = null) => {
+    async (textOverride = null, { retry = false } = {}) => {
       const textToSend = typeof textOverride === "string" ? textOverride : inputValue;
-      if (!textToSend || !textToSend.trim() || isLoading) return;
+      if (!textToSend || !textToSend.trim() || isLoading || sendInFlightRef.current) return;
+
+      sendInFlightRef.current = true;
 
       if (isListening) stopListening();
       stopTts();
 
       const userText = textToSend.trim();
-      const userMessage = {
-        id: `user-${Date.now()}`,
-        sender: "user",
-        text: userText,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-      setInputValue("");
+      if (!retry) {
+        const userMessage = {
+          id: `user-${Date.now()}`,
+          sender: "user",
+          text: userText,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, userMessage]);
+        setInputValue("");
+      }
       setIsLoading(true);
       setError(null);
+      setFailedPrompt("");
 
       try {
         const res = await sendAssistantMessage({
@@ -344,11 +384,12 @@ function AssistantContent() {
         const data = res.data;
         if (data.conversationId) {
           setConversationId(data.conversationId);
+          loadedConvIdRef.current = data.conversationId;
           if (data.title && !conversationTitle) {
             setConversationTitle(data.title);
           }
           if (isAuthenticated && !urlConversationId) {
-            router.replace(`/assistant?id=${data.conversationId}`);
+            window.history.replaceState(null, "", `/assistant?id=${data.conversationId}`);
             window.dispatchEvent(new CustomEvent("krishi:chat-updated"));
           }
         }
@@ -363,6 +404,8 @@ function AssistantContent() {
           text: data.answer,
           sources: data.sources || [],
           dataDate: data.dataDate || null,
+          observationDate: data.observationDate || null,
+          observationLocation: data.observationLocation || null,
           dataQuality: data.dataQuality || null,
           provenance: data.provenance || [],
           limitations: data.limitations || [],
@@ -373,8 +416,10 @@ function AssistantContent() {
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
+        setFailedPrompt("");
       } catch (err) {
         console.error("[AssistantPage] Send failed:", err);
+        setFailedPrompt(userText);
         setError(
           err.message ||
             (isBn
@@ -382,6 +427,7 @@ function AssistantContent() {
               : "An error occurred while sending message. Please try again.")
         );
       } finally {
+        sendInFlightRef.current = false;
         setIsLoading(false);
       }
     },
@@ -445,54 +491,78 @@ function AssistantContent() {
   const QUICK_QUESTIONS = [
     {
       id: "rainfall",
-      title: "Rainfall Insights",
-      subtitle: `${districtLabel}-য় সাম্প্রতিক ও ঐতিহাসিক বৃষ্টিপাতের ধারা কেমন?`,
-      query: `${districtLabelBn}-য় সাম্প্রতিক ও ঐতিহাসিক বৃষ্টিপাতের ধারা কেমন?`,
+      title: isBn ? "বৃষ্টিপাতের তথ্য" : "Rainfall Insights",
+      subtitle: isBn
+        ? `${districtLabelBn}-য় সাম্প্রতিক ও ঐতিহাসিক বৃষ্টিপাতের ধারা কেমন?`
+        : `Recent and historical rainfall patterns in ${districtLabel}`,
+      query: isBn
+        ? `${districtLabelBn}-এ সাম্প্রতিক ও ঐতিহাসিক বৃষ্টিপাতের ধারা কেমন?`
+        : `What recent and historical rainfall observations are available for ${districtLabel}?`,
       icon: CloudRain,
       iconColor: "text-sky-600 dark:text-sky-400",
       bgColor: "bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-900/40",
     },
     {
       id: "moisture",
-      title: "Soil Moisture",
-      subtitle: `${districtLabelBn}র মাটির আর্দ্রতা পরিস্থিতি কেমন?`,
-      query: `${districtLabelBn}র মাটির আর্দ্রতা পরিস্থিতি কেমন?`,
+      title: isBn ? "মাটির আর্দ্রতা" : "Soil Moisture",
+      subtitle: isBn
+        ? `${districtLabelBn}-র মাটির আর্দ্রতা পরিস্থিতি কেমন?`
+        : `Current soil moisture conditions in ${districtLabel}`,
+      query: isBn
+        ? `${districtLabelBn}-এর মাটির উপরিভাগের আর্দ্রতার বৈধ পর্যবেক্ষণ কী আছে?`
+        : `What valid surface soil-moisture observation is available for ${districtLabel}?`,
       icon: Sprout,
       iconColor: "text-emerald-700 dark:text-emerald-400",
       bgColor: "bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/40",
     },
     {
       id: "aman-mustard",
-      title: "Aman-Mustard Rotation",
-      subtitle: "আমন ধানের পর সরিষা কখন লাগানো ভালো?",
-      query: "আমন ধানের পর সরিষা কখন লাগানো ভালো?",
+      title: isBn ? "আমন-সরিষা চাষচক্র" : "Aman-Mustard Rotation",
+      subtitle: isBn
+        ? "আমন ধানের পর সরিষা কখন লাগানো ভালো?"
+        : "Best timing for mustard sowing after Aman harvest",
+      query: isBn
+        ? "আমন ধানের পর সরিষা কখন লাগানো ভালো?"
+        : "What official planting window is listed for mustard after Aman rice?",
       icon: Wheat,
       iconColor: "text-amber-700 dark:text-amber-400",
       bgColor: "bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/40",
     },
     {
       id: "handoff",
-      title: "Handoff Planner",
-      subtitle: "আমন কাটার পর সরিষা বপনের সম্ভাব্য শুকনা সময় দেখাও",
-      query: "আমন কাটার পর সরিষা বপনের সম্ভাব্য শুকনা সময় দেখাও",
+      title: isBn ? "ফসল পরিবর্তনের সময়" : "Handoff Planner",
+      subtitle: isBn
+        ? "আমন কাটার পর সরিষা বপনের সম্ভাব্য শুকনা সময়"
+        : "Optimal dry weather windows for crop transition",
+      query: isBn
+        ? "আমন কাটার পর সরিষা বপনের সম্ভাব্য শুকনা সময় দেখাও"
+        : "Show the possible dry window for sowing mustard after Aman harvest.",
       icon: Calendar,
       iconColor: "text-rose-600 dark:text-rose-400",
       bgColor: "bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-900/40",
     },
     {
       id: "vegetation",
-      title: "Vegetation Health",
-      subtitle: "আমার এলাকার NDVI বা উদ্ভিদ স্বাস্থ্য সম্পর্কে বলো",
-      query: "আমার এলাকার NDVI বা উদ্ভিদ স্বাস্থ্য সম্পর্কে বলো",
+      title: isBn ? "গাছপালার সবুজত্ব (NDVI)" : "Vegetation Health",
+      subtitle: isBn
+        ? "আমার এলাকার NDVI বা ফসল স্বাস্থ্য কেমন?"
+        : "NDVI greenness and vegetation health in your area",
+      query: isBn
+        ? "আমার এলাকার মোডিস NDVI/EVI পর্যবেক্ষণ কী আছে?"
+        : `What MODIS NDVI/EVI observations are available for ${districtLabel}?`,
       icon: Leaf,
       iconColor: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/40",
     },
     {
       id: "boro-aus",
-      title: "Boro-Aus Transition",
-      subtitle: "বোরো থেকে আউশ ফসলের ঐতিহাসিক ফলাফল কী?",
-      query: "বোরো থেকে আউশ ফসলের ঐতিহাসিক ফলাফল কী?",
+      title: isBn ? "বোরো-আউশ রূপান্তর" : "Boro-Aus Transition",
+      subtitle: isBn
+        ? "বোরো থেকে আউশ ফসলের ঐতিহাসিক ফলাফল কী?"
+        : "Historical outcomes for Boro to Aus transition",
+      query: isBn
+        ? "বোরো থেকে আউশ ফসলের ঐতিহাসিক ফলাফল কী?"
+        : "What does the historical record show about the Boro-to-Aus transition?",
       icon: Layers,
       iconColor: "text-teal-700 dark:text-teal-400",
       bgColor: "bg-teal-50 dark:bg-teal-950/60 border border-teal-100 dark:border-teal-900/40",
@@ -501,40 +571,47 @@ function AssistantContent() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {/* Top Bar: Language | Theme | Account / Guest Status */}
-      <div className="flex items-center justify-between pb-1">
-        {/* Left: Active Conversation Title or Breadcrumb */}
+      {/* Sticky Top Header Bar: Ultra-Compact & Clean Single-Row Toolbar */}
+      <div className="sticky top-14 sm:top-[4.25rem] z-20 flex items-center justify-between gap-2 py-2 px-3 sm:px-4 rounded-2xl border border-line/70 bg-surface/95 backdrop-blur-md shadow-xs transition-all duration-200">
+        {/* Left: Sparkle Icon + Title + Grounded Badge + Conversation Title */}
         <div className="flex items-center gap-2 min-w-0">
-          {conversationTitle && (
-            <div className="flex items-center gap-2 min-w-0">
-              {isRenaming ? (
-                <form onSubmit={handleRenameSubmit} className="flex items-center gap-1.5">
+          <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl bg-forest-50 dark:bg-emerald-950/60 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-2xs">
+            <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <h1 className="text-xs sm:text-sm md:text-base font-bold text-content tracking-tight whitespace-nowrap">
+              {t("assistant.title")}
+            </h1>
+            <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald text-white shadow-2xs whitespace-nowrap">
+              {t("assistant.groundedBadge")}
+            </span>
+            {conversationTitle ? (
+              isRenaming ? (
+                <form onSubmit={handleRenameSubmit} className="inline-flex items-center gap-1.5 ml-1">
                   <input
                     type="text"
                     value={newTitleValue}
                     onChange={(e) => setNewTitleValue(e.target.value)}
                     autoFocus
-                    className="rounded-lg border border-emerald bg-surface px-2.5 py-1 text-xs text-content focus:outline-none"
+                    className="rounded-md border border-emerald bg-surface px-2 py-0.5 text-xs text-content focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="px-2 py-1 rounded bg-emerald text-white text-xs font-medium cursor-pointer"
+                    className="px-2 py-0.5 rounded bg-emerald text-white text-[11px] font-medium cursor-pointer"
                   >
-                    Save
+                    {t("assistant.save")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsRenaming(false)}
-                    className="p-1 rounded text-muted hover:text-content text-xs cursor-pointer"
+                    className="p-0.5 rounded text-muted hover:text-content text-[11px] cursor-pointer"
                   >
-                    Cancel
+                    {t("assistant.cancel")}
                   </button>
                 </form>
               ) : (
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs font-semibold text-content truncate max-w-[200px] sm:max-w-xs">
-                    {conversationTitle}
-                  </span>
+                <span className="inline-flex items-center gap-1 ml-0.5 px-2 py-0.5 rounded-full bg-surface-2 border border-line text-[11px] font-medium text-content max-w-[100px] sm:max-w-[140px] truncate">
+                  <span className="truncate">{conversationTitle}</span>
                   {isAuthenticated && (
                     <button
                       type="button"
@@ -542,145 +619,68 @@ function AssistantContent() {
                         setNewTitleValue(conversationTitle);
                         setIsRenaming(true);
                       }}
-                      title="Rename conversation"
-                      aria-label="Rename conversation"
-                      className="p-1 rounded text-muted hover:text-emerald transition-colors cursor-pointer"
+                      title={t("assistant.renameChat")}
+                      aria-label={t("assistant.renameChat")}
+                      className="text-muted hover:text-emerald transition-colors cursor-pointer shrink-0"
                     >
                       <Edit2 className="h-3 w-3" />
                     </button>
                   )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right: Controls */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Language Switcher */}
-          <div className="inline-flex items-center p-0.5 rounded-lg border border-line bg-surface text-xs font-medium shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setLocale("bn")}
-              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                isBn ? "bg-emerald text-white font-semibold shadow-2xs" : "text-muted hover:text-content"
-              }`}
-            >
-              বাংলা
-            </button>
-            <button
-              type="button"
-              onClick={() => setLocale("en")}
-              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                !isBn ? "bg-emerald text-white font-semibold shadow-2xs" : "text-muted hover:text-content"
-              }`}
-            >
-              English
-            </button>
-          </div>
-
-          {/* Theme Switcher */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-muted hover:text-content transition-colors shadow-2xs cursor-pointer"
-          >
-            {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-600" />}
-          </button>
-
-          {/* User / Guest Status */}
-          {isAuthenticated && user ? (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-line bg-surface text-xs font-medium text-content shadow-2xs">
-              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald text-white text-[10px] font-bold">
-                {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-              </div>
-              <span className="truncate max-w-[100px]">{user.name}</span>
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              title="Click to sign in and save your conversations permanently"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-line bg-surface hover:bg-surface-hover text-xs font-medium text-muted hover:text-emerald transition-colors shadow-2xs"
-            >
-              <User className="h-3.5 w-3.5 text-muted" />
-              <span>Guest (Sign In)</span>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Main Page Header Card */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl border border-line bg-surface shadow-2xs">
-        {/* Left: Sparkle Icon + Title + NASA Grounded Badge + Subtitle */}
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-2xs">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-base sm:text-lg font-bold text-content tracking-tight">
-                Krishi Mama AI Assistant
-              </h1>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald text-white shadow-2xs">
-                NASA Grounded
-              </span>
-            </div>
-            <p className="text-xs text-muted mt-0.5 max-w-2xl leading-relaxed">
-              Ask farm-related questions and get evidence-based answers from NASA climate data and official agricultural guidance (BAMIS / BRRI / DAE).
-            </p>
+                </span>
+              )
+            ) : null}
           </div>
         </div>
 
-        {/* Right: District Dropdown + Crop Dropdown + Farm Dropdown + New Chat Button */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0 self-start md:self-center">
+        {/* Right: Farm, District, Crop Dropdowns + New Chat Button */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Farm selector (if user has registered farms) */}
           {isAuthenticated && farmsList.length > 0 ? (
             <div className="relative">
-              <Tractor className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-emerald" />
+              <Tractor className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
               <select
                 value={selectedFarmId}
                 onChange={(e) => handleFarmSelection(e.target.value)}
-                aria-label="Select farm"
-                className="appearance-none rounded-xl border border-line bg-surface-2 dark:bg-surface pl-8 pr-7 py-2 text-xs font-medium text-content hover:border-emerald/40 focus:outline-none focus:ring-1 focus:ring-emerald cursor-pointer shadow-2xs max-w-[160px] truncate"
+                aria-label={t("assistant.selectFarm")}
+                className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[110px] sm:max-w-[130px] truncate"
               >
-                <option value="">{isBn ? "সব খামার (সাধারণ)" : "All Farms (General)"}</option>
+                <option value="">{t("assistant.allFarmsGeneral")}</option>
                 {farmsList.map((f) => (
                   <option key={f._id} value={f._id}>
                     {f.farmName}
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+              <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
             </div>
           ) : null}
 
           {/* District selector */}
           <div className="relative">
-            <MapPin className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-emerald" />
+            <MapPin className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
-              aria-label="Select district"
-              className="appearance-none rounded-xl border border-line bg-surface-2 dark:bg-surface pl-8 pr-7 py-2 text-xs font-medium text-content hover:border-emerald/40 focus:outline-none focus:ring-1 focus:ring-emerald cursor-pointer shadow-2xs"
+              aria-label={t("assistant.selectDistrict")}
+              className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[95px] sm:max-w-[115px]"
             >
               {districts.map((d) => (
                 <option key={d.code} value={d.code}>
-                  {d.nameEn}
+                  {isBn ? (d.nameBn || d.nameEn) : d.nameEn}
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
           </div>
 
           {/* Crop selector */}
           <div className="relative">
-            <Sprout className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-emerald" />
+            <Sprout className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
             <select
               value={selectedCrop}
               onChange={(e) => setSelectedCrop(e.target.value)}
-              aria-label="Select crop"
-              className="appearance-none rounded-xl border border-line bg-surface-2 dark:bg-surface pl-8 pr-7 py-2 text-xs font-medium text-content hover:border-emerald/40 focus:outline-none focus:ring-1 focus:ring-emerald cursor-pointer shadow-2xs"
+              aria-label={t("assistant.selectCrop")}
+              className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[95px] sm:max-w-[115px]"
             >
               {CROPS.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -688,25 +688,25 @@ function AssistantContent() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
           </div>
 
           {/* New Chat Button */}
           <button
             type="button"
             onClick={handleNewConversation}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald hover:bg-emerald/90 text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 rounded-xl bg-forest hover:bg-forest/90 active:scale-[0.98] text-white px-2.5 sm:px-3 h-8 text-xs font-semibold shadow-xs hover:shadow-km-sm transition-all duration-150 cursor-pointer ring-1 ring-white/10 shrink-0"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>New Chat</span>
+            <span className="hidden sm:inline">{t("assistant.newChat")}</span>
           </button>
         </div>
       </div>
 
       {/* Main Grid: Left Chat Area & Right Sidebar */}
-      <div className="flex flex-col xl:flex-row gap-5 items-start w-full">
-        {/* Left Column: Chat Area */}
-        <div className="flex-1 min-w-0 w-full flex flex-col rounded-3xl border border-line bg-surface p-4 sm:p-5 shadow-xs min-h-[620px] max-h-[85vh]">
+      <div className="flex min-h-0 flex-col xl:flex-row gap-5 items-start w-full">
+        {/* Left Column: Chat Area with Contained Scroll */}
+        <div className="flex-1 min-w-0 w-full flex flex-col rounded-3xl border border-line/70 bg-surface p-4 sm:p-5 lg:p-6 shadow-xs h-[calc(100vh-13rem)] min-h-[580px] max-h-[850px] transition-all duration-200 overflow-hidden">
           {/* Farm-Aware Context Banner */}
           {activeFarm ? (
             <div className="mb-3.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 dark:bg-emerald-950/30 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
@@ -740,12 +740,17 @@ function AssistantContent() {
           ) : null}
 
           {/* Scrollable Chat / Empty State Container */}
-          <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+          <div
+            ref={chatScrollContainerRef}
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain km-smooth-scroll scroll-smooth pr-1 sm:pr-2 space-y-4"
+            aria-live="polite"
+            aria-relevant="additions text"
+          >
             {messages.length === 0 ? (
               /* EMPTY STATE: Clean SaaS Hero Card + Try Asking About */
               <div className="flex flex-col gap-5">
                 {/* Hero Card with Crisp Brand Typography & Badges */}
-                <div className="relative overflow-hidden rounded-2xl border border-line bg-surface-2/60 dark:bg-surface-2/30 p-6 sm:p-8 text-center shadow-2xs">
+                <div className="relative overflow-hidden rounded-3xl border border-line/70 bg-gradient-to-b from-surface-2/50 to-surface-2/15 dark:from-surface-2/25 dark:to-surface/10 p-6 sm:p-8 text-center shadow-2xs backdrop-blur-xs transition-all duration-300">
                   {/* Centered Content */}
                   <div className="relative z-10 flex flex-col items-center max-w-xl mx-auto py-1">
                     {/* Logo Emblem */}
@@ -760,25 +765,25 @@ function AssistantContent() {
                     </div>
 
                     <h2 className="text-xl sm:text-2xl font-bold text-content tracking-tight">
-                      How can I help your farm today?
+                      {t("assistant.homePrompt")}
                     </h2>
                     <p className="text-sm font-medium text-muted mt-1">
-                      আপনার কৃষি-সম্পর্কিত যেকোনো প্রশ্ন করুন
+                      {t("assistant.homePromptSubtitle")}
                     </p>
 
                     {/* 3 Clean Trust Badges */}
                     <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-content shadow-2xs">
                         <BarChart3 className="h-3.5 w-3.5 text-emerald" />
-                        <span>NASA Climate Evidence</span>
+                        <span>{isBn ? "নাসা জলবায়ু তথ্য" : "NASA Climate Evidence"}</span>
                       </span>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-content shadow-2xs">
                         <Sprout className="h-3.5 w-3.5 text-emerald" />
-                        <span>Official Guidance</span>
+                        <span>{isBn ? "সরকারি কৃষি পরামর্শ" : "Official Guidance"}</span>
                       </span>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-content shadow-2xs">
                         <ShieldCheck className="h-3.5 w-3.5 text-emerald" />
-                        <span>Transparent & Grounded</span>
+                        <span>{isBn ? "তথ্যভিত্তিক ও নির্ভরযোগ্য" : "Transparent & Grounded"}</span>
                       </span>
                     </div>
                   </div>
@@ -858,7 +863,7 @@ function AssistantContent() {
                 <div>
                   <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider mb-3 px-1">
                     <LayoutGrid className="h-3.5 w-3.5 text-emerald" />
-                    <span>Try asking about</span>
+                    <span>{isBn ? "প্রশ্ন করার কিছু উদাহরণ" : "Try asking about"}</span>
                   </div>
 
                   {/* 6 Cards in 3 Columns Grid */}
@@ -870,14 +875,14 @@ function AssistantContent() {
                           key={q.id}
                           type="button"
                           onClick={() => handleSendMessage(q.query)}
-                          className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-line bg-surface hover:border-emerald/50 hover:bg-surface-hover hover:shadow-2xs transition-all text-left group cursor-pointer"
+                          className="flex items-center justify-between gap-3 p-3.5 rounded-2xl border border-line/70 bg-surface hover:border-emerald/40 hover:bg-surface-2/50 hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 ease-out text-left group cursor-pointer"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${q.bgColor} ${q.iconColor} transition-transform group-hover:scale-105`}>
+                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${q.bgColor} ${q.iconColor} transition-transform duration-200 group-hover:scale-105 shadow-2xs`}>
                               <IconComponent className="h-4.5 w-4.5" />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-bold text-content group-hover:text-emerald transition-colors">
+                              <div className="text-xs font-bold text-content group-hover:text-emerald transition-colors duration-150">
                                 {q.title}
                               </div>
                               <div className="text-xs text-muted truncate mt-0.5 max-w-[180px] sm:max-w-[200px]">
@@ -885,7 +890,7 @@ function AssistantContent() {
                               </div>
                             </div>
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted group-hover:text-emerald group-hover:translate-x-0.5 transition-all shrink-0" />
+                          <ChevronRight className="h-4 w-4 text-muted group-hover:text-emerald group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
                         </button>
                       );
                     })}
@@ -902,7 +907,7 @@ function AssistantContent() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex gap-3 max-w-3xl ${isUser ? "ml-auto justify-end" : "mr-auto justify-start"}`}
+                      className={`flex gap-3 max-w-4xl lg:max-w-5xl ${isUser ? "ml-auto justify-end" : "mr-auto justify-start"}`}
                     >
                       {!isUser && (
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald border border-emerald-200 dark:border-emerald-800 mt-1 shadow-2xs">
@@ -972,6 +977,27 @@ function AssistantContent() {
                                   <span>{t("assistant.ttsListen")}</span>
                                 </button>
                               )}
+
+                              {/* Copy response button */}
+                              <button
+                                type="button"
+                                onClick={() => handleCopyMessage(msg.id, msg.text)}
+                                title={copiedId === msg.id ? (isBn ? "কপি হয়েছে" : "Copied!") : (isBn ? "কপি করুন" : "Copy text")}
+                                aria-label={copiedId === msg.id ? "Copied" : "Copy text"}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-muted hover:text-emerald hover:bg-surface-hover transition-colors cursor-pointer"
+                              >
+                                {copiedId === msg.id ? (
+                                  <>
+                                    <Check className="h-3 w-3 text-emerald" />
+                                    <span>{isBn ? "কপি হয়েছে" : "Copied"}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-3 w-3" />
+                                    <span>{isBn ? "কপি" : "Copy"}</span>
+                                  </>
+                                )}
+                              </button>
                             </div>
                           </div>
                         )}
@@ -998,19 +1024,23 @@ function AssistantContent() {
                         )}
 
                         {/* Message Text */}
-                        <div className="whitespace-pre-line text-sm leading-relaxed">{msg.text}</div>
+                        <div className="whitespace-pre-line text-sm leading-relaxed [overflow-wrap:anywhere]">{msg.text}</div>
 
                         {/* Metadata Footer */}
                         {!isUser && (
                           <div className="mt-3 pt-2.5 border-t border-line/60">
                             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
-                              {msg.dataDate && (
+                              {msg.observationDate && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-hover border border-line">
                                   <Calendar className="h-3 w-3 text-emerald" />
-                                  <span>{msg.dataDate}</span>
-                                  <span className="text-[10px] text-muted/70">
-                                    ({isBn ? "ঐতিহাসিক রেকর্ড" : "Historical Observation"})
-                                  </span>
+                                  <span>{isBn ? "পর্যবেক্ষণ" : "Observed"}: {msg.observationDate}</span>
+                                </span>
+                              )}
+
+                              {msg.observationLocation && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-hover border border-line">
+                                  <MapPin className="h-3 w-3 text-emerald" />
+                                  <span>{msg.observationLocation}</span>
                                 </span>
                               )}
 
@@ -1024,7 +1054,7 @@ function AssistantContent() {
                               {msg.dataQuality && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald/10 text-emerald font-medium border border-emerald/20">
                                   <ShieldCheck className="h-3 w-3" />
-                                  <span>{msg.dataQuality}</span>
+                                  <span>{isBn ? "উত্তরের ভিত্তি" : "Response basis"}: {msg.dataQuality}</span>
                                 </span>
                               )}
 
@@ -1034,7 +1064,7 @@ function AssistantContent() {
                                   onClick={() => toggleDetails(msg.id)}
                                   className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-surface-hover hover:bg-line text-[11px] font-medium text-emerald transition-colors ml-auto cursor-pointer"
                                 >
-                                  <span>{isBn ? "বিজ্ঞানের ভিত্তি ও সীমাবদ্ধতা" : "Scientific Context"}</span>
+                                  <span>{isBn ? "তথ্যসূত্র ও সীমাবদ্ধতা" : "Sources & limitations"}</span>
                                   {detailsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                                 </button>
                               )}
@@ -1043,7 +1073,7 @@ function AssistantContent() {
                             {detailsOpen && (
                               <div className="mt-2.5 rounded-lg bg-surface-hover/70 p-2.5 text-xs text-muted border border-line space-y-1.5">
                                 {msg.provenance && msg.provenance.length > 0 && (
-                                  <div>
+                                  <div className="[overflow-wrap:anywhere]">
                                     <span className="font-semibold text-content">
                                       {isBn ? "উৎস পরিচিতি:" : "Provenance:"}
                                     </span>{" "}
@@ -1051,7 +1081,7 @@ function AssistantContent() {
                                   </div>
                                 )}
                                 {msg.limitations && msg.limitations.length > 0 && (
-                                  <div className="text-[11px] text-amber-700 dark:text-amber-400">
+                                  <div className="text-[11px] text-amber-700 dark:text-amber-400 [overflow-wrap:anywhere]">
                                     <span className="font-semibold">
                                       {isBn ? "বৈজ্ঞানিক সীমাবদ্ধতা:" : "Limitations:"}
                                     </span>{" "}
@@ -1098,19 +1128,19 @@ function AssistantContent() {
 
             {/* Error Banner */}
             {error && (
-              <div className="rounded-xl border border-rose-300 bg-rose-50/80 dark:bg-rose-950/20 dark:border-rose-900 p-3 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-2.5">
+              <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50/80 dark:bg-rose-950/20 dark:border-rose-900 p-3 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-2.5">
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
                 <div className="flex-1">
                   <div className="font-semibold">{isBn ? "বার্তা পাঠাতে ব্যর্থ হয়েছে" : "Request Failed"}</div>
                   <div className="mt-0.5">{error}</div>
                 </div>
-                <button
+                {failedPrompt ? <button
                   type="button"
-                  onClick={() => handleSendMessage()}
+                  onClick={() => handleSendMessage(failedPrompt, { retry: true })}
                   className="px-2.5 py-1 bg-rose-600 text-white rounded-md hover:bg-rose-700 transition-colors shrink-0 text-xs font-medium cursor-pointer"
                 >
                   {isBn ? "পুনরায় চেষ্টা" : "Retry"}
-                </button>
+                </button> : null}
               </div>
             )}
 
@@ -1180,7 +1210,7 @@ function AssistantContent() {
           )}
 
           {/* Message Composer Area */}
-          <div className="pt-3 mt-3 border-t border-line">
+          <div className="sticky bottom-0 bg-surface/95 backdrop-blur-md pt-3 mt-3 border-t border-line/80 z-10">
             {/* Active Listening / Interim Transcription Banner */}
             {isListening && (
               <div className="mb-2 p-2.5 rounded-xl border border-emerald/30 bg-emerald/5 dark:bg-emerald-950/30 flex items-center justify-between gap-3 animate-in fade-in duration-150">
@@ -1228,7 +1258,8 @@ function AssistantContent() {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="relative flex items-center gap-2 p-1.5 rounded-2xl border border-line bg-surface-2 dark:bg-surface focus-within:border-emerald focus-within:ring-1 focus-within:ring-emerald transition-all shadow-2xs"
+              aria-busy={isLoading}
+              className="relative flex items-end gap-2 p-2 rounded-2xl border border-line/80 bg-surface-2/60 dark:bg-surface/80 focus-within:border-emerald focus-within:ring-2 focus-within:ring-emerald/15 focus-within:bg-surface transition-all duration-200 shadow-2xs hover:border-line"
             >
               {/* Mic Button */}
               <button
@@ -1249,7 +1280,7 @@ function AssistantContent() {
                     ? t("assistant.voiceInputStop")
                     : t("assistant.voiceInputStart")
                 }
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 cursor-pointer ${
                   !isVoiceSupported
                     ? "text-muted opacity-40 cursor-not-allowed"
                     : isListening
@@ -1266,36 +1297,25 @@ function AssistantContent() {
                 )}
               </button>
 
-              {/* Textarea */}
+              {/* Textarea: Clean input without placeholder or word limit */}
               <textarea
                 ref={textareaRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={
-                  isBn
-                    ? "কৃষি মামাকে প্রশ্ন করুন... (যেমন: আমন ধানের পর সরিষা কখন লাগাবো?)"
-                    : 'Ask Krishi Mama anything... (e.g., "আমন ধানের পর সরিষা কখন লাগাবো?")'
-                }
                 rows={1}
-                maxLength={1000}
-                className="flex-1 resize-none bg-transparent py-1.5 px-1 text-sm text-content placeholder:text-muted focus:outline-none min-h-[36px] max-h-28 leading-relaxed"
+                className="flex-1 resize-none bg-transparent py-2 px-2 text-sm text-content focus:outline-none min-h-[44px] max-h-36 leading-relaxed"
               />
-
-              {/* Character Counter */}
-              <span className="text-[11px] text-muted pr-1 shrink-0 hidden sm:inline">
-                {inputValue.length} / 1000
-              </span>
 
               {/* Round Send Button */}
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
                 aria-label={isBn ? "বার্তা পাঠান" : "Send message"}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-200 ${
                   inputValue.trim() && !isLoading
-                    ? "bg-emerald text-white hover:bg-emerald/90 shadow-2xs cursor-pointer scale-100"
-                    : "bg-surface-hover text-muted cursor-not-allowed opacity-50"
+                    ? "bg-emerald text-white hover:bg-emerald/90 active:scale-95 shadow-2xs cursor-pointer scale-100"
+                    : "bg-surface-hover text-muted cursor-not-allowed opacity-40 scale-95"
                 }`}
               >
                 <Send className="h-4 w-4" />
@@ -1305,13 +1325,13 @@ function AssistantContent() {
             {/* Bottom Sub-bar: Clean Lucide icons (No Emojis) */}
             <div className="flex flex-wrap items-center justify-between text-[11px] text-muted px-1.5 pt-2 gap-2">
               <span className="flex items-center gap-1.5">
-                <span>Enter to send, Shift+Enter for new line</span>
+                <span>{isBn ? "পাঠাতে Enter চাপুন, নতুন লাইনের জন্য Shift+Enter" : "Enter to send, Shift+Enter for new line"}</span>
               </span>
 
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center gap-1 hover:text-content transition-colors">
                   <Database className="h-3 w-3 text-emerald" />
-                  <span>NASA Data</span>
+                  <span>{isBn ? "নাসা উপাত্ত" : "NASA Data"}</span>
                 </span>
                 <span className="inline-flex items-center gap-1 hover:text-content transition-colors">
                   <Sprout className="h-3 w-3 text-emerald" />
@@ -1319,7 +1339,7 @@ function AssistantContent() {
                 </span>
                 <span className="inline-flex items-center gap-1 hover:text-content transition-colors">
                   <Info className="h-3 w-3 text-emerald" />
-                  <span>Evidence & Limitations</span>
+                  <span>{isBn ? "প্রমাণ ও সীমাবদ্ধতা" : "Evidence & Limitations"}</span>
                 </span>
               </div>
             </div>
@@ -1327,9 +1347,9 @@ function AssistantContent() {
         </div>
 
         {/* Right Column: Sidebar Reference Cards */}
-        <div className="hidden xl:flex xl:w-80 xl:flex-col gap-4 shrink-0">
+        <div className="hidden xl:flex xl:w-72 xl:flex-col gap-4 shrink-0 xl:sticky xl:top-[9.5rem] self-start">
           {/* Card 1: Data & Guidance */}
-          <div className="rounded-2xl border border-line bg-surface p-4 shadow-xs">
+          <div className="rounded-3xl border border-line/70 bg-surface p-4.5 shadow-xs hover:border-line hover:shadow-km-sm transition-all duration-200">
             <div className="flex items-center gap-3 pb-3 border-b border-line/60">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B3D91] text-white shadow-2xs p-1">
                 <div className="relative flex items-center justify-center w-full h-full">
@@ -1338,8 +1358,12 @@ function AssistantContent() {
                 </div>
               </div>
               <div>
-                <h3 className="text-sm font-bold text-content leading-tight">Data & Guidance</h3>
-                <p className="text-[11px] text-muted">Sources used in answers</p>
+                <h3 className="text-sm font-bold text-content leading-tight">
+                  {isBn ? "উপাত্ত ও নির্দেশিকা" : "Data & Guidance"}
+                </h3>
+                <p className="text-[11px] text-muted">
+                  {isBn ? "উত্তরে ব্যবহৃত তথ্যসূত্র" : "Sources used in answers"}
+                </p>
               </div>
             </div>
 
@@ -1350,7 +1374,9 @@ function AssistantContent() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-content">NASA POWER (Climate)</div>
-                  <div className="text-[11px] text-muted mt-0.5">Rainfall, temperature, humidity, radiation</div>
+                  <div className="text-[11px] text-muted mt-0.5">
+                    {isBn ? "বৃষ্টিপাত, তাপমাত্রা, আর্দ্রতা ও সৌর বিকিরণ" : "Rainfall, temperature, humidity, radiation"}
+                  </div>
                 </div>
               </div>
 
@@ -1360,7 +1386,9 @@ function AssistantContent() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-content">BAMIS / BRRI</div>
-                  <div className="text-[11px] text-muted mt-0.5">Crop calendar, variety and management</div>
+                  <div className="text-[11px] text-muted mt-0.5">
+                    {isBn ? "ফসল পঞ্জিকা, জাত ও ব্যবস্থাপনা" : "Crop calendar, variety and management"}
+                  </div>
                 </div>
               </div>
 
@@ -1369,35 +1397,53 @@ function AssistantContent() {
                   <Check className="h-2.5 w-2.5 stroke-[3]" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-content">DAE (Agricultural Extension)</div>
-                  <div className="text-[11px] text-muted mt-0.5">Field practices and advisories</div>
+                  <div className="text-xs font-bold text-content">
+                    {isBn ? "ডিএই (কৃষি সম্প্রসারণ অধিদপ্তর)" : "DAE (Agricultural Extension)"}
+                  </div>
+                  <div className="text-[11px] text-muted mt-0.5">
+                    {isBn ? "মাঠ পর্যায়ের বাস্তবসম্মত কৃষি পরামর্শ" : "Field practices and advisories"}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Card 2: Important to Know */}
-          <div className="rounded-2xl border border-line bg-surface overflow-hidden shadow-xs flex flex-col">
+          <div className="rounded-3xl border border-line/70 bg-surface overflow-hidden shadow-xs hover:border-line hover:shadow-km-sm transition-all duration-200 flex flex-col">
             <div className="p-4 pb-3">
               <div className="flex items-center gap-2 mb-2.5">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
                   <Info className="h-3 w-3" />
                 </div>
-                <h3 className="text-sm font-bold text-content">Important to Know</h3>
+                <h3 className="text-sm font-bold text-content">
+                  {isBn ? "জরুরি জ্ঞাতব্য" : "Important to Know"}
+                </h3>
               </div>
 
               <ul className="space-y-2 text-xs text-muted leading-relaxed pl-1">
                 <li className="flex items-start gap-1.5">
                   <span className="text-muted leading-tight">•</span>
-                  <span>এটি ঐতিহাসিক জলবায়ু তথ্যের ভিত্তিতে বিশ্লেষণ, ভবিষ্যৎ আবহাওয়ার পূর্বাভাস নয়।</span>
+                  <span>
+                    {isBn
+                      ? "এটি ঐতিহাসিক জলবায়ু তথ্যের ভিত্তিতে বিশ্লেষণ, ভবিষ্যৎ আবহাওয়ার পূর্বাভাস নয়।"
+                      : "Based on historical climate analysis, not a weather forecast."}
+                  </span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-muted leading-tight">•</span>
-                  <span>কৃষি সিদ্ধান্ত নেওয়ার আগে স্থানীয় কৃষি কর্মকর্তার পরামর্শ নিন।</span>
+                  <span>
+                    {isBn
+                      ? "কৃষি সিদ্ধান্ত নেওয়ার আগে স্থানীয় কৃষি কর্মকর্তার পরামর্শ নিন।"
+                      : "Consult local agricultural extension officers before major farm decisions."}
+                  </span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-muted leading-tight">•</span>
-                  <span>উল্লেখিত সীমাবদ্ধতা ও তথ্যের উৎস উত্তরের সঙ্গে দেওয়া হবে।</span>
+                  <span>
+                    {isBn
+                      ? "উল্লেখিত সীমাবদ্ধতা ও তথ্যের উৎস উত্তরের সঙ্গে দেওয়া হবে।"
+                      : "Limitations and source provenance are disclosed with each response."}
+                  </span>
                 </li>
               </ul>
             </div>

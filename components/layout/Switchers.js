@@ -13,7 +13,9 @@ export function ThemeSwitcher({ variant = "light", className = "" }) {
   const chrome =
     variant === "dark"
       ? "border-white/20 text-white/80 hover:bg-white/10"
-      : "border-line text-content hover:bg-surface-2";
+      : variant === "toolbar"
+        ? "border-transparent bg-transparent text-muted shadow-none hover:bg-surface-2 hover:text-content"
+        : "border-line text-content hover:bg-surface-2";
 
   return (
     <button
@@ -31,20 +33,24 @@ export function ThemeSwitcher({ variant = "light", className = "" }) {
 export function LanguageSwitcher({ variant = "light", className = "" }) {
   const { locale, setLocale } = useLang();
 
-  const base = "inline-flex h-9 items-center overflow-hidden rounded-lg border text-xs font-semibold";
-  const border = variant === "dark" ? "border-white/20" : "border-line";
-  const idle = variant === "dark" ? "text-white/70" : "text-muted";
-  const active = variant === "dark" ? "bg-white/15 text-white" : "bg-surface text-content";
+  const base = "inline-flex h-9 items-center overflow-hidden rounded-xl border text-xs font-semibold";
+  const border = variant === "dark" ? "border-white/20" : "border-line/80";
+  const idle = variant === "dark" ? "text-white/65 hover:bg-white/10 hover:text-white" : "text-muted hover:bg-surface hover:text-content";
+  const active = variant === "dark"
+    ? "bg-white text-forest shadow-sm ring-1 ring-black/5"
+    : "bg-forest text-white shadow-sm ring-1 ring-forest/10";
+  const track = variant === "dark" ? "bg-white/5" : "bg-forest/5";
 
   return (
-    <div className={`${base} ${border} ${className}`}>
+    <div className={`${base} ${border} ${track} p-0.5 ${className}`}>
       {["en", "bn"].map((code) => (
         <button
           key={code}
           type="button"
           onClick={() => setLocale(code)}
           aria-pressed={locale === code}
-          className={`h-full px-3 transition-colors ${locale === code ? active : idle}`}
+          aria-label={code === "en" ? "English" : "বাংলা"}
+          className={`h-full min-w-10 rounded-lg px-2.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald ${locale === code ? active : idle}`}
         >
           {code === "en" ? "EN" : "বাং"}
         </button>

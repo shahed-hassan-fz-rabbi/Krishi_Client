@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ChartNoAxesCombined } from "lucide-react";
 
 /**
  * ClimateMonthlyChart
@@ -26,19 +27,28 @@ export function ClimateMonthlyChart({
   title = "Monthly Normals",
   showMedian = true,
   barColor = "var(--km-climate)",
+  meanLabel = `Mean (${unit})`,
+  medianLabel = `Median (${unit})`,
+  emptyMessage = "No observation series available",
+  variant = "default",
 }) {
+  const isDashboard = variant === "dashboard";
+
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-64 w-full items-center justify-center text-sm text-muted">
-        No observation series available
+      <div className={isDashboard
+        ? "flex h-[300px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line bg-surface-2/50 px-5 text-center text-sm text-muted"
+        : "flex h-64 w-full items-center justify-center text-sm text-muted"}>
+        {isDashboard && <ChartNoAxesCombined className="h-5 w-5 text-emerald" strokeWidth={1.8} aria-hidden="true" />}
+        <span>{emptyMessage}</span>
       </div>
     );
   }
 
   return (
-    <div className="h-72 w-full" role="img" aria-label={title}>
+    <div className={isDashboard ? "h-[300px] w-full sm:h-[340px] xl:h-[360px]" : "h-72 w-full"} role="img" aria-label={title}>
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={{ top: 12, right: 12, bottom: 4, left: -4 }}>
+        <ComposedChart data={data} margin={isDashboard ? { top: 16, right: 18, bottom: 8, left: 4 } : { top: 12, right: 12, bottom: 4, left: -4 }}>
           <defs>
             <linearGradient id="km-chart-grad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={barColor} stopOpacity={0.4} />
@@ -50,49 +60,55 @@ export function ClimateMonthlyChart({
             dataKey="monthLabel"
             tickLine={false}
             axisLine={{ stroke: "var(--km-border)" }}
-            tick={{ fill: "var(--km-text-muted)", fontSize: 12 }}
+            tick={{ fill: "var(--km-text-muted)", fontSize: isDashboard ? 11 : 12 }}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
             tick={{ fill: "var(--km-text-muted)", fontSize: 12 }}
-            width={48}
+            width={isDashboard ? 56 : 48}
             unit={` ${unit}`}
           />
           <Tooltip
             contentStyle={{
               background: "var(--km-surface)",
               border: "1px solid var(--km-border)",
-              borderRadius: 10,
+              borderRadius: isDashboard ? 12 : 10,
               color: "var(--km-text)",
               fontSize: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              boxShadow: isDashboard ? "var(--km-shadow-md)" : "0 4px 12px rgba(0,0,0,0.1)",
+              ...(isDashboard ? { padding: "10px 12px" } : {}),
             }}
             labelStyle={{ color: "var(--km-text)", fontWeight: 600, marginBottom: 4 }}
             cursor={{ fill: "var(--km-surface-2)", opacity: 0.5 }}
             formatter={(val, name) => [`${val} ${unit}`, name]}
           />
           <Legend
-            wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+            wrapperStyle={{ fontSize: isDashboard ? 11 : 12, paddingTop: isDashboard ? 12 : 8 }}
             iconType="circle"
           />
           <Area
             type="monotone"
             dataKey={dataKey}
-            name={`Mean (${unit})`}
+            name={meanLabel}
             fill="url(#km-chart-grad)"
             stroke={barColor}
             strokeWidth={2}
+            dot={isDashboard ? { r: 2.5, fill: barColor, stroke: "var(--km-surface)", strokeWidth: 1.5 } : undefined}
+            activeDot={isDashboard ? { r: 4, strokeWidth: 2, stroke: "var(--km-surface)" } : undefined}
           />
           {showMedian && medianKey && (
             <Line
               type="monotone"
               dataKey={medianKey}
-              name={`Median (${unit})`}
-              stroke="#10b981"
-              strokeWidth={2}
+            name={medianLabel}
+              stroke={isDashboard ? "var(--km-emerald)" : "#10b981"}
+              strokeWidth={isDashboard ? 2.25 : 2}
               strokeDasharray="4 4"
-              dot={{ r: 3, fill: "#10b981" }}
+              dot={isDashboard
+                ? { r: 2.5, fill: "var(--km-emerald)", stroke: "var(--km-surface)", strokeWidth: 1.5 }
+                : { r: 3, fill: "#10b981" }}
+              activeDot={isDashboard ? { r: 4, strokeWidth: 2, stroke: "var(--km-surface)" } : undefined}
             />
           )}
         </ComposedChart>

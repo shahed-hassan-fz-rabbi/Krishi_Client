@@ -13,7 +13,6 @@ import {
   Tractor,
   Trash2,
   Edit3,
-  ExternalLink,
   ChevronRight,
   TrendingUp,
   ShieldCheck,
@@ -103,7 +102,7 @@ export default function MyFarmPage() {
     }
   };
 
-  const handleDelete = async (farmId, farmName) => {
+  const handleDelete = async (farmId) => {
     if (!window.confirm(t("myFarm.confirmDelete") || "Are you sure you want to delete this farm?")) {
       return;
     }
@@ -133,7 +132,7 @@ export default function MyFarmPage() {
       case "active":
         return (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             {t("myFarm.status.active") || "Active"}
           </span>
         );
@@ -159,45 +158,42 @@ export default function MyFarmPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-forest-700 text-white shadow-sm dark:bg-forest-600">
-              <Tractor className="h-5 w-5" />
+    <div className="space-y-7">
+      <header className="relative isolate overflow-hidden rounded-[28px] border border-line bg-surface shadow-km-sm">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-cover bg-center opacity-25 dark:opacity-20" style={{ backgroundImage: "url('/images/hero.jpeg')" }} />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-white/95 via-white/85 to-white/65 dark:from-surface/95 dark:via-surface/85 dark:to-surface/65" />
+        <div className="flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
+          <div className="max-w-2xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-white/75 px-3 py-1 text-xs font-semibold text-forest shadow-km-sm dark:border-white/10 dark:bg-surface/75 dark:text-emerald-300">
+              <Tractor className="h-3.5 w-3.5" />
+              {lang === "bn" ? "আপনার খামারের কর্মক্ষেত্র" : "YOUR FARM WORKSPACE"}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
-                {t("myFarm.title")}
-              </h1>
-              <p className="text-sm text-stone-600 dark:text-muted">
-                {t("myFarm.subtitle")}
-              </p>
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">{t("myFarm.title")}</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted sm:text-base">{t("myFarm.subtitle")}</p>
           </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
           <Link
             href="/my-farm/plan"
-            className="inline-flex items-center justify-center rounded-xl border border-forest-600 bg-white px-4 py-2.5 text-sm font-semibold text-forest-700 shadow-xs transition hover:bg-forest-50 dark:border-forest-500/50 dark:bg-surface dark:text-forest-400 dark:hover:bg-forest-950/40"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white/90 px-4 py-2.5 text-sm font-semibold text-content shadow-km-sm transition-colors hover:border-forest/40 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-climate dark:bg-surface/90 dark:hover:bg-surface-2"
           >
+            <Sprout className="h-4 w-4 text-forest dark:text-emerald-300" />
             {t("myFarm.planning.planWithAi") || "Plan a Crop with AI"}
           </Link>
           <Link
             href="/my-farm/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-forest-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2 dark:bg-forest-600 dark:hover:bg-forest-500"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-forest px-4 py-2.5 text-sm font-semibold text-white shadow-km-sm transition-colors hover:bg-forest-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-climate"
           >
             <Plus className="h-4 w-4" />
             {t("myFarm.addNewFarm")}
           </Link>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Guest Mode Notice */}
       {!user && (
-        <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
           <div className="flex items-center gap-3">
             <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
             <div>
@@ -216,7 +212,7 @@ export default function MyFarmPage() {
       {/* Summary KPI Cards */}
       {user && summary && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
+          <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.stats.totalFarms")}
@@ -235,7 +231,7 @@ export default function MyFarmPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
+          <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.stats.totalArea")}
@@ -254,7 +250,7 @@ export default function MyFarmPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
+          <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-muted">
                 {t("myFarm.stats.activeCrops")}
@@ -277,7 +273,7 @@ export default function MyFarmPage() {
 
       {/* Activity Overview Card */}
       {user && activityOverview && activityOverview.hasFarms && (
-        <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-xs dark:border-line dark:bg-surface">
+        <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
@@ -297,15 +293,15 @@ export default function MyFarmPage() {
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="rounded-lg bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                 {lang === "bn" ? "আজকের কাজ: " : "Due Today: "}
-                {activityOverview.counts?.todayTotal || 0}
+                {activityOverview.counts?.todayTotal ?? "—"}
               </span>
               <span className="rounded-lg bg-sky-50 px-2.5 py-1 font-semibold text-sky-800 dark:bg-sky-950/50 dark:text-sky-300">
                 {lang === "bn" ? "আসন্ন: " : "Upcoming: "}
-                {activityOverview.counts?.upcomingTotal || 0}
+                {activityOverview.counts?.upcomingTotal ?? "—"}
               </span>
               <span className="rounded-lg bg-stone-100 px-2.5 py-1 font-semibold text-stone-700 dark:bg-surface-2 dark:text-muted">
                 {lang === "bn" ? "সম্পন্ন: " : "Completed: "}
-                {activityOverview.counts?.completed || 0}
+                {activityOverview.counts?.completed ?? "—"}
               </span>
             </div>
           </div>
@@ -341,6 +337,13 @@ export default function MyFarmPage() {
                                 ({act.cropName})
                               </span>
                             )}
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${act.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300" : "bg-surface-2 text-muted"}`}>
+                              {act.status === "IN_PROGRESS"
+                                ? t("myFarm.activities.taskStatus.inProgress")
+                                : act.status === "PENDING"
+                                  ? t("myFarm.activities.taskStatus.pending")
+                                  : act.status}
+                            </span>
                           </div>
                           <h4 className="mt-1 text-sm font-semibold text-stone-900 dark:text-content">
                             {act.title}
@@ -353,7 +356,7 @@ export default function MyFarmPage() {
                         </div>
 
                         {/* Quick Action Buttons */}
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex flex-wrap items-center justify-end gap-1 shrink-0">
                           {act.status !== "IN_PROGRESS" && (
                             <button
                               onClick={() => handleQuickStatus(act.farmId, act._id, "IN_PROGRESS")}
@@ -413,12 +416,19 @@ export default function MyFarmPage() {
                       className="rounded-xl border border-stone-200/80 bg-stone-50/30 p-3 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700 flex items-center justify-between gap-3"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                           <span className="text-[11px] font-semibold text-forest-700 dark:text-forest-400 truncate">
                             {act.farmName}
                           </span>
-                          <span className="text-[10px] text-stone-400 font-mono">
-                            {act.scheduledDate}
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${act.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300" : "bg-surface-2 text-muted"}`}>
+                            {act.status === "IN_PROGRESS"
+                              ? t("myFarm.activities.taskStatus.inProgress")
+                              : act.status === "PENDING"
+                                ? t("myFarm.activities.taskStatus.pending")
+                                : act.status}
+                          </span>
+                          <span className="text-[10px] text-muted">
+                            {lang === "bn" ? "নির্ধারিত: " : "Due: "}{act.scheduledDate}
                           </span>
                         </div>
                         <h4 className="text-xs font-medium text-stone-900 truncate dark:text-content">
@@ -452,23 +462,29 @@ export default function MyFarmPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-56 animate-pulse rounded-2xl border border-stone-200 bg-stone-100 p-6 dark:border-line dark:bg-surface"
+              className="h-56 animate-pulse rounded-2xl border border-line bg-surface p-6"
             />
           ))}
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900/30 dark:bg-red-950/20">
-          <p className="text-sm font-medium text-red-800 dark:text-red-300">{error}</p>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-900/30 dark:bg-red-950/20">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+            <div>
+              <p className="text-sm font-semibold text-red-900 dark:text-red-200">{lang === "bn" ? "খামারের তথ্য লোড করা যায়নি" : "Farm data could not be loaded"}</p>
+              <p className="mt-1 text-sm text-red-800 dark:text-red-300">{error}</p>
+            </div>
+          </div>
           <button
-            onClick={loadFarms}
-            className="mt-3 inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700"
+            onClick={() => loadFarmsAndActivities()}
+            className="mt-4 min-h-10 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
           >
-            Retry
+            {lang === "bn" ? "আবার চেষ্টা করুন" : "Try again"}
           </button>
         </div>
       ) : farms.length === 0 ? (
         /* Empty State */
-        <div className="rounded-2xl border-2 border-dashed border-stone-200 bg-white p-12 text-center dark:border-line dark:bg-surface">
+        <div className="rounded-[28px] border border-line bg-surface p-6 text-center shadow-km-sm sm:p-10 lg:p-12">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
             <Tractor className="h-8 w-8" />
           </div>
@@ -496,11 +512,22 @@ export default function MyFarmPage() {
         </div>
       ) : (
         /* Farm Cards Grid */
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <section aria-label={lang === "bn" ? "নিবন্ধিত খামার" : "Registered farms"}>
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-content">{lang === "bn" ? "আপনার খামার" : "Your farms"}</h2>
+            <p className="mt-1 text-sm text-muted">{lang === "bn" ? "প্রতিটি প্লটের তথ্য ও কাজ এক জায়গায় দেখুন" : "Farm details and field activities in one place"}</p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted">
+            <Layers className="h-3.5 w-3.5 text-forest dark:text-emerald-300" />
+            {summary?.totalFarms ?? farms.length} {lang === "bn" ? "টি খামার" : "farms"}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {farms.map((farm) => (
             <div
               key={farm._id}
-              className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-line dark:bg-surface"
+              className="group flex min-w-0 flex-col justify-between rounded-2xl border border-line bg-surface p-5 shadow-km-sm transition-colors hover:border-forest/30 hover:shadow-md sm:p-6"
             >
               <div>
                 {/* Header: Name and status badge */}
@@ -521,13 +548,13 @@ export default function MyFarmPage() {
                 </div>
 
                 {/* Details Section */}
-                <div className="mt-5 space-y-3 rounded-xl bg-stone-50 p-4 dark:bg-bg">
+                <div className="mt-5 space-y-3 rounded-xl border border-line/70 bg-bg/70 p-4 dark:bg-surface-2/60">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-stone-500 dark:text-muted">
                       {t("myFarm.fields.cropCode")}:
                     </span>
-                    <span className="font-semibold text-stone-900 dark:text-content">
-                      {farm.crop?.cropName}
+                    <span className="max-w-[65%] truncate text-right font-semibold text-content">
+                      {farm.crop?.cropName || (lang === "bn" ? "নির্ধারিত নয়" : "Not set")}
                       {farm.crop?.variety ? ` (${farm.crop.variety})` : ""}
                     </span>
                   </div>
@@ -537,7 +564,7 @@ export default function MyFarmPage() {
                       {t("myFarm.fields.landArea")}:
                     </span>
                     <span className="font-semibold text-stone-900 dark:text-content">
-                      {farm.land?.area} {farm.land?.unit}
+                      {farm.land?.area ?? "—"} {farm.land?.unit || ""}
                     </span>
                   </div>
 
@@ -546,7 +573,7 @@ export default function MyFarmPage() {
                       {t("myFarm.fields.plantingDate")}:
                     </span>
                     <span className="font-medium text-stone-700 dark:text-muted">
-                      {farm.crop?.plantingDate}
+                      {farm.crop?.plantingDate || "—"}
                     </span>
                   </div>
 
@@ -555,7 +582,7 @@ export default function MyFarmPage() {
                       {t("myFarm.fields.irrigationAvailability")}:
                     </span>
                     <span className="capitalize text-stone-700 dark:text-muted">
-                      {farm.water?.irrigationAvailability}
+                      {farm.water?.irrigationAvailability || "—"}
                     </span>
                   </div>
                 </div>
@@ -565,7 +592,7 @@ export default function MyFarmPage() {
               <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4 dark:border-line">
                 <Link
                   href={`/my-farm/${farm._id}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-700 transition hover:text-forest-800 dark:text-forest-400 dark:hover:text-forest-300"
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-forest transition-colors hover:bg-forest/5 hover:text-forest-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-climate dark:text-emerald-300"
                 >
                   {t("myFarm.viewDetails")}
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -574,16 +601,18 @@ export default function MyFarmPage() {
                 <div className="flex items-center gap-1">
                   <Link
                     href={`/my-farm/${farm._id}/edit`}
-                    className="rounded-lg p-1.5 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 dark:text-muted dark:hover:bg-surface-2 dark:hover:text-stone-200"
+                    className="min-h-10 min-w-10 rounded-xl p-2 text-muted transition-colors hover:bg-bg hover:text-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-climate dark:hover:bg-surface-2"
                     title={t("myFarm.editFarm")}
+                    aria-label={`${t("myFarm.editFarm")} ${farm.farmName}`}
                   >
                     <Edit3 className="h-4 w-4" />
                   </Link>
                   <button
                     onClick={() => handleDelete(farm._id, farm.farmName)}
                     disabled={deletingId === farm._id}
-                    className="rounded-lg p-1.5 text-stone-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                    className="min-h-10 min-w-10 rounded-xl p-2 text-muted transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-300"
                     title={t("myFarm.deleteFarm")}
+                    aria-label={`${t("myFarm.deleteFarm")} ${farm.farmName}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -592,6 +621,7 @@ export default function MyFarmPage() {
             </div>
           ))}
         </div>
+        </section>
       )}
     </div>
   );

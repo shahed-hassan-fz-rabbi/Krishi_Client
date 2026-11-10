@@ -170,7 +170,7 @@ function EditFarmContent() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/30 dark:bg-red-950/20">
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-km-sm dark:border-red-900/30 dark:bg-red-950/20">
         <p className="text-sm font-semibold text-red-800 dark:text-red-300">{error}</p>
         <div className="mt-4">
           <Link
@@ -186,7 +186,7 @@ function EditFarmContent() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 py-2">
+    <div className="mx-auto max-w-3xl space-y-6 py-2">
       <div className="flex items-center justify-between">
         <Link
           href={`/my-farm/${farmId}`}
@@ -197,11 +197,15 @@ function EditFarmContent() {
         </Link>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
+      <div className="rounded-[24px] border border-line bg-surface p-5 shadow-km-sm sm:p-7">
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-forest/5 px-3 py-1 text-xs font-semibold text-forest dark:bg-forest/20 dark:text-emerald-300">
+          <Tractor className="h-3.5 w-3.5" />
+          {lang === "bn" ? "খামারের তথ্য" : "FARM PROFILE"}
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
           {t("myFarm.editFarm")}
         </h1>
-        <p className="mt-1 text-xs text-stone-500 dark:text-muted">
+        <p className="mt-1 text-sm text-muted">
           {staticLocation.cropName} • {staticLocation.upazila}, {staticLocation.district}
         </p>
       </div>
@@ -213,7 +217,7 @@ function EditFarmContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+      <form onSubmit={handleSubmit} className="space-y-6 rounded-[24px] border border-line bg-surface p-4 shadow-km-sm sm:p-7">
         {/* Farm Name */}
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">

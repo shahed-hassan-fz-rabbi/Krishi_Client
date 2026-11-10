@@ -133,16 +133,53 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
   body {
     background-color: var(--km-bg);
     color: var(--km-text);
     font-family: var(--font-inter), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   /* Bengali typography: Noto Sans Bengali leads; Inter falls back for Latin glyphs */
   html[lang="bn"] body {
     font-family: var(--font-bengali), var(--font-inter), system-ui, sans-serif;
+  }
+
+  /* Custom sleek, ultra-smooth scrollbars for professional SaaS feel */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(18, 61, 43, 0.22) transparent;
+  }
+  .dark * {
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(18, 61, 43, 0.18);
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(18, 61, 43, 0.38);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.38);
   }
 
   /* Accessibility: never naked italic / clear focus ring */
@@ -158,6 +195,13 @@
     background: var(--km-emerald);
     color: #ffffff;
   }
+}
+
+/* Smooth scrolling utilities */
+.km-smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 

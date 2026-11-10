@@ -316,7 +316,7 @@ function FarmDetailsContent() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-10 w-48 animate-pulse rounded-xl bg-stone-200 dark:bg-surface-2" />
+        <div className="h-10 w-48 animate-pulse rounded-xl bg-surface-2" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
           <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-surface" />
@@ -327,7 +327,7 @@ function FarmDetailsContent() {
 
   if (error || !farm) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/30 dark:bg-red-950/20">
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-km-sm dark:border-red-900/30 dark:bg-red-950/20">
         <p className="text-base font-semibold text-red-800 dark:text-red-300">
           {error || "Farm not found"}
         </p>
@@ -351,8 +351,11 @@ function FarmDetailsContent() {
   return (
     <div className="space-y-8">
       {/* Header and Actions */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <header className="relative isolate overflow-hidden rounded-[28px] border border-line bg-surface shadow-km-sm">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-cover bg-center opacity-25 dark:opacity-20" style={{ backgroundImage: "url('/images/hero.jpeg')" }} />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-white/95 via-white/85 to-white/65 dark:from-surface/95 dark:via-surface/85 dark:to-surface/65" />
+        <div className="flex flex-col gap-5 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Link
               href="/my-farm"
@@ -362,12 +365,12 @@ function FarmDetailsContent() {
               {t("myFarm.backToList")}
             </Link>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
               {farm.farmName}
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${farm.status === "harvested" ? "bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300" : farm.status === "planning" ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${farm.status === "harvested" ? "bg-violet-500" : farm.status === "planning" ? "bg-amber-500" : "bg-emerald-500"}`} />
               {t(`myFarm.status.${farm.status}`) || farm.status}
             </span>
           </div>
@@ -378,7 +381,7 @@ function FarmDetailsContent() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <Link
             href={`/assistant?farmId=${farm._id}`}
             className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 shadow-xs hover:bg-emerald-100 transition-colors dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
@@ -402,12 +405,13 @@ function FarmDetailsContent() {
             {t("myFarm.deleteFarm")}
           </button>
         </div>
-      </div>
+        </div>
+      </header>
 
       {/* Grid: Land/Location & Soil/Water */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Land & Location */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+        <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
           <div className="flex items-center gap-2 border-b border-stone-100 pb-3 dark:border-line">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
               <Layers className="h-4 w-4" />
@@ -454,7 +458,7 @@ function FarmDetailsContent() {
         </div>
 
         {/* Soil & Water Profile */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+        <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
           <div className="flex items-center gap-2 border-b border-stone-100 pb-3 dark:border-line">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
               <Droplets className="h-4 w-4" />
@@ -494,7 +498,7 @@ function FarmDetailsContent() {
       </div>
 
       {/* PHASE 9.2: CROP LIFECYCLE ENGINE TIMELINE */}
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+      <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-700 text-white dark:bg-forest-600">
@@ -650,7 +654,7 @@ function FarmDetailsContent() {
                   <div
                     className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
                       isCurr
-                        ? "border-emerald-600 bg-emerald-500 text-white shadow-md shadow-emerald-500/20 animate-pulse"
+                        ? "border-emerald-600 bg-emerald-600 text-white shadow-sm shadow-emerald-500/20"
                         : isDone
                         ? "border-emerald-600 bg-white text-emerald-600 dark:bg-surface dark:text-emerald-400"
                         : "border-stone-300 bg-white text-stone-400 dark:border-line dark:bg-surface"
@@ -679,7 +683,7 @@ function FarmDetailsContent() {
                         {/* Status Badge */}
                         {isCurr ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                             {t("myFarm.lifecycle.statusBadge.current")}
                           </span>
                         ) : isDone ? (
@@ -696,9 +700,10 @@ function FarmDetailsContent() {
                       {/* Estimated Dates */}
                       <div className="text-xs font-medium text-stone-600 dark:text-muted">
                         {stg.estimatedStartDate && stg.estimatedEndDate ? (
-                          <span>
-                            {stg.estimatedStartDate} — {stg.estimatedEndDate}{" "}
-                            <span className="text-[11px] text-stone-400">({stg.durationDays}d)</span>
+                          <span className="inline-flex flex-wrap items-center justify-end gap-x-1.5 gap-y-1">
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t("myFarm.planning.estimatedDateLabel")}</span>
+                            <span>{stg.estimatedStartDate} — {stg.estimatedEndDate}</span>
+                            <span className="text-[11px] text-muted">({stg.durationDays}d)</span>
                           </span>
                         ) : (
                           <span>{t("myFarm.lifecycle.statusBadge.unknown")}</span>
@@ -767,7 +772,12 @@ function FarmDetailsContent() {
                                 >
                                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex flex-wrap items-center gap-1.5">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        {act.status === "PENDING" && (
+                                          <span className="rounded-full border border-line bg-surface-2 px-2 py-0.5 text-[10px] font-semibold text-muted">
+                                            {t("myFarm.activities.taskStatus.pending")}
+                                          </span>
+                                        )}
                                         <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 dark:bg-surface-2 dark:text-muted">
                                           {t(`myFarm.activities.types.${act.activityType}`) || act.activityType}
                                         </span>
@@ -784,8 +794,8 @@ function FarmDetailsContent() {
                                           <Calendar className="mr-1 inline h-3 w-3" aria-hidden="true" />{act.scheduledDate}
                                         </span>
                                         {act.status === "IN_PROGRESS" && (
-                                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300 animate-pulse">
-                                            {t("myFarm.activities.taskStatus.inProgress") || "In Progress"}
+                                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                                            {t("myFarm.activities.taskStatus.inProgress")}
                                           </span>
                                         )}
                                       </div>
@@ -801,7 +811,7 @@ function FarmDetailsContent() {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center gap-1 shrink-0">
+                                    <div className="flex flex-wrap items-center gap-1 sm:max-w-[16rem] sm:justify-end">
                                       {act.status !== "IN_PROGRESS" && (
                                         <button
                                           onClick={() => handleQuickStatus(act, "IN_PROGRESS")}
@@ -1033,7 +1043,7 @@ function FarmDetailsContent() {
 
       {/* PHASE 9.4: NASA ENVIRONMENTAL INTELLIGENCE MODULE */}
       <div className="space-y-6">
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+        <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-700 text-white dark:bg-forest-600">

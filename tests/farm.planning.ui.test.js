@@ -7,6 +7,7 @@ import {
   createFarm,
 } from "../services/api.js";
 import { translations } from "../lib/i18n/translations.js";
+import { LAND_UNITS } from "../lib/upazilas.js";
 import {
   buildCropPlanningPayload,
   getCropPlanningErrorMessage,
@@ -116,6 +117,14 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
       "plantingDate",
       "confirmCreate",
       "satelliteContextTitle",
+      "satelliteContextDescription",
+      "officialCalendarBasis",
+      "aiGeneratedLabel",
+      "observationUnavailable",
+      "observedOn",
+      "dateUnavailable",
+      "estimatedDateLabel",
+      "sourceDetails",
     ];
 
     for (const key of requiredKeys) {
@@ -145,6 +154,11 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
     assert.equal(validateCropPlanningForm({ ...validForm, area: "-3" }, validUpazilas), "areaRequired");
   });
 
+  await t.test("land unit options include Bengali labels for the localized selector", () => {
+    assert.ok(LAND_UNITS.length > 0);
+    assert.ok(LAND_UNITS.every((unit) => unit.nameEn && unit.nameBn));
+  });
+
   await t.test("request payload preserves entered profile and uses numeric area", () => {
     const payload = buildCropPlanningPayload(validForm, "bn");
     assert.equal(payload.districtCode, "cumilla");
@@ -162,6 +176,14 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
     assert.match(source, /if \(evaluationInFlight\.current\) return/);
     assert.match(source, /evaluationInFlight\.current = true/);
     assert.match(source, /evaluationInFlight\.current = false/);
+  });
+
+  await t.test("planning results never substitute example satellite values or dates", () => {
+    const source = readFileSync(new URL("../app/(app)/my-farm/plan/page.js", import.meta.url), "utf8");
+    assert.doesNotMatch(source, /0\.22|0\.580|\|\|\s*["']Latest["']/);
+    assert.match(source, /observationUnavailable/);
+    assert.match(source, /smapObservation\?\.dateLabel/);
+    assert.match(source, /modisObservation\?\.dateLabel/);
   });
 
   await t.test("request failures map to useful localized UI messages", () => {

@@ -200,7 +200,7 @@ export default function NewFarmWizardPage() {
   const selectedCrop = SUPPORTED_CROPS.find((c) => c.code === formData.cropCode);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 py-2">
+    <div className="mx-auto max-w-3xl space-y-6 py-2 sm:space-y-7">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <Link
@@ -215,17 +215,21 @@ export default function NewFarmWizardPage() {
         </span>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">
+      <div className="rounded-[24px] border border-line bg-surface p-5 shadow-km-sm sm:p-7">
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-forest/5 px-3 py-1 text-xs font-semibold text-forest dark:bg-forest/20 dark:text-emerald-300">
+          <Tractor className="h-3.5 w-3.5" />
+          {lang === "bn" ? "নতুন প্লট নিবন্ধন" : "NEW PLOT REGISTRATION"}
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
           {t("myFarm.addNewFarm")}
         </h1>
-        <p className="mt-1 text-sm text-stone-600 dark:text-muted">
+        <p className="mt-1 text-sm leading-6 text-muted">
           {t("myFarm.subtitle")}
         </p>
       </div>
 
       {/* Progress Bar */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-2 rounded-2xl border border-line bg-surface p-4 shadow-km-sm sm:gap-4 sm:p-5">
         {[1, 2, 3, 4].map((step) => {
           const isDone = currentStep > step;
           const isCurrent = currentStep === step;
@@ -273,7 +277,7 @@ export default function NewFarmWizardPage() {
       )}
 
       {/* Step Content Card */}
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs dark:border-line dark:bg-surface">
+      <div className="rounded-[24px] border border-line bg-surface p-4 shadow-km-sm sm:p-6">
         {/* STEP 1: Farm Information */}
         {currentStep === 1 && (
           <div className="space-y-5">

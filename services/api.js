@@ -10,10 +10,15 @@ const DEFAULT_BASE_URL = "http://localhost:5000/api/v1";
 
 export function getApiBaseUrl() {
   const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
-  if (envUrl && typeof envUrl === "string") {
-    return envUrl.replace(/\/+$/, "");
+  let url = (envUrl && typeof envUrl === "string" ? envUrl : DEFAULT_BASE_URL).replace(/\/+$/, "");
+  if (typeof window !== "undefined") {
+    if (window.location.hostname === "127.0.0.1" && url.includes("localhost")) {
+      url = url.replace("localhost", "127.0.0.1");
+    } else if (window.location.hostname === "localhost" && url.includes("127.0.0.1")) {
+      url = url.replace("127.0.0.1", "localhost");
+    }
   }
-  return DEFAULT_BASE_URL;
+  return url;
 }
 
 /**
@@ -95,6 +100,16 @@ export async function fetchHealth() {
  */
 export async function fetchDistricts() {
   return request("/districts");
+}
+
+/** BBS-derived representative Bangladesh administrative division points. */
+export async function fetchDivisions() {
+  return request("/divisions");
+}
+
+/** Four-dataset division view; NASA credentials remain on the server. */
+export async function fetchDivisionIntelligence(division) {
+  return request(`/divisions/intelligence?division=${encodeURIComponent(division)}`, { timeoutMs: 130000 });
 }
 
 /**

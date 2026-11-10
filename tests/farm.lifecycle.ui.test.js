@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   fetchFarmLifecycle,
@@ -131,5 +132,14 @@ test("My Farm Lifecycle: Client API Contracts & Translations Suite", async (t) =
 
     assert.ok(translations.en.myFarm.lifecycle.nutrientsNotice);
     assert.ok(translations.bn.myFarm.lifecycle.nutrientsNotice);
+  });
+
+  await t.test("Lifecycle UI distinguishes estimated stage dates and pending activity status", () => {
+    const source = readFileSync(new URL("../app/(app)/my-farm/[id]/page.js", import.meta.url), "utf8");
+    assert.match(source, /estimatedDateLabel/);
+    assert.match(source, /stg\.estimatedStartDate/);
+    assert.match(source, /act\.status === "PENDING"/);
+    assert.match(source, /myFarm\.activities\.taskStatus\.pending/);
+    assert.doesNotMatch(source, /animate-ping/);
   });
 });
