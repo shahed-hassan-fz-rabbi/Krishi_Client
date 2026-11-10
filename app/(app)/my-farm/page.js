@@ -35,6 +35,7 @@ export default function MyFarmPage() {
   const [farms, setFarms] = useState([]);
   const [summary, setSummary] = useState(null);
   const [activityOverview, setActivityOverview] = useState(null);
+  const [activityOverviewError, setActivityOverviewError] = useState(false);
   const [loadedForUserId, setLoadedForUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,6 +46,7 @@ export default function MyFarmPage() {
     setLoading(true);
     setError(null);
     setLoadedForUserId(ownerId);
+    setActivityOverviewError(false);
     try {
       const [farmRes, actRes] = await Promise.all([
         fetchFarms(),
@@ -66,6 +68,8 @@ export default function MyFarmPage() {
 
       if (actRes.success && actRes.data) {
         setActivityOverview(actRes.data);
+      } else {
+        setActivityOverviewError(true);
       }
     } catch {
       if (isCurrent()) setError("An unexpected network error occurred.");
@@ -99,6 +103,9 @@ export default function MyFarmPage() {
         const refreshed = await fetchActivitiesOverview();
         if (refreshed.success) {
           setActivityOverview(refreshed.data);
+          setActivityOverviewError(false);
+        } else {
+          setActivityOverviewError(true);
         }
       } else {
         alert(res.error?.message || "Failed to update activity status");
@@ -198,6 +205,15 @@ export default function MyFarmPage() {
           </div>
         </div>
       </header>
+
+      {user && farmDataIsCurrent && activityOverviewError && (
+        <div role="status" className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <span>{lang === "bn" ? "খামারের কাজের সারাংশ লোড হয়নি।" : "Farm activity summary could not be loaded."}</span>
+          <button type="button" onClick={() => loadFarmsAndActivities(undefined, currentUserId)} className="min-h-9 rounded-lg border border-amber-400 px-3 py-2 text-xs font-semibold hover:bg-amber-100 dark:border-amber-800 dark:hover:bg-amber-950/60">
+            {lang === "bn" ? "আবার চেষ্টা করুন" : "Retry"}
+          </button>
+        </div>
+      )}
 
       {/* Guest Mode Notice */}
       {!user && (
