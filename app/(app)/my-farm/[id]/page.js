@@ -64,19 +64,22 @@ function FarmDetailsContent() {
   const params = useParams();
   const farmId = params?.id;
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [farm, setFarm] = useState(null);
   const [lifecycle, setLifecycle] = useState(null);
   const [environment, setEnvironment] = useState(null);
   const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedForUserId, setLoadedForUserId] = useState(null);
+  const [loadedFarmId, setLoadedFarmId] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [lifecycleLoading, setLifecycleLoading] = useState(true);
   const [envLoading, setEnvLoading] = useState(true);
   const [actLoading, setActLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [generatingTasks, setGeneratingTasks] = useState(false);
   const [error, setError] = useState(null);
+  const [dataError, setDataError] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   // Modals state
@@ -94,17 +97,26 @@ function FarmDetailsContent() {
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [newScheduledDate, setNewScheduledDate] = useState("");
 
-  const loadData = useCallback(async (isCurrent = () => true) => {
+  const currentUserId = user ? String(user._id || user.id) : null;
+  const loadData = useCallback(async (isCurrent = () => true, ownerId = currentUserId) => {
     if (!farmId) return;
     setLoading(true);
     setError(null);
+    setDataError(false);
+    setLoadedForUserId(ownerId);
+    setLoadedFarmId(null);
+    setLifecycle(null);
+    setEnvironment(null);
+    setActivities([]);
     try {
       const farmRes = await fetchFarmById(farmId);
       if (!isCurrent()) return;
       if (farmRes.success && farmRes.data) {
         setFarm(farmRes.data);
+        setLoadedFarmId(String(farmId));
       } else {
         setError(farmRes.error?.message || "Failed to load farm details");
+        setLoadedFarmId(String(farmId));
         setLoading(false);
         return;
       }
@@ -129,8 +141,12 @@ function FarmDetailsContent() {
       if (actRes.success && actRes.data) {
         setActivities(actRes.data.activities || []);
       }
+      if (!lcRes.success || !lcRes.data || !envRes.success || !envRes.data || !actRes.success || !actRes.data) {
+        setDataError(true);
+      }
     } catch {
       setError("A network error occurred while loading farm data.");
+      setLoadedFarmId(String(farmId));
     } finally {
       if (isCurrent()) {
         setLoading(false);
@@ -139,17 +155,19 @@ function FarmDetailsContent() {
         setActLoading(false);
       }
     }
-  }, [farmId]);
+  }, [farmId, currentUserId]);
 
   useEffect(() => {
+    if (authLoading || !user) return undefined;
     let isActive = true;
+    const ownerId = currentUserId;
     Promise.resolve().then(() => {
-      if (isActive) loadData(() => isActive);
+      if (isActive) loadData(() => isActive, ownerId);
     });
     return () => {
       isActive = false;
     };
-  }, [loadData]);
+  }, [authLoading, user, currentUserId, loadData]);
 
   const handleGenerateTasks = async () => {
     if (!farmId || generatingTasks) return;
@@ -313,7 +331,7 @@ function FarmDetailsContent() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading || (user && (loadedForUserId !== currentUserId || loadedFarmId !== String(farmId)))) {
     return (
       <div className="space-y-6">
         <div className="h-10 w-48 animate-pulse rounded-xl bg-surface-2" />
@@ -325,11 +343,11 @@ function FarmDetailsContent() {
     );
   }
 
-  if (error || !farm) {
+  if (!user || error || !farm) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-km-sm dark:border-red-900/30 dark:bg-red-950/20">
         <p className="text-base font-semibold text-red-800 dark:text-red-300">
-          {error || "Farm not found"}
+          {!user ? (lang === "bn" ? "খামার দেখতে লগইন করুন।" : "Please log in to view this farm.") : (error || "Farm not found")}
         </p>
         <div className="mt-4">
           <Link
@@ -339,6 +357,14 @@ function FarmDetailsContent() {
             <ArrowLeft className="h-4 w-4" />
             {t("myFarm.backToList")}
           </Link>
+          <button
+            type="button"
+            onClick={() => loadData(undefined, currentUserId)}
+            className="ml-3 inline-flex items-center gap-1.5 rounded-xl bg-forest-700 px-4 py-2 text-xs font-semibold text-white hover:bg-forest-800"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            {lang === "bn" ? "আবার চেষ্টা করুন" : "Try again"}
+          </button>
         </div>
       </div>
     );
@@ -407,6 +433,16 @@ function FarmDetailsContent() {
         </div>
         </div>
       </header>
+
+      {dataError && (
+        <div role="status" className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <span>{lang === "bn" ? "কিছু খামার-সম্পর্কিত তথ্য লোড হয়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।" : "Some farm details could not be loaded. Check the connection and retry."}</span>
+          <button type="button" onClick={() => loadData(undefined, currentUserId)} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-amber-400 px-3 py-2 text-xs font-semibold hover:bg-amber-100 dark:border-amber-800 dark:hover:bg-amber-950/60">
+            <RefreshCw className="h-3.5 w-3.5" />
+            {lang === "bn" ? "আবার চেষ্টা করুন" : "Retry farm data"}
+          </button>
+        </div>
+      )}
 
       {/* Grid: Land/Location & Soil/Water */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

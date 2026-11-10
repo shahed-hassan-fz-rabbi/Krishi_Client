@@ -1,8 +1,76 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useSyncExternalStore, useCallback } from "react";
 
 const STORAGE_KEY = "km_sidebar_collapsed";
+const subscribers = new Set();
+
+let collapsedOverride = null;
+let mobileOpenOverride = null;
+
+function notifySubscribers() {
+  subscribers.forEach((subscriber) => subscriber());
+}
+
+function subscribe(subscriber) {
+  if (typeof window === "undefined") return () => {};
+
+  subscribers.add(subscriber);
+  const handleStorage = (event) => {
+    if (!event.key || event.key === STORAGE_KEY) {
+      collapsedOverride = null;
+      notifySubscribers();
+    }
+  };
+  const handleNavigation = () => {
+    collapsedOverride = null;
+    mobileOpenOverride = null;
+    notifySubscribers();
+  };
+
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener("popstate", handleNavigation);
+
+  return () => {
+    subscribers.delete(subscriber);
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener("popstate", handleNavigation);
+  };
+}
+
+function getCollapsedSnapshot() {
+  if (collapsedOverride !== null) return collapsedOverride;
+  if (typeof window === "undefined") return false;
+
+  try {
+    const urlValue = new URLSearchParams(window.location.search).get("sidebar");
+    if (urlValue === "collapsed") return true;
+    if (urlValue === "expanded") return false;
+
+    return window.localStorage.getItem(STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function getMobileOpenSnapshot() {
+  if (mobileOpenOverride !== null) return mobileOpenOverride;
+  if (typeof window === "undefined") return false;
+
+  try {
+    return new URLSearchParams(window.location.search).get("drawer") === "open";
+  } catch {
+    return false;
+  }
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+function getMountedSnapshot() {
+  return true;
+}
 
 const SidebarContext = createContext({
   isCollapsed: false,
@@ -16,69 +84,39 @@ const SidebarContext = createContext({
 });
 
 export function SidebarProvider({ children }) {
-  const [isCollapsed, setIsCollapsedState] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const isCollapsed = useSyncExternalStore(subscribe, getCollapsedSnapshot, getServerSnapshot);
+  const isMobileOpen = useSyncExternalStore(subscribe, getMobileOpenSnapshot, getServerSnapshot);
+  const mounted = useSyncExternalStore(subscribe, getMountedSnapshot, getServerSnapshot);
 
-  // Restore collapsed state from URL or localStorage once after mount (hydration-safe)
-  useEffect(() => {
+  const setIsCollapsed = useCallback((val) => {
+    const next = Boolean(typeof val === "function" ? val(getCollapsedSnapshot()) : val);
+    collapsedOverride = next;
     try {
-      const params = new URLSearchParams(window.location.search);
-      const urlSidebar = params.get("sidebar");
-      if (params.get("drawer") === "open") {
-        setIsMobileOpen(true);
-      }
-      if (urlSidebar === "collapsed") {
-        setIsCollapsedState(true);
-      } else if (urlSidebar === "expanded") {
-        setIsCollapsedState(false);
-      } else {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored !== null) {
-          setIsCollapsedState(stored === "true");
-        }
-      }
+      window.localStorage.setItem(STORAGE_KEY, String(next));
     } catch {
       // Ignore private browsing storage errors
     }
-    setMounted(true);
+    notifySubscribers();
   }, []);
 
-  const setIsCollapsed = useCallback((val) => {
-    setIsCollapsedState((prev) => {
-      const next = typeof val === "function" ? val(prev) : val;
-      try {
-        localStorage.setItem(STORAGE_KEY, String(Boolean(next)));
-      } catch {
-        // Ignore
-      }
-      return Boolean(next);
-    });
-  }, []);
+  const toggleSidebar = useCallback(() => setIsCollapsed((prev) => !prev), [setIsCollapsed]);
 
-  const toggleSidebar = useCallback(() => {
-    setIsCollapsedState((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(STORAGE_KEY, String(next));
-      } catch {
-        // Ignore
-      }
-      return next;
-    });
+  const setMobileOpen = useCallback((next) => {
+    mobileOpenOverride = Boolean(next);
+    notifySubscribers();
   }, []);
 
   const toggleMobile = useCallback(() => {
-    setIsMobileOpen((prev) => !prev);
-  }, []);
+    setMobileOpen(!getMobileOpenSnapshot());
+  }, [setMobileOpen]);
 
   const closeMobile = useCallback(() => {
-    setIsMobileOpen(false);
-  }, []);
+    setMobileOpen(false);
+  }, [setMobileOpen]);
 
   const openMobile = useCallback(() => {
-    setIsMobileOpen(true);
-  }, []);
+    setMobileOpen(true);
+  }, [setMobileOpen]);
 
   return (
     <SidebarContext.Provider

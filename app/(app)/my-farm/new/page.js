@@ -21,6 +21,7 @@ import {
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { createFarm } from "@/services/api.js";
+import { getBangladeshDateKey } from "@/lib/bangladeshDate.js";
 import {
   DISTRICT_UPAZILAS,
   SUPPORTED_CROPS,
@@ -36,7 +37,7 @@ const DISTRICTS = [
 export default function NewFarmWizardPage() {
   const router = useRouter();
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +65,7 @@ export default function NewFarmWizardPage() {
     cropCode: "monsoon_aman",
     variety: "",
     cultivationMethod: "Transplanting",
-    plantingDate: new Date().toISOString().split("T")[0],
+    plantingDate: getBangladeshDateKey(),
     notes: "",
   });
 
@@ -137,6 +138,7 @@ export default function NewFarmWizardPage() {
   };
 
   const handleSubmit = async () => {
+    if (authLoading) return;
     if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
       setCurrentStep(1);
       return;
@@ -785,7 +787,7 @@ export default function NewFarmWizardPage() {
               <button
                 type="button"
                 onClick={handleBack}
-                disabled={submitting}
+                disabled={submitting || authLoading}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 dark:border-line dark:bg-surface-2 dark:text-muted dark:hover:bg-surface-2"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
@@ -808,7 +810,7 @@ export default function NewFarmWizardPage() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={submitting}
+                disabled={submitting || authLoading}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-forest-700 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-forest-800 disabled:opacity-50 dark:bg-forest-600 dark:hover:bg-forest-500"
               >
                 {submitting ? (

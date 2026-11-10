@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -26,7 +26,8 @@ import {
 
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
-import { fetchCropPlanningRecommendations, createFarm } from "@/services/api.js";
+import { fetchCropPlanningRecommendations, createFarm, fetchFarms } from "@/services/api.js";
+import { getBangladeshDateKey } from "@/lib/bangladeshDate.js";
 import {
   buildCropPlanningPayload,
   getCropPlanningErrorMessage,
@@ -44,6 +45,7 @@ const DISTRICTS = [
 ];
 
 const LAND_TYPES = [
+  { code: "unspecified", nameEn: "Not specified", nameBn: "উল্লেখ করা হয়নি" },
   { code: "high", nameEn: "High Land (Flood-free)", nameBn: "উঁচু জমি (বন্যা মুক্ত)" },
   { code: "medium_high", nameEn: "Medium High Land (Occasional shallow flood)", nameBn: "মাঝারি উঁচু জমি (সাময়িক অগভীর প্লাবন)" },
   { code: "medium_low", nameEn: "Medium Low Land (Regular seasonal flood)", nameBn: "মাঝারি নিচু জমি (নিয়মিত প্লাবিত)" },
@@ -52,15 +54,21 @@ const LAND_TYPES = [
 
 const SOIL_TYPES = [
   { code: "alluvial", nameEn: "Alluvial / Silt", nameBn: "পলিমাটি / দোআঁশ" },
+  { code: "other", nameEn: "Other soil type", nameBn: "অন্যান্য মাটির ধরন" },
+  { code: "loam", nameEn: "Loam", nameBn: "দোআঁশ মাটি" },
   { code: "clay_loam", nameEn: "Clay Loam", nameBn: "এটেল দোআঁশ" },
   { code: "sandy_loam", nameEn: "Sandy Loam", nameBn: "বেলে দোআঁশ" },
+  { code: "sandy", nameEn: "Sandy", nameBn: "বেলে মাটি" },
+  { code: "silt", nameEn: "Silt", nameBn: "পলি মাটি" },
   { code: "clay", nameEn: "Clay", nameBn: "এটেল মাটি" },
   { code: "unknown", nameEn: "Unknown / Not Tested", nameBn: "অজানা / পরীক্ষা করা হয়নি" },
 ];
 
 const DRAINAGE_OPTIONS = [
+  { code: "unknown", nameEn: "Not specified", nameBn: "উল্লেখ করা হয়নি" },
   { code: "good", nameEn: "Good (Well-drained)", nameBn: "উত্তম (সহজে পানি নিষ্কাশন হয়)" },
   { code: "moderate", nameEn: "Moderate", nameBn: "মাঝারি" },
+  { code: "poor", nameEn: "Poor", nameBn: "দুর্বল" },
   { code: "waterlogged", nameEn: "Poor / Waterlogged", nameBn: "ধীর / জলাবদ্ধতা প্রবণ" },
 ];
 
@@ -80,14 +88,14 @@ const SEASONS = [
 export default function CropPlanningPage() {
   const router = useRouter();
   const { t, locale, lang = locale } = useLang();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   // Questionnaire State
   const [formData, setFormData] = useState({
     districtCode: "cumilla",
     upazila: "Burichang",
     village: "",
-    area: "50",
+    area: "",
     unit: "decimal",
     landType: "medium_high",
     soilType: "clay_loam",
@@ -102,13 +110,16 @@ export default function CropPlanningPage() {
   const evaluationInFlight = useRef(false);
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
+  const [farms, setFarms] = useState([]);
+  const [farmsOwnerId, setFarmsOwnerId] = useState(null);
+  const [selectedFarmId, setSelectedFarmId] = useState("");
 
   // Selection Modal State
   const [setupModalOpen, setSetupModalOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState(null);
   const [setupFarmName, setSetupFarmName] = useState("");
   const [setupPlantingDate, setSetupPlantingDate] = useState(
-    new Date().toISOString().split("T")[0]
+    getBangladeshDateKey()
   );
   const [setupVariety, setSetupVariety] = useState("");
   const [creatingFarm, setCreatingFarm] = useState(false);
@@ -125,9 +136,64 @@ export default function CropPlanningPage() {
     return getUpazilasForDistrict(formData.districtCode);
   }, [formData.districtCode]);
 
+  const currentUserId = user ? String(user._id || user.id) : null;
+  const farmsLoading = Boolean(user && (authLoading || farmsOwnerId !== currentUserId));
+  const availableFarms = user && !authLoading && farmsOwnerId === currentUserId ? farms : [];
+  const activeSelectedFarmId = availableFarms.some((farm) => farm._id === selectedFarmId) ? selectedFarmId : "";
+
+  useEffect(() => {
+    if (authLoading || !user) return undefined;
+    let active = true;
+    const ownerId = String(user._id || user.id);
+    fetchFarms()
+      .then((response) => {
+        if (active) {
+          setFarms(response.success ? (response.data?.farms || []) : []);
+          setFarmsOwnerId(ownerId);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setFarms([]);
+          setFarmsOwnerId(ownerId);
+        }
+      });
+    return () => { active = false; };
+  }, [authLoading, user, currentUserId]);
+
+  const selectFarm = (farmId) => {
+    setSelectedFarmId(farmId);
+    setError("");
+    setResults(null);
+    const farm = availableFarms.find((item) => item._id === farmId);
+    if (!farm) return;
+    const supportedDistrict = DISTRICTS.some((item) => item.code === farm.location?.districtCode);
+    if (!supportedDistrict) {
+      setSelectedFarmId("");
+      setError(lang === "bn" ? "এই খামারের জেলার জন্য পরিকল্পনা সমর্থিত নয়।" : "Crop planning is not supported for this farm's district.");
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      districtCode: farm.location.districtCode,
+      upazila: farm.location.upazila || "",
+      village: farm.location.village || "",
+      area: farm.land?.area == null ? "" : String(farm.land.area),
+      unit: farm.land?.unit || "decimal",
+      landType: farm.land?.landType || "medium_high",
+      soilType: ["alluvial", "other", "loam", "clay_loam", "sandy_loam", "sandy", "silt", "clay", "unknown"].includes(farm.soil?.type) ? farm.soil.type : "unknown",
+      drainage: farm.soil?.drainage || "unknown",
+      irrigationAvailability: farm.water?.irrigationAvailability || "available",
+      waterSource: farm.water?.waterSource || "",
+    }));
+  };
+
   const updateField = (field, value) => {
     setError("");
     setResults(null);
+    if (["districtCode", "upazila", "village", "area", "unit", "landType", "soilType", "drainage", "irrigationAvailability", "waterSource"].includes(field)) {
+      setSelectedFarmId("");
+    }
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       if (field === "districtCode") {
@@ -155,7 +221,7 @@ export default function CropPlanningPage() {
     setResults(null);
 
     try {
-      const res = await fetchCropPlanningRecommendations(buildCropPlanningPayload(formData, lang));
+      const res = await fetchCropPlanningRecommendations(buildCropPlanningPayload(formData, lang, activeSelectedFarmId || null));
       if (res.success && res.data && Array.isArray(res.data.crops)) {
         setResults(res.data);
       } else {
@@ -206,7 +272,7 @@ export default function CropPlanningPage() {
         village: formData.village.trim(),
       },
       land: {
-        area: parseFloat(formData.area) || 50,
+        area: Number(formData.area),
         unit: formData.unit,
         landType: formData.landType,
       },
@@ -259,6 +325,25 @@ export default function CropPlanningPage() {
           BAMIS & NASA Grounded
         </span>
       </div>
+
+      {user && (
+        <div className="rounded-2xl border border-line bg-surface p-4 shadow-km-sm sm:flex sm:items-center sm:gap-4">
+          <label htmlFor="planning-farm" className="mb-2 block text-sm font-medium text-content sm:mb-0">
+            {lang === "bn" ? "সংরক্ষিত খামারের তথ্য ব্যবহার করুন" : "Plan for a saved farm"}
+          </label>
+          <select
+            id="planning-farm"
+          value={activeSelectedFarmId}
+            disabled={farmsLoading}
+            onChange={(event) => selectFarm(event.target.value)}
+            className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-content sm:max-w-md"
+          >
+            <option value="">{farmsLoading ? (lang === "bn" ? "খামার লোড হচ্ছে…" : "Loading farms…") : (lang === "bn" ? "ম্যানুয়ালি জমির তথ্য দিন" : "Enter a field profile manually")}</option>
+            {availableFarms.map((farm) => <option key={farm._id} value={farm._id}>{farm.farmName} · {farm.location?.upazila}, {farm.location?.district}</option>)}
+          </select>
+          {activeSelectedFarmId && <p className="mt-2 text-xs text-muted sm:mt-0">{lang === "bn" ? "সংরক্ষিত খামারের অবস্থান ও জমির তথ্য দিয়ে সুপারিশ তৈরি হবে। তথ্য সম্পাদনা করলে পরিকল্পনাটি খামার থেকে আলাদা হবে।" : "Recommendations use this farm’s saved profile. Editing profile fields detaches the plan from the farm."}</p>}
+        </div>
+      )}
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-content">

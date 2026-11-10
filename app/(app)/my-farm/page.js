@@ -30,19 +30,21 @@ import { fetchFarms, deleteFarm, fetchActivitiesOverview, updateFarmActivity } f
 
 export default function MyFarmPage() {
   const { t, lang } = useLang();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [farms, setFarms] = useState([]);
   const [summary, setSummary] = useState(null);
   const [activityOverview, setActivityOverview] = useState(null);
+  const [loadedForUserId, setLoadedForUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
-  const loadFarmsAndActivities = useCallback(async (isCurrent = () => true) => {
+  const loadFarmsAndActivities = useCallback(async (isCurrent = () => true, ownerId) => {
     setLoading(true);
     setError(null);
+    setLoadedForUserId(ownerId);
     try {
       const [farmRes, actRes] = await Promise.all([
         fetchFarms(),
@@ -73,14 +75,20 @@ export default function MyFarmPage() {
   }, []);
 
   useEffect(() => {
+    if (authLoading || !user) return undefined;
     let isActive = true;
-    Promise.resolve().then(() => {
-      if (isActive) loadFarmsAndActivities(() => isActive);
-    });
+    const ownerId = String(user._id || user.id);
+    Promise.resolve().then(() => isActive && loadFarmsAndActivities(() => isActive, ownerId));
     return () => {
       isActive = false;
     };
-  }, [loadFarmsAndActivities]);
+  }, [authLoading, user, loadFarmsAndActivities]);
+
+  const currentUserId = user ? String(user._id || user.id) : null;
+  const farmDataIsCurrent = Boolean(user && currentUserId && loadedForUserId === currentUserId);
+  const displayedFarms = farmDataIsCurrent ? farms : [];
+  const displayedSummary = farmDataIsCurrent ? summary : null;
+  const displayedActivityOverview = farmDataIsCurrent ? activityOverview : null;
 
   const handleQuickStatus = async (farmId, activityId, newStatus) => {
     setUpdatingTaskId(activityId);
@@ -210,7 +218,7 @@ export default function MyFarmPage() {
       )}
 
       {/* Summary KPI Cards */}
-      {user && summary && (
+      {user && displayedSummary && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm">
             <div className="flex items-center justify-between">
@@ -223,7 +231,7 @@ export default function MyFarmPage() {
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-stone-900 dark:text-content">
-                {summary.totalFarms}
+                {displayedSummary.totalFarms}
               </span>
               <span className="text-xs text-stone-500 dark:text-muted">
                 {lang === "bn" ? "প্লট নিবন্ধিত" : "plots registered"}
@@ -242,7 +250,7 @@ export default function MyFarmPage() {
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-stone-900 dark:text-content">
-                {summary.totalAreaDecimal}
+                {displayedSummary.totalAreaDecimal}
               </span>
               <span className="text-xs text-stone-500 dark:text-muted">
                 {lang === "bn" ? "শতাংশ (Decimal)" : "decimals"}
@@ -261,7 +269,7 @@ export default function MyFarmPage() {
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-stone-900 dark:text-content">
-                {summary.uniqueCropsCount || 0}
+                {displayedSummary.uniqueCropsCount || 0}
               </span>
               <span className="text-xs text-stone-500 dark:text-muted">
                 {lang === "bn" ? "ধরনের ফসল" : "crop types"}
@@ -272,7 +280,7 @@ export default function MyFarmPage() {
       )}
 
       {/* Activity Overview Card */}
-      {user && activityOverview && activityOverview.hasFarms && (
+      {user && displayedActivityOverview && displayedActivityOverview.hasFarms && (
         <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
             <div className="flex items-center gap-2.5">
@@ -293,15 +301,15 @@ export default function MyFarmPage() {
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="rounded-lg bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                 {lang === "bn" ? "আজকের কাজ: " : "Due Today: "}
-                {activityOverview.counts?.todayTotal ?? "—"}
+                {displayedActivityOverview.counts?.todayTotal ?? "—"}
               </span>
               <span className="rounded-lg bg-sky-50 px-2.5 py-1 font-semibold text-sky-800 dark:bg-sky-950/50 dark:text-sky-300">
                 {lang === "bn" ? "আসন্ন: " : "Upcoming: "}
-                {activityOverview.counts?.upcomingTotal ?? "—"}
+                {displayedActivityOverview.counts?.upcomingTotal ?? "—"}
               </span>
               <span className="rounded-lg bg-stone-100 px-2.5 py-1 font-semibold text-stone-700 dark:bg-surface-2 dark:text-muted">
                 {lang === "bn" ? "সম্পন্ন: " : "Completed: "}
-                {activityOverview.counts?.completed ?? "—"}
+                {displayedActivityOverview.counts?.completed ?? "—"}
               </span>
             </div>
           </div>
@@ -315,13 +323,13 @@ export default function MyFarmPage() {
                   {t("myFarm.activities.todayTasks") || "Today's Activities"}
                 </span>
                 <span className="text-xs text-stone-400 font-mono">
-                  {activityOverview.todayStr}
+                  {displayedActivityOverview.todayStr}
                 </span>
               </div>
 
-              {activityOverview.todayActivities && activityOverview.todayActivities.length > 0 ? (
+              {displayedActivityOverview.todayActivities && displayedActivityOverview.todayActivities.length > 0 ? (
                 <div className="space-y-2.5">
-                  {activityOverview.todayActivities.map((act) => (
+                  {displayedActivityOverview.todayActivities.map((act) => (
                     <div
                       key={act._id}
                       className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3.5 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700"
@@ -404,13 +412,13 @@ export default function MyFarmPage() {
                   {t("myFarm.activities.upcomingTasks") || "Upcoming Activities"}
                 </span>
                 <span className="text-xs text-stone-500">
-                  {activityOverview.upcomingActivities?.length || 0} {lang === "bn" ? "টি কাজ" : "tasks"}
+                  {displayedActivityOverview.upcomingActivities?.length || 0} {lang === "bn" ? "টি কাজ" : "tasks"}
                 </span>
               </div>
 
-              {activityOverview.upcomingActivities && activityOverview.upcomingActivities.length > 0 ? (
+              {displayedActivityOverview.upcomingActivities && displayedActivityOverview.upcomingActivities.length > 0 ? (
                 <div className="space-y-2.5">
-                  {activityOverview.upcomingActivities.slice(0, 4).map((act) => (
+                  {displayedActivityOverview.upcomingActivities.slice(0, 4).map((act) => (
                     <div
                       key={act._id}
                       className="rounded-xl border border-stone-200/80 bg-stone-50/30 p-3 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700 flex items-center justify-between gap-3"
@@ -457,7 +465,7 @@ export default function MyFarmPage() {
       )}
 
       {/* Main Content Area */}
-      {loading ? (
+      {loading || authLoading || (user && !farmDataIsCurrent) ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div
@@ -476,13 +484,13 @@ export default function MyFarmPage() {
             </div>
           </div>
           <button
-            onClick={() => loadFarmsAndActivities()}
+            onClick={() => loadFarmsAndActivities(undefined, currentUserId)}
             className="mt-4 min-h-10 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
           >
             {lang === "bn" ? "আবার চেষ্টা করুন" : "Try again"}
           </button>
         </div>
-      ) : farms.length === 0 ? (
+      ) : displayedFarms.length === 0 ? (
         /* Empty State */
         <div className="rounded-[28px] border border-line bg-surface p-6 text-center shadow-km-sm sm:p-10 lg:p-12">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
@@ -520,11 +528,11 @@ export default function MyFarmPage() {
           </div>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted">
             <Layers className="h-3.5 w-3.5 text-forest dark:text-emerald-300" />
-            {summary?.totalFarms ?? farms.length} {lang === "bn" ? "টি খামার" : "farms"}
+            {displayedSummary?.totalFarms ?? displayedFarms.length} {lang === "bn" ? "টি খামার" : "farms"}
           </span>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {farms.map((farm) => (
+          {displayedFarms.map((farm) => (
             <div
               key={farm._id}
               className="group flex min-w-0 flex-col justify-between rounded-2xl border border-line bg-surface p-5 shadow-km-sm transition-colors hover:border-forest/30 hover:shadow-md sm:p-6"

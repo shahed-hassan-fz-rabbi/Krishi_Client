@@ -211,18 +211,24 @@ function AssistantContent() {
     });
   };
 
-  // Scroll chat container to bottom on messages change without window jumping
-  const messagesCount = messages.length;
-  useEffect(() => {
-    if (messagesCount === 0) return;
+  // Smooth contained scrolling without window jumping
+  const scrollToBottom = useCallback((smooth = true) => {
     const container = chatScrollContainerRef.current;
-    if (container) {
+    if (!container) return;
+    requestAnimationFrame(() => {
       container.scrollTo({
         top: container.scrollHeight,
-        behavior: "smooth",
+        behavior: smooth ? "smooth" : "auto",
       });
+    });
+  }, []);
+
+  const messagesCount = messages.length;
+  useEffect(() => {
+    if (messagesCount > 0 || isLoading) {
+      scrollToBottom(true);
     }
-  }, [messagesCount]);
+  }, [messagesCount, isLoading, scrollToBottom]);
 
   // Load existing conversation when URL id changes
   useEffect(() => {
@@ -244,7 +250,11 @@ function AssistantContent() {
     }
 
     // Skip redundant network fetch if this conversation is already active in memory
-    if (loadedConvIdRef.current === urlConversationId) {
+    if (
+      loadedConvIdRef.current === urlConversationId ||
+      (conversationStateRef.current.conversationId === urlConversationId && messagesCount > 0)
+    ) {
+      loadedConvIdRef.current = urlConversationId;
       return () => {
         isMounted = false;
       };
@@ -305,7 +315,8 @@ function AssistantContent() {
     return () => {
       isMounted = false;
     };
-  }, [urlConversationId, isBn, setSelectedDistrict, setSelectedCrop]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlConversationId]);
 
   // Handle New Conversation
   const handleNewConversation = useCallback(() => {
@@ -441,7 +452,6 @@ function AssistantContent() {
       conversationTitle,
       isAuthenticated,
       urlConversationId,
-      router,
       isBn,
       isListening,
       stopListening,
@@ -570,9 +580,9 @@ function AssistantContent() {
   ];
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      {/* Sticky Top Header Bar: Ultra-Compact & Clean Single-Row Toolbar */}
-      <div className="sticky top-14 sm:top-[4.25rem] z-20 flex items-center justify-between gap-2 py-2 px-3 sm:px-4 rounded-2xl border border-line/70 bg-surface/95 backdrop-blur-md shadow-xs transition-all duration-200">
+    <div className="w-full flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-8.5rem)] overflow-hidden">
+      {/* Sleek, Compact Top Toolbar: Ultra-Compact Single-Row Toolbar */}
+      <div className="shrink-0 mb-2.5 sm:mb-3 w-full flex items-center justify-between gap-2 py-2 px-3 sm:px-4 rounded-2xl border border-line/70 bg-surface/90 backdrop-blur-md shadow-xs transition-all duration-200">
         {/* Left: Sparkle Icon + Title + Grounded Badge + Conversation Title */}
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl bg-forest-50 dark:bg-emerald-950/60 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-2xs">
@@ -632,7 +642,7 @@ function AssistantContent() {
           </div>
         </div>
 
-        {/* Right: Farm, District, Crop Dropdowns + New Chat Button */}
+        {/* Right: Farm, District, Crop Dropdowns + Dedicated EN/BN Switcher + New Chat Button */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Farm selector (if user has registered farms) */}
           {isAuthenticated && farmsList.length > 0 ? (
@@ -691,6 +701,7 @@ function AssistantContent() {
             <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
           </div>
 
+
           {/* New Chat Button */}
           <button
             type="button"
@@ -704,45 +715,47 @@ function AssistantContent() {
       </div>
 
       {/* Main Grid: Left Chat Area & Right Sidebar */}
-      <div className="flex min-h-0 flex-col xl:flex-row gap-5 items-start w-full">
-        {/* Left Column: Chat Area with Contained Scroll */}
-        <div className="flex-1 min-w-0 w-full flex flex-col rounded-3xl border border-line/70 bg-surface p-4 sm:p-5 lg:p-6 shadow-xs h-[calc(100vh-13rem)] min-h-[580px] max-h-[850px] transition-all duration-200 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col xl:flex-row gap-4 items-start w-full overflow-hidden">
+        {/* Left Column: Full-Height Chat Area with Contained Scroll */}
+        <div className="flex-1 min-w-0 w-full h-full flex flex-col rounded-3xl border border-line/70 bg-surface shadow-xs overflow-hidden transition-all duration-200">
           {/* Farm-Aware Context Banner */}
           {activeFarm ? (
-            <div className="mb-3.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 dark:bg-emerald-950/30 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                  <Tractor className="h-4.5 w-4.5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-content truncate">{activeFarm.farmName}</span>
-                    <span className="rounded-md bg-emerald-600/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">
-                      {activeFarm.crop?.cropName || activeFarm.crop?.cropCode}
-                    </span>
-                    {activeFarm.crop?.variety ? (
-                      <span className="text-[11px] text-content-muted">({activeFarm.crop.variety})</span>
-                    ) : null}
+            <div className="shrink-0 p-3 sm:p-4 pb-0">
+              <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 dark:bg-emerald-950/30 p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    <Tractor className="h-4 w-4" />
                   </div>
-                  <p className="text-[11px] text-content-muted mt-0.5 truncate">
-                    {activeFarm.location?.upazila}, {activeFarm.location?.district} • {isBn ? "প্রশ্নগুলো এই খামারের বাস্তব উপাত্তের ভিত্তিতে উত্তর দেওয়া হবে" : "AI will answer grounded in this farm's records"}
-                  </p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-content truncate">{activeFarm.farmName}</span>
+                      <span className="rounded-md bg-emerald-600/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">
+                        {activeFarm.crop?.cropName || activeFarm.crop?.cropCode}
+                      </span>
+                      {activeFarm.crop?.variety ? (
+                        <span className="text-[11px] text-content-muted">({activeFarm.crop.variety})</span>
+                      ) : null}
+                    </div>
+                    <p className="text-[11px] text-content-muted mt-0.5 truncate">
+                      {activeFarm.location?.upazila}, {activeFarm.location?.district} • {isBn ? "প্রশ্নগুলো এই খামারের বাস্তব উপাত্তের ভিত্তিতে উত্তর দেওয়া হবে" : "AI will answer grounded in this farm's records"}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleFarmSelection("")}
+                  className="text-xs text-emerald-700 dark:text-emerald-300 hover:underline shrink-0 font-medium cursor-pointer"
+                >
+                  {isBn ? "ফিল্টার সরান" : "Clear Filter"}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => handleFarmSelection("")}
-                className="text-xs text-emerald-700 dark:text-emerald-300 hover:underline shrink-0 font-medium cursor-pointer"
-              >
-                {isBn ? "ফিল্টার সরান" : "Clear Filter"}
-              </button>
             </div>
           ) : null}
 
           {/* Scrollable Chat / Empty State Container */}
           <div
             ref={chatScrollContainerRef}
-            className="flex-1 min-h-0 overflow-y-auto overscroll-contain km-smooth-scroll scroll-smooth pr-1 sm:pr-2 space-y-4"
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain km-smooth-scroll scroll-smooth p-4 sm:p-5 lg:p-6 space-y-4"
             aria-live="polite"
             aria-relevant="additions text"
           >
@@ -1109,18 +1122,20 @@ function AssistantContent() {
               </div>
             )}
 
-            {/* Loading Indicator */}
+            {/* Loading Indicator with Fixed Height and Smooth Pulse (No layout jumps) */}
             {isLoading && (
-              <div className="flex gap-3 mr-auto items-center">
+              <div className="flex gap-3 mr-auto items-center animate-in fade-in duration-200">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald border border-emerald-200 dark:border-emerald-800">
                   <Bot className="h-4 w-4" />
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl bg-surface border border-line px-4 py-3 shadow-2xs">
-                  <span className="text-xs text-muted">{isBn ? "নাসা উপাত্ত বিশ্লেষণ হচ্ছে..." : "Analyzing NASA data..."}</span>
-                  <div className="flex gap-1">
-                    <span className="h-2 w-2 rounded-full bg-emerald animate-bounce [animation-delay:-0.3s]" />
-                    <span className="h-2 w-2 rounded-full bg-emerald animate-bounce [animation-delay:-0.15s]" />
-                    <span className="h-2 w-2 rounded-full bg-emerald animate-bounce" />
+                <div className="flex items-center gap-2.5 rounded-2xl bg-surface border border-line px-4 py-2.5 shadow-2xs h-10">
+                  <span className="text-xs text-muted font-medium">
+                    {isBn ? "নাসা উপাত্ত বিশ্লেষণ হচ্ছে..." : "Analyzing NASA data..."}
+                  </span>
+                  <div className="flex items-center gap-1.5 h-3">
+                    <span className="h-2 w-2 rounded-full bg-emerald animate-pulse" />
+                    <span className="h-2 w-2 rounded-full bg-emerald animate-pulse [animation-delay:150ms]" />
+                    <span className="h-2 w-2 rounded-full bg-emerald animate-pulse [animation-delay:300ms]" />
                   </div>
                 </div>
               </div>
@@ -1297,14 +1312,16 @@ function AssistantContent() {
                 )}
               </button>
 
-              {/* Textarea: Clean input without placeholder or word limit */}
+              {/* Textarea: Clean input with localized placeholder */}
               <textarea
                 ref={textareaRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
+                placeholder={t("assistant.composerPlaceholder")}
+                aria-label={t("assistant.composerPlaceholder")}
                 rows={1}
-                className="flex-1 resize-none bg-transparent py-2 px-2 text-sm text-content focus:outline-none min-h-[44px] max-h-36 leading-relaxed"
+                className="flex-1 resize-none bg-transparent py-2 px-2 text-sm text-content focus:outline-none min-h-[44px] max-h-36 leading-relaxed placeholder:text-muted/60"
               />
 
               {/* Round Send Button */}
@@ -1347,7 +1364,7 @@ function AssistantContent() {
         </div>
 
         {/* Right Column: Sidebar Reference Cards */}
-        <div className="hidden xl:flex xl:w-72 xl:flex-col gap-4 shrink-0 xl:sticky xl:top-[9.5rem] self-start">
+        <div className="hidden xl:flex xl:w-72 2xl:w-80 h-full shrink-0 flex-col gap-3 overflow-y-auto pr-1 km-smooth-scroll pb-2">
           {/* Card 1: Data & Guidance */}
           <div className="rounded-3xl border border-line/70 bg-surface p-4.5 shadow-xs hover:border-line hover:shadow-km-sm transition-all duration-200">
             <div className="flex items-center gap-3 pb-3 border-b border-line/60">

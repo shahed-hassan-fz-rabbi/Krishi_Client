@@ -21,6 +21,7 @@ import {
 
 import { ClimateMonthlyChart } from "@/components/charts/ClimateMonthlyChart.js";
 import EnvironmentalIntelligenceCards from "@/components/dashboard/EnvironmentalIntelligenceCards.js";
+import WeatherIntelligenceSection from "@/components/dashboard/WeatherIntelligenceSection.js";
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
@@ -415,6 +416,11 @@ export default function DashboardPage() {
         smapData={currentEnvironmental?.smap}
         modisData={currentEnvironmental?.modis}
         isLoading={isLoading}
+      />
+
+      <WeatherIntelligenceSection
+        locationCode={selectedDistrict}
+        locale={locale}
       />
 
       {/* Loading state */}

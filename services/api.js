@@ -686,3 +686,51 @@ export async function deleteNotification(id) {
     method: "DELETE",
   });
 }
+
+/**
+ * -----------------------------------------------------------------------------
+ * Weather Intelligence & Early Warning Endpoints (Phase 7.0)
+ * -----------------------------------------------------------------------------
+ */
+
+export async function fetchWeatherForecast(params = {}) {
+  const query = new URLSearchParams();
+  if (params.location) query.set("location", params.location);
+  if (params.latitude != null) query.set("latitude", String(params.latitude));
+  if (params.longitude != null) query.set("longitude", String(params.longitude));
+  if (params.farmId) query.set("farmId", params.farmId);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/weather/forecast${qs}`);
+}
+
+export async function fetchWeatherOutlook(params = {}) {
+  const query = new URLSearchParams();
+  if (params.location) query.set("location", params.location);
+  if (params.latitude != null) query.set("latitude", String(params.latitude));
+  if (params.longitude != null) query.set("longitude", String(params.longitude));
+  if (params.farmId) query.set("farmId", params.farmId);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/weather/outlook${qs}`);
+}
+
+export async function fetchWeatherAlerts(params = {}) {
+  const query = new URLSearchParams();
+  if (params.location) query.set("location", params.location);
+  if (params.division) query.set("division", params.division);
+  if (params.district) query.set("district", params.district);
+  if (params.crop) query.set("crop", params.crop);
+  if (params.stage) query.set("stage", params.stage);
+  if (params.farmId) query.set("farmId", params.farmId);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/weather/alerts${qs}`);
+}
+
+export async function fetchCropWeatherPlanning(params = {}) {
+  const query = new URLSearchParams();
+  if (params.location) query.set("location", params.location);
+  if (params.crop) query.set("crop", params.crop);
+  if (params.stage) query.set("stage", params.stage);
+  if (params.farmId) query.set("farmId", params.farmId);
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request(`/weather/crop-planning${qs}`);
+}

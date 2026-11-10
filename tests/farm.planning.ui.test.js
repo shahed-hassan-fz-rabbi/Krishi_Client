@@ -13,6 +13,7 @@ import {
   getCropPlanningErrorMessage,
   validateCropPlanningForm,
 } from "../lib/cropPlanningForm.js";
+import { getBangladeshDateKey } from "../lib/bangladeshDate.js";
 
 const validForm = {
   districtCode: "cumilla",
@@ -169,6 +170,16 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
     assert.equal(payload.language, "bn");
   });
 
+  await t.test("request payload binds an optional saved farm identifier", () => {
+    const payload = buildCropPlanningPayload(validForm, "en", "farm-123");
+    assert.equal(payload.farmId, "farm-123");
+    assert.equal(buildCropPlanningPayload(validForm, "en").farmId, undefined);
+  });
+
+  await t.test("farm form date uses the Bangladesh civil day across UTC midnight", () => {
+    assert.equal(getBangladeshDateKey(new Date("2025-01-01T20:00:00.000Z")), "2025-01-02");
+  });
+
   await t.test("planning page wires the button to one guarded submit state", () => {
     const source = readFileSync(new URL("../app/(app)/my-farm/plan/page.js", import.meta.url), "utf8");
     assert.match(source, /<form noValidate onSubmit=\{handleEvaluate\}/);
@@ -176,6 +187,9 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
     assert.match(source, /if \(evaluationInFlight\.current\) return/);
     assert.match(source, /evaluationInFlight\.current = true/);
     assert.match(source, /evaluationInFlight\.current = false/);
+    assert.match(source, /fetchFarms\(\)/);
+    assert.match(source, /buildCropPlanningPayload\(formData, lang, activeSelectedFarmId \|\| null\)/);
+    assert.match(source, /Editing profile fields detaches the plan from the farm/);
   });
 
   await t.test("planning results never substitute example satellite values or dates", () => {
