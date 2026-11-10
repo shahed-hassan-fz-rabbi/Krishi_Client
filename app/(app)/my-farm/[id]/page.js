@@ -58,6 +58,7 @@ import {
   deleteFarmActivity,
   generateFarmActivities,
 } from "@/services/api.js";
+import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
 
 function FarmDetailsContent() {
   const router = useRouter();
@@ -175,6 +176,7 @@ function FarmDetailsContent() {
     try {
       const res = await generateFarmActivities(farmId);
       if (res.success) {
+        dispatchFarmNotificationUpdate();
         const actRes = await fetchFarmActivities(farmId);
         if (actRes.success && actRes.data) {
           setActivities(actRes.data.activities || []);
@@ -199,6 +201,7 @@ function FarmDetailsContent() {
     try {
       const res = await updateFarmActivity(farmId, act._id, { status: newStatus });
       if (res.success && res.data) {
+        dispatchFarmNotificationUpdate();
         setActivities((prev) => prev.map((a) => (a._id === act._id ? res.data : a)));
       } else {
         alert(res.error?.message || "Failed to update status");
@@ -216,6 +219,7 @@ function FarmDetailsContent() {
         completionNote,
       });
       if (res.success && res.data) {
+        dispatchFarmNotificationUpdate();
         setActivities((prev) => prev.map((a) => (a._id === selectedActivity._id ? res.data : a)));
         setShowCompleteModal(false);
         setSelectedActivity(null);
@@ -234,6 +238,7 @@ function FarmDetailsContent() {
         scheduledDate: newScheduledDate,
       });
       if (res.success && res.data) {
+        dispatchFarmNotificationUpdate();
         setActivities((prev) => prev.map((a) => (a._id === selectedActivity._id ? res.data : a)));
         setShowRescheduleModal(false);
         setSelectedActivity(null);
@@ -254,6 +259,7 @@ function FarmDetailsContent() {
     try {
       const res = await createFarmActivity(farmId, customForm);
       if (res.success && res.data) {
+        dispatchFarmNotificationUpdate();
         setActivities((prev) => [...prev, res.data]);
         setShowCreateModal(false);
         setCustomForm({
@@ -282,6 +288,7 @@ function FarmDetailsContent() {
     try {
       const res = await deleteFarmActivity(farmId, act._id);
       if (res.success) {
+        dispatchFarmNotificationUpdate();
         setActivities((prev) => prev.filter((a) => a._id !== act._id));
       } else {
         alert(res.error?.message || "Failed to delete activity");
@@ -297,6 +304,7 @@ function FarmDetailsContent() {
     try {
       const res = await refreshFarmLifecycle(farmId);
       if (res.success && res.data) {
+        dispatchFarmNotificationUpdate();
         setLifecycle(res.data);
         if (res.meta?.syncedStage && farm) {
           setFarm((prev) => ({

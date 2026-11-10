@@ -22,6 +22,7 @@ import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { createFarm } from "@/services/api.js";
 import { getBangladeshDateKey } from "@/lib/bangladeshDate.js";
+import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
 import {
   DISTRICT_UPAZILAS,
   SUPPORTED_CROPS,
@@ -188,6 +189,7 @@ export default function NewFarmWizardPage() {
     try {
       const res = await createFarm(payload);
       if (res.success && res.data) {
+        dispatchFarmNotificationUpdate();
         router.push(`/my-farm/${res.data._id}`);
       } else {
         setSubmitError(res.error?.message || "Failed to create farm.");

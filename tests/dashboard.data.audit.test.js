@@ -119,3 +119,21 @@ test("dataset cards keep the responsive multi-column and wide-desktop layout res
   assert.match(source, /grid.*items-stretch.*(?:sm|md):grid-cols-2/);
   assert.match(source, /flex.*h-full.*flex-col.*justify-between/);
 });
+
+test("weather dashboard preserves unavailable risk and response-backed seasonal provenance", async () => {
+  const source = await readFile(new URL("../components/dashboard/WeatherIntelligenceSection.js", import.meta.url), "utf8");
+  assert.match(source, /risks\?\.overallRiskLevel \|\| "DATA_INSUFFICIENT"/);
+  assert.match(source, /overallRisk === "DATA_INSUFFICIENT"/);
+  assert.match(source, /weather risk and safe operating conditions cannot be assessed/i);
+  assert.match(source, /function formatMetric\(value/);
+  assert.match(source, /if \(typeof value !== "number" \|\| !Number\.isFinite\(value\)\) return "—"/);
+  assert.match(source, /forecastDataStatus !== "AVAILABLE"/);
+  assert.match(source, /seasonalDataStatus !== "AVAILABLE"/);
+  assert.match(source, /forecastFetchTimestamp/);
+  assert.match(source, /seasonalFetchTimestamp/);
+  assert.match(source, /m\.usableSeriesCount/);
+  assert.match(source, /m\.rainfallMeanMm/);
+  assert.doesNotMatch(source, /usableEnsembleMembers|ensembleRainfallMeanMm|rainfallAnomalyStatus|tercileProbabilities/);
+  assert.match(source, /verified government warnings/i);
+  assert.doesNotMatch(source, /BMD official agricultural warnings|Official BMD/);
+});

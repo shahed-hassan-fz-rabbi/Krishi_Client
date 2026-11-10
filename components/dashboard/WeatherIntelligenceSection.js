@@ -62,6 +62,11 @@ function formatForecastDate(dateStr, locale = "en") {
   }
 }
 
+function formatMetric(value, locale = "en", maximumFractionDigits = 1) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits }).format(value);
+}
+
 export default function WeatherIntelligenceSection({ locationCode = "chattogram", locale = "en", farmId = null, crop = null }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -185,7 +190,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
   const { location, shortRangeSummary, risks, operationalGuidance, subSeasonalOutlookSummary, seasonalOutlookSummary, provenance } = data;
   const currentCondition = shortRangeSummary?.currentCondition;
   const alerts = risks?.alerts || [];
-  const overallRisk = risks?.overallRiskLevel || "LOW";
+  const overallRisk = risks?.overallRiskLevel || "DATA_INSUFFICIENT";
   const locName = locale === "bn" ? location?.nameBn || location?.nameEn : location?.nameEn;
 
   return (
@@ -210,8 +215,8 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
             </h2>
             <p className="mt-1 text-xs text-muted max-w-2xl">
               {locale === "bn"
-                ? `${locName}-এর জন্য উচ্চ-রেজোলিউশন ৭ দিনের পূর্বাভাস, ১৬ দিনের বর্ধিত দৃষ্টিভঙ্গি, উপ-মৌসুমি প্রবণতা এবং বিএমডি সরকারি কৃষি সতর্কতা।`
-                : `High-resolution 7-day forecast, 16-day extended outlook, sub-seasonal trends, and BMD official agricultural warnings for ${locName}.`}
+                ? `${locName}-এর জন্য উচ্চ-রেজোলিউশন ৭ দিনের পূর্বাভাস, ১৬ দিনের বর্ধিত দৃষ্টিভঙ্গি, উপ-মৌসুমি প্রবণতা এবং যাচাইকৃত সরকারি সতর্কতা।`
+                : `High-resolution 7-day forecast, 16-day extended outlook, sub-seasonal trends, and verified government warnings for ${locName}.`}
             </p>
           </div>
         </div>
@@ -226,7 +231,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                   {locale === "bn" ? currentCondition.conditionBn || currentCondition.conditionEn : currentCondition.conditionEn}
                 </div>
                 <div className="text-[11px] text-muted">
-                  {locale === "bn" ? `আজ সর্বোচ্চ ${currentCondition.temperatureMaxC}°সে · বৃষ্টি ${currentCondition.todayRainExpectedMm} মিমি` : `Max ${currentCondition.temperatureMaxC}°C · Rain ${currentCondition.todayRainExpectedMm} mm`}
+                  {locale === "bn" ? `আজ সর্বোচ্চ ${formatMetric(currentCondition.temperatureMaxC, locale)}°সে · বৃষ্টি ${formatMetric(currentCondition.todayRainExpectedMm, locale)} মিমি` : `Max ${formatMetric(currentCondition.temperatureMaxC, locale)}°C · Rain ${formatMetric(currentCondition.todayRainExpectedMm, locale)} mm`}
                 </div>
               </div>
             </div>
@@ -248,9 +253,11 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
                 overallRisk === "SEVERE"
                   ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30"
-                  : overallRisk === "HIGH"
+                  : overallRisk === "HIGH" || overallRisk === "MODERATE"
                   ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
-                  : "bg-emerald/10 text-emerald dark:text-emerald-400 border border-emerald/30"
+                  : overallRisk === "LOW"
+                    ? "bg-emerald/10 text-emerald dark:text-emerald-400 border border-emerald/30"
+                    : "bg-surface-alt text-muted border border-line"
               }`}
             >
               {overallRisk} RISK
@@ -289,7 +296,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                         : "bg-surface-alt text-muted border-line"
                     }`}>
                       {alert.isGovernmentNotice
-                        ? (locale === "bn" ? "সরকারি বিএমডি" : "Official BMD")
+                        ? (locale === "bn" ? `সরকারি · ${alert.issuingAuthority || "যাচাইকৃত"}` : `Official · ${alert.issuingAuthority || "Verified"}`)
                         : (locale === "bn" ? "কৃষি ঝুঁকি" : "Forecast Risk")}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted px-1.5 py-0.5 rounded bg-surface border border-line">
@@ -309,6 +316,15 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
               </div>
             ))}
           </div>
+        </div>
+      ) : overallRisk === "DATA_INSUFFICIENT" ? (
+        <div className="mt-6 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-content">
+          <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+          <span>
+            {locale === "bn"
+              ? "পর্যাপ্ত পূর্বাভাস উপাত্ত নেই; আবহাওয়া ঝুঁকি বা নিরাপদ কাজের অবস্থা নির্ধারণ করা যাচ্ছে না।"
+              : "Forecast data is insufficient; weather risk and safe operating conditions cannot be assessed."}
+          </span>
         </div>
       ) : (
         <div className="mt-6 flex items-center gap-2 rounded-xl border border-emerald/20 bg-emerald/5 p-3 text-xs text-emerald-800 dark:text-emerald-300">
@@ -405,7 +421,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                         {locale === "bn" ? day.conditionBn : day.conditionEn}
                       </div>
                       <div className="mt-1 text-sm font-bold text-content">
-                        {day.temperatureMaxC}° <span className="text-xs font-normal text-muted">/ {day.temperatureMinC}°</span>
+                        {formatMetric(day.temperatureMaxC, locale)}° <span className="text-xs font-normal text-muted">/ {formatMetric(day.temperatureMinC, locale)}°</span>
                       </div>
                     </div>
                   </div>
@@ -414,16 +430,16 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                     <div className="flex items-center justify-between text-muted">
                       <span className="flex items-center gap-1">
                         <Droplets className="h-3 w-3 text-sky-500" aria-hidden="true" />
-                        {day.precipitationSumMm} mm
+                        {formatMetric(day.precipitationSumMm, locale)} mm
                       </span>
                       <span className="font-medium text-sky-600 dark:text-sky-400">
-                        {day.precipitationProbabilityMax}%
+                        {formatMetric(day.precipitationProbabilityMax, locale, 0)}%
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-muted">
                       <span className="flex items-center gap-1">
                         <Wind className="h-3 w-3 text-slate-400" aria-hidden="true" />
-                        {day.windSpeedMaxKmH} km/h
+                        {formatMetric(day.windSpeedMaxKmH, locale)} km/h
                       </span>
                     </div>
                   </div>
@@ -456,12 +472,12 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                     <div className="text-[11px] font-medium text-muted">{dayMonth}</div>
                     <div className="my-2 flex justify-center">{getWeatherIcon(day.icon, "h-6 w-6")}</div>
                     <div className="text-center font-bold text-xs text-content">
-                      {day.temperatureMaxC}° <span className="text-[10px] font-normal text-muted">/ {day.temperatureMinC}°</span>
+                      {formatMetric(day.temperatureMaxC, locale)}° <span className="text-[10px] font-normal text-muted">/ {formatMetric(day.temperatureMinC, locale)}°</span>
                     </div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-line/60 flex items-center justify-between text-[10px] text-muted">
-                    <span>{day.precipitationSumMm} mm</span>
-                    <span className="text-sky-600 dark:text-sky-400">{day.precipitationProbabilityMax}%</span>
+                    <span>{formatMetric(day.precipitationSumMm, locale)} mm</span>
+                    <span className="text-sky-600 dark:text-sky-400">{formatMetric(day.precipitationProbabilityMax, locale, 0)}%</span>
                   </div>
                 </div>
               );
@@ -477,8 +493,8 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
             <Info className="h-4 w-4 shrink-0 text-emerald" aria-hidden="true" />
             <span>
               {locale === "bn"
-                ? "১-৬ সপ্তাহের উপ-মৌসুমি দৃষ্টিভঙ্গি ওপেন-মেটিও এক্সটেন্ডেড মডেল উপাত্তের ওপর ভিত্তি করে তৈরি। এটি নির্দিষ্ট দিনের পূর্বাভাস নয় বরং আঞ্চলিক সাপ্তাহিক প্রবণতা নির্দেশ করে।"
-                : "Weeks 1–6 sub-seasonal outlook is derived from Open-Meteo sub-seasonal extended models. It represents coarse regional weekly tendencies rather than local daily weather."}
+                ? "Open-Meteo ECMWF Seasonal Seamless (EC46 + SEAS5) মডেল নির্বাচন থেকে ১–৬ সপ্তাহের আঞ্চলিক প্রবণতা। এটি নির্দিষ্ট খামারের দৈনিক পূর্বাভাস নয়।"
+                : "Weeks 1–6 regional tendencies use Open-Meteo's ECMWF Seasonal Seamless selection (EC46 + SEAS5); they are not local farm-level daily forecasts."}
             </span>
           </div>
 
@@ -540,8 +556,8 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
             <Info className="h-4 w-4 shrink-0 text-emerald" aria-hidden="true" />
             <span>
               {locale === "bn"
-                ? "মৌসুমি দৃষ্টিভঙ্গি প্রায় ৩০-দিনের ব্লকে উপস্থাপিত আঞ্চলিক মডেল পরিসংখ্যান। ক্লাইমাটোলজিক্যাল রেফারেন্সের অভাবে কৃত্রিম সম্ভাব্যতা বাদ দেওয়া হয়েছে।"
-                : "Seasonal outlooks represent coarse ~36 km regional model distributions. Synthetic tercile probabilities are withheld due to lack of model baseline climatology."}
+                ? "প্রায় ৩০ দিনের ব্লকে আঞ্চলিক মডেল সিরিজের সারাংশ। এই দৈনিক API উত্তরে ক্যালিব্রেটেড বৃষ্টির সম্ভাব্যতা নেই; খামারের নির্দিষ্ট পূর্বাভাস হিসেবে ব্যবহার করবেন না।"
+                : "Regional model summaries are grouped into ~30-day blocks. The requested daily response does not provide calibrated rainfall probabilities; this is not a farm-level forecast."}
             </span>
           </div>
 
@@ -554,35 +570,35 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                       {locale === "bn" ? m.windowLabelBn || m.monthNameBn : m.windowLabelEn || m.monthNameEn}
                     </h4>
                     <span className="text-[10px] font-bold text-emerald dark:text-emerald-400 shrink-0">
-                      {locale === "bn" ? m.rainfallAnomalyStatusBn || m.rainfallThresholdStatusBn : m.rainfallAnomalyStatusEn || m.rainfallThresholdStatusEn}
+                      {locale === "bn" ? m.rainfallThresholdStatusBn : m.rainfallThresholdStatusEn}
                     </span>
                   </div>
 
                   <div className="mt-3 space-y-1.5 text-xs">
                     <div className="flex justify-between text-muted">
-                      <span>{locale === "bn" ? (m.usableEnsembleMembers > 1 ? "এনসেম্বল বৃষ্টিপাত গড়:" : "মডেল বৃষ্টিপাত গড়:") : (m.usableEnsembleMembers > 1 ? "Ensemble Rain Mean:" : "Model Rain Mean:")}</span>
-                      <span className="font-semibold text-content">{m.ensembleRainfallMeanMm != null ? `${m.ensembleRainfallMeanMm} mm` : (locale === "bn" ? "অপ্রাপ্য" : "Unavailable")}</span>
+                      <span>{locale === "bn" ? (m.seriesType === "ENSEMBLE_MEMBERS" ? "পাওয়া সদস্য সিরিজের গড় বৃষ্টি:" : "মডেল সিরিজের গড় বৃষ্টি:") : (m.seriesType === "ENSEMBLE_MEMBERS" ? "Mean across returned member series:" : "Model-series mean rainfall:")}</span>
+                      <span className="font-semibold text-content">{m.rainfallMeanMm != null ? `${m.rainfallMeanMm} mm` : (locale === "bn" ? "অপ্রাপ্য" : "Unavailable")}</span>
                     </div>
-                    {m.ensembleRainfallMedianMm !== undefined && m.ensembleRainfallMedianMm !== null && (
+                    {m.rainfallMedianMm !== undefined && m.rainfallMedianMm !== null && (
                       <div className="flex justify-between text-muted">
-                        <span>{locale === "bn" ? (m.usableEnsembleMembers > 1 ? "এনসেম্বল মধ্যক (Median):" : "মডেল মধ্যক:") : (m.usableEnsembleMembers > 1 ? "Ensemble Median:" : "Model Median:")}</span>
-                        <span className="font-semibold text-content">{m.ensembleRainfallMedianMm} mm</span>
+                        <span>{locale === "bn" ? "পাওয়া সিরিজের মধ্যক বৃষ্টি:" : "Median across returned series:"}</span>
+                        <span className="font-semibold text-content">{m.rainfallMedianMm} mm</span>
                       </div>
                     )}
-                    {m.rainfallSpreadMm && m.rainfallSpreadMm.min != null && (
+                    {m.rainfallRangeMm && m.rainfallRangeMm.min != null && (
                       <div className="flex justify-between text-muted">
-                        <span>{locale === "bn" ? "বৃষ্টিপাত সীমা (Min–Max):" : "Rain Spread:"}</span>
-                        <span className="font-semibold text-content">{m.rainfallSpreadMm.min} – {m.rainfallSpreadMm.max} mm</span>
+                        <span>{locale === "bn" ? "পাওয়া বৃষ্টি মানের সীমা (সর্বনিম্ন–সর্বোচ্চ):" : "Range across returned rainfall values:"}</span>
+                        <span className="font-semibold text-content">{m.rainfallRangeMm.min} – {m.rainfallRangeMm.max} mm</span>
                       </div>
                     )}
                     <div className="flex justify-between text-muted">
-                      <span>{locale === "bn" ? (m.usableEnsembleMembers > 1 ? "এনসেম্বল তাপমাত্রা গড়:" : "মডেল তাপমাত্রা গড়:") : (m.usableEnsembleMembers > 1 ? "Ensemble Temp Mean:" : "Model Temp Mean:")}</span>
-                      <span className="font-semibold text-content">{m.ensembleTempMeanC != null ? `${m.ensembleTempMeanC} °C` : (locale === "bn" ? "অপ্রাপ্য" : "Unavailable")}</span>
+                      <span>{locale === "bn" ? "মডেল সিরিজের গড় তাপমাত্রা:" : "Model-series mean temperature:"}</span>
+                      <span className="font-semibold text-content">{m.temperatureMeanC != null ? `${m.temperatureMeanC} °C` : (locale === "bn" ? "অপ্রাপ্য" : "Unavailable")}</span>
                     </div>
-                    {m.tempSpreadC && m.tempSpreadC.min != null && (
+                    {m.temperatureRangeC && m.temperatureRangeC.min != null && (
                       <div className="flex justify-between text-muted">
-                        <span>{locale === "bn" ? "তাপমাত্রা সীমা (Min–Max):" : "Temp Spread:"}</span>
-                        <span className="font-semibold text-content">{m.tempSpreadC.min} – {m.tempSpreadC.max} °C</span>
+                        <span>{locale === "bn" ? "পাওয়া তাপমাত্রা মানের সীমা (সর্বনিম্ন–সর্বোচ্চ):" : "Range across returned temperature values:"}</span>
+                        <span className="font-semibold text-content">{m.temperatureRangeC.min} – {m.temperatureRangeC.max} °C</span>
                       </div>
                     )}
                   </div>
@@ -595,15 +611,11 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                   </div>
                   <div className="mt-1 flex items-center justify-between">
                     <span>
-                      {locale === "bn"
-                        ? (m.usableEnsembleMembers > 1 ? "এনসেম্বল সদস্য:" : "মডেল প্রকার:")
-                        : (m.usableEnsembleMembers > 1 ? "Ensemble Members:" : "Model Type:")}
+                      {locale === "bn" ? "এই সময়ের ব্যবহারযোগ্য সিরিজ:" : "Usable series for this period:"}
                     </span>
                     <span className="font-medium text-emerald dark:text-emerald-400">
-                      {m.usableEnsembleMembers > 1
-                        ? `${m.usableEnsembleMembers} ${locale === "bn" ? "সদস্য (এনসেম্বল)" : "Members (Ensemble)"}`
-                        : m.usableEnsembleMembers === 1
-                        ? (locale === "bn" ? "একক মডেল রান (নন-এনসেম্বল)" : "Single Model Run (Non-Ensemble)")
+                      {m.usableSeriesCount > 0
+                        ? `${m.usableSeriesCount} ${m.seriesType === "ENSEMBLE_MEMBERS" ? (locale === "bn" ? "ফেরত পাওয়া সদস্য সিরিজ" : "returned member series") : (locale === "bn" ? "মডেল সিরিজ" : "model series")}`
                         : (locale === "bn" ? "উপাত্ত অপ্রাপ্য" : "Unavailable")}
                     </span>
                   </div>
@@ -695,28 +707,34 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
               {provenance?.forecastModel || "Open-Meteo Best Match (Deterministic NWP Combination)"}
             </span>
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60">
-              {provenance?.seasonalModel || "Open-Meteo Seasonal Model Forecast"}
+              {provenance?.seasonalModel || "Open-Meteo Seasonal Forecast API"}
             </span>
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60">
-              {provenance?.officialAdvisories || "BMD Hazard Criteria"}
+              {provenance?.officialAdvisories || (locale === "bn" ? "সরকারি সতর্কতার তথ্য অনুপলব্ধ" : "Government warning status unavailable")}
             </span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60 text-emerald dark:text-emerald-400 font-medium text-[10px]">
               {locale === "bn"
-                ? `পূর্বাভাস: ${provenance?.isForecastCached ? "ক্যাশড" : "লাইভ"}`
-                : `Forecast: ${provenance?.isForecastCached ? "Cached" : "Live"}`}
+                ? `পূর্বাভাস: ${provenance?.forecastDataStatus !== "AVAILABLE" ? "অপ্রাপ্য" : provenance?.isForecastCached ? "ক্যাশড" : "সরাসরি আনা"}`
+                : `Forecast: ${provenance?.forecastDataStatus !== "AVAILABLE" ? "Unavailable" : provenance?.isForecastCached ? "Cached" : "Fetched"}`}
             </span>
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60 text-emerald dark:text-emerald-400 font-medium text-[10px]">
               {locale === "bn"
-                ? `মৌসুমি: ${provenance?.isSeasonalCached ? "ক্যাশড" : "লাইভ"}`
-                : `Seasonal: ${provenance?.isSeasonalCached ? "Cached" : "Live"}`}
+                ? `মৌসুমি: ${provenance?.seasonalDataStatus !== "AVAILABLE" ? "অপ্রাপ্য" : provenance?.isSeasonalCached ? "ক্যাশড" : "সরাসরি আনা"}`
+                : `Seasonal: ${provenance?.seasonalDataStatus !== "AVAILABLE" ? "Unavailable" : provenance?.isSeasonalCached ? "Cached" : "Fetched"}`}
             </span>
-            {provenance?.fetchTimestamp && (
+            {provenance?.forecastFetchTimestamp && (
               <span className="text-[10px] text-muted">
-                {locale === "bn" ? "আপডেট: " : "Updated: "}
-                {new Date(provenance.fetchTimestamp).toLocaleTimeString(locale === "bn" ? "bn-BD" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                {locale === "bn" ? "পূর্বাভাস fetch: " : "Forecast fetched: "}
+                {new Date(provenance.forecastFetchTimestamp).toLocaleString(locale === "bn" ? "bn-BD" : "en-US", { timeZone: "Asia/Dhaka", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
+            {provenance?.seasonalFetchTimestamp && (
+              <span className="text-[10px] text-muted">
+                {locale === "bn" ? "মৌসুমি fetch: " : "Seasonal fetched: "}
+                {new Date(provenance.seasonalFetchTimestamp).toLocaleString(locale === "bn" ? "bn-BD" : "en-US", { timeZone: "Asia/Dhaka", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
             {provenance?.forecastReferenceTime && (

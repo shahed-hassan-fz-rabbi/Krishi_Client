@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { CloudRain, Droplets, Leaf, MapPin, Sun } from "lucide-react";
+import { getDivisionPoint } from "@/lib/divisionPoint.js";
 
 const DivisionPointMap = dynamic(() => import("./DivisionPointMap.js"), { ssr: false });
 
@@ -28,7 +29,7 @@ export default function DivisionIntelligencePanel({ divisions, selected, onSelec
   const isBn = locale === "bn";
   const division = data?.division || divisions.find((item) => item.code === selected);
   const datasets = data?.datasets || {};
-  const coordinates = division?.representativePoint;
+  const point = getDivisionPoint(division);
 
   return (
     <section className="space-y-4" aria-labelledby="division-intelligence-heading" aria-busy={loading}>
@@ -86,10 +87,10 @@ export default function DivisionIntelligencePanel({ divisions, selected, onSelec
         <div className="space-y-2">
           <h3 className="flex items-center gap-2 text-sm font-bold text-content"><MapPin className="h-4 w-4 text-forest" aria-hidden="true" />{isBn ? "নির্বাচিত প্রতিনিধিত্বমূলক বিন্দু" : "Selected representative point"}</h3>
           <p className="text-sm font-semibold text-content">{isBn ? division?.nameBn : division?.nameEn}</p>
-          <p className="text-xs text-muted">{coordinates ? `${coordinates.latitude.toFixed(5)}° N, ${coordinates.longitude.toFixed(5)}° E` : "—"} · {division?.pointMethod || "BBS division polygon centroid"}</p>
+          <p className="text-xs text-muted">{point ? `${point.latitude.toFixed(5)}° N, ${point.longitude.toFixed(5)}° E` : "—"} · {division?.pointMethod || "BBS division polygon centroid"}</p>
           <p className="text-xs leading-relaxed text-muted">{isBn ? "একটি বিন্দুর তথ্য পুরো বিভাগের সব স্থান বা খামারের অবস্থা বোঝায় না।" : division?.limitation || "A single point does not represent every location or farm in this division."}</p>
         </div>
-        {error ? <div role="status" className="flex min-h-40 items-center justify-center rounded-xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{isBn ? "বিভাগের তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।" : "Division intelligence could not be loaded. Try again."}</div> : <DivisionPointMap division={division} locale={locale} />}
+        {error ? <div role="status" className="flex min-h-40 items-center justify-center rounded-xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{isBn ? "বিভাগের তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।" : "Division intelligence could not be loaded. Try again."}</div> : point ? <DivisionPointMap division={division} locale={locale} /> : <div role="status" className="flex min-h-40 items-center justify-center rounded-xl bg-surface-2 p-4 text-sm text-muted">{isBn ? "মানচিত্রের জন্য বৈধ প্রতিনিধিত্বমূলক স্থানাঙ্ক নেই।" : "No valid representative coordinates are available for the map."}</div>}
       </div>
     </section>
   );

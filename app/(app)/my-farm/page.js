@@ -27,6 +27,7 @@ import {
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchFarms, deleteFarm, fetchActivitiesOverview, updateFarmActivity } from "@/services/api.js";
+import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
 
 export default function MyFarmPage() {
   const { t, lang } = useLang();
@@ -99,6 +100,7 @@ export default function MyFarmPage() {
     try {
       const res = await updateFarmActivity(farmId, activityId, { status: newStatus });
       if (res.success) {
+        dispatchFarmNotificationUpdate();
         // Refresh activity overview
         const refreshed = await fetchActivitiesOverview();
         if (refreshed.success) {

@@ -190,6 +190,7 @@ test("My Farm Planning: Client API Contracts & Translations Suite", async (t) =>
     assert.match(source, /fetchFarms\(\)/);
     assert.match(source, /buildCropPlanningPayload\(formData, lang, activeSelectedFarmId \|\| null\)/);
     assert.match(source, /Editing profile fields detaches the plan from the farm/);
+    assert.match(source, /<CropPlanningPageContent key=\{identityKey\} \/>/);
   });
 
   await t.test("planning results never substitute example satellite values or dates", () => {

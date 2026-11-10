@@ -28,6 +28,7 @@ import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchCropPlanningRecommendations, createFarm, fetchFarms } from "@/services/api.js";
 import { getBangladeshDateKey } from "@/lib/bangladeshDate.js";
+import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
 import {
   buildCropPlanningPayload,
   getCropPlanningErrorMessage,
@@ -85,7 +86,7 @@ const SEASONS = [
   { code: "Kharif-2", nameEn: "Kharif-2 (Monsoon: Jul – Nov)", nameBn: "খরিপ-২ (আমন মৌসুম: আষাঢ় – অগ্রহায়ণ)" },
 ];
 
-export default function CropPlanningPage() {
+function CropPlanningPageContent() {
   const router = useRouter();
   const { t, locale, lang = locale } = useLang();
   const { user, isLoading: authLoading } = useAuth();
@@ -313,6 +314,7 @@ export default function CropPlanningPage() {
     try {
       const res = await createFarm(payload);
       if (res.success && res.data?._id) {
+        dispatchFarmNotificationUpdate();
         router.push(`/my-farm/${res.data._id}`);
       } else {
         setCreateError(res.error?.message || "Failed to create farm.");
@@ -970,4 +972,10 @@ export default function CropPlanningPage() {
       )}
     </div>
   );
+}
+
+export default function CropPlanningPage() {
+  const { user, isLoading } = useAuth();
+  const identityKey = isLoading ? "session-loading" : String(user?._id || user?.id || "guest");
+  return <CropPlanningPageContent key={identityKey} />;
 }
