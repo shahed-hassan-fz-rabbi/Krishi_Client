@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -112,6 +112,8 @@ export default function CropPlanningPage() {
   const [results, setResults] = useState(null);
   const [farms, setFarms] = useState([]);
   const [farmsOwnerId, setFarmsOwnerId] = useState(null);
+  const [farmsLoadingState, setFarmsLoadingState] = useState(false);
+  const [farmsLoadError, setFarmsLoadError] = useState(false);
   const [selectedFarmId, setSelectedFarmId] = useState("");
 
   // Selection Modal State
@@ -137,29 +139,37 @@ export default function CropPlanningPage() {
   }, [formData.districtCode]);
 
   const currentUserId = user ? String(user._id || user.id) : null;
-  const farmsLoading = Boolean(user && (authLoading || farmsOwnerId !== currentUserId));
+  const farmsLoading = Boolean(user && (authLoading || farmsOwnerId !== currentUserId || farmsLoadingState));
   const availableFarms = user && !authLoading && farmsOwnerId === currentUserId ? farms : [];
   const activeSelectedFarmId = availableFarms.some((farm) => farm._id === selectedFarmId) ? selectedFarmId : "";
+
+  const loadSavedFarms = useCallback(async (ownerId, isCurrent = () => true) => {
+    setFarmsLoadingState(true);
+    setFarmsLoadError(false);
+    try {
+      const response = await fetchFarms();
+      if (!isCurrent()) return;
+      setFarms(response.success ? (response.data?.farms || []) : []);
+      setFarmsOwnerId(ownerId);
+      setFarmsLoadError(!response.success);
+    } catch {
+      if (isCurrent()) {
+        setFarms([]);
+        setFarmsOwnerId(ownerId);
+        setFarmsLoadError(true);
+      }
+    } finally {
+      if (isCurrent()) setFarmsLoadingState(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (authLoading || !user) return undefined;
     let active = true;
-    const ownerId = String(user._id || user.id);
-    fetchFarms()
-      .then((response) => {
-        if (active) {
-          setFarms(response.success ? (response.data?.farms || []) : []);
-          setFarmsOwnerId(ownerId);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setFarms([]);
-          setFarmsOwnerId(ownerId);
-        }
-      });
+    const ownerId = currentUserId;
+    Promise.resolve().then(() => active && loadSavedFarms(ownerId, () => active));
     return () => { active = false; };
-  }, [authLoading, user, currentUserId]);
+  }, [authLoading, user, currentUserId, loadSavedFarms]);
 
   const selectFarm = (farmId) => {
     setSelectedFarmId(farmId);
@@ -206,6 +216,11 @@ export default function CropPlanningPage() {
 
   const handleEvaluate = async (e) => {
     if (e) e.preventDefault();
+    if (authLoading) return;
+    if (!user) {
+      router.push("/login?redirect=/my-farm/plan");
+      return;
+    }
     if (evaluationInFlight.current) return;
 
     const validationError = validateCropPlanningForm(formData, availableUpazilas);
@@ -342,6 +357,15 @@ export default function CropPlanningPage() {
             {availableFarms.map((farm) => <option key={farm._id} value={farm._id}>{farm.farmName} · {farm.location?.upazila}, {farm.location?.district}</option>)}
           </select>
           {activeSelectedFarmId && <p className="mt-2 text-xs text-muted sm:mt-0">{lang === "bn" ? "সংরক্ষিত খামারের অবস্থান ও জমির তথ্য দিয়ে সুপারিশ তৈরি হবে। তথ্য সম্পাদনা করলে পরিকল্পনাটি খামার থেকে আলাদা হবে।" : "Recommendations use this farm’s saved profile. Editing profile fields detaches the plan from the farm."}</p>}
+        </div>
+      )}
+
+      {user && !farmsLoading && farmsLoadError && (
+        <div role="status" className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <span>{lang === "bn" ? "সংরক্ষিত খামারগুলো লোড হয়নি; আপনি চাইলে তথ্য হাতে লিখতে পারেন।" : "Saved farms could not be loaded; you can still enter a profile manually."}</span>
+          <button type="button" onClick={() => loadSavedFarms(currentUserId)} className="min-h-9 rounded-lg border border-amber-400 px-3 py-2 text-xs font-semibold hover:bg-amber-100 dark:border-amber-800 dark:hover:bg-amber-950/60">
+            {lang === "bn" ? "আবার চেষ্টা করুন" : "Retry"}
+          </button>
         </div>
       )}
 
