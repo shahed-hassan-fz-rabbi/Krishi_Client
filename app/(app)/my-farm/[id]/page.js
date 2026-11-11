@@ -388,7 +388,7 @@ function FarmDetailsContent() {
     <div className="space-y-8">
       {/* Header and Actions */}
       <header className="relative isolate overflow-hidden rounded-[28px] border border-line bg-surface shadow-km-sm">
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-cover bg-center opacity-25 dark:opacity-20" style={{ backgroundImage: "url('/images/hero.jpeg')" }} />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-cover bg-center opacity-25 dark:opacity-20" style={{ backgroundImage: "url('/images/hero.png')" }} />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-white/95 via-white/85 to-white/65 dark:from-surface/95 dark:via-surface/85 dark:to-surface/65" />
         <div className="flex flex-col gap-5 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
         <div className="min-w-0">

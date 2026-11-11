@@ -323,7 +323,7 @@ export default function DashboardPage() {
       <header className="relative isolate min-h-[220px] overflow-hidden rounded-2xl border border-line bg-surface shadow-km-sm">
         <div className="absolute inset-0 z-0" aria-hidden="true">
           <Image
-            src="/images/hero.jpeg"
+            src="/images/hero.png"
             alt=""
             fill
             sizes="(min-width: 1440px) 1120px, calc(100vw - 3rem)"

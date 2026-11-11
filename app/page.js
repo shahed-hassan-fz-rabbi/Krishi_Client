@@ -30,7 +30,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
 import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
-const HERO_SRC = "/images/hero.jpeg";
+const HERO_SRC = "/images/hero.png";
 
 const featureItems = [
   { icon: CloudRain, titleKey: "featureRainfall", descKey: "featureRainfallDesc", tone: "climate" },
@@ -56,6 +56,7 @@ export default function LandingPage() {
   const { t, locale } = useLang();
   const { districts } = useLocation();
   const [liveDataSources, setLiveDataSources] = useState(null);
+  const [hasLoadedDataSources, setHasLoadedDataSources] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,47 +66,60 @@ export default function LandingPage() {
           setLiveDataSources(res.data);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setHasLoadedDataSources(true);
+      });
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const powerApiSource = Array.isArray(liveDataSources) && liveDataSources.length > 0 ? liveDataSources[0] : null;
+  const powerApiSource = Array.isArray(liveDataSources)
+    ? liveDataSources.find((item) => item.datasetKey === "nasa:power:daily:point") || null
+    : null;
   const getSourceStatus = (datasetKey) => {
     const source = liveDataSources?.find((item) => item.datasetKey === datasetKey);
-    if (!source) return locale === "bn" ? "প্রাপ্যতা যাচাই হচ্ছে" : "Checking availability";
-    if (source.availability === "available") {
+    if (!source) {
+      if (!hasLoadedDataSources) return locale === "bn" ? "প্রাপ্যতা যাচাই হচ্ছে" : "Checking availability";
+      return locale === "bn" ? "পর্যবেক্ষণ অনুপলব্ধ" : "Observations unavailable";
+    }
+    if (source.availability === "available" && Number.isFinite(source.validObservationCount)) {
       return locale === "bn"
-        ? `${Number(source.observationCount).toLocaleString()} পর্যবেক্ষণ`
-        : `${Number(source.observationCount).toLocaleString()} historical observations`;
+        ? `${formatLocalizedNumber(source.validObservationCount)} ঐতিহাসিক পর্যবেক্ষণ`
+        : `${formatLocalizedNumber(source.validObservationCount)} valid historical observations`;
     }
     return locale === "bn" ? "পর্যবেক্ষণ অনুপলব্ধ" : "Observations unavailable";
   };
 
-  // Format observation count dynamically from live NASA API
-  const liveObsCount = powerApiSource?.observationCount || 109572;
-  const formattedObsCount = locale === "bn"
-    ? String(liveObsCount.toLocaleString("en-US")).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])
-    : liveObsCount.toLocaleString("en-US");
+  const validObservationCount = Number.isFinite(powerApiSource?.validObservationCount) && powerApiSource.validObservationCount >= 0
+    ? powerApiSource.validObservationCount
+    : null;
+  const formatLocalizedNumber = (value) => locale === "bn"
+    ? String(value.toLocaleString("en-US")).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])
+    : value.toLocaleString("en-US");
+  const formattedObsCount = validObservationCount == null ? "—" : formatLocalizedNumber(validObservationCount);
 
-  // Dynamic coverage range from live NASA API
-  const startYear = powerApiSource?.coverage?.firstObservedDate ? new Date(powerApiSource.coverage.firstObservedDate).getFullYear() : 2001;
-  const endYear = powerApiSource?.coverage?.lastObservedDate ? new Date(powerApiSource.coverage.lastObservedDate).getFullYear() : 2025;
-  const dynamicCoverageYears = locale === "bn"
-    ? `${String(startYear).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])} – ${String(endYear).replace(/[0-9]/g, (d) => ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"][Number(d)])}`
-    : `${startYear} – ${endYear}`;
+  const firstObservationDate = powerApiSource?.firstObservationDate
+    ? new Date(powerApiSource.firstObservationDate)
+    : null;
+  const lastObservationDate = powerApiSource?.lastObservationDate
+    ? new Date(powerApiSource.lastObservationDate)
+    : null;
+  const hasCoverageDates = firstObservationDate && lastObservationDate
+    && !Number.isNaN(firstObservationDate.getTime()) && !Number.isNaN(lastObservationDate.getTime());
+  const dynamicCoverageYears = hasCoverageDates
+    ? `${formatLocalizedNumber(firstObservationDate.getFullYear())} – ${formatLocalizedNumber(lastObservationDate.getFullYear())}`
+    : "—";
+  const powerAvailabilityLabel = !hasLoadedDataSources
+    ? (locale === "bn" ? "প্রাপ্যতা যাচাই হচ্ছে" : "Checking availability")
+    : powerApiSource?.availability === "available" && validObservationCount != null
+    ? (locale === "bn" ? "ঐতিহাসিক ডেটা উপলব্ধ" : "Historical data available")
+    : (locale === "bn" ? "ঐতিহাসিক ডেটা অনুপলব্ধ" : "Historical data unavailable");
 
   const activeParameters = powerApiSource?.parameters
     ? Object.entries(powerApiSource.parameters)
-    : [
-        ["PRECTOTCORR", { unit: "mm/day", longName: "Precipitation Corrected" }],
-        ["T2M", { unit: "C", longName: "Temperature at 2 Meters" }],
-        ["T2M_MAX", { unit: "C", longName: "Max Temperature" }],
-        ["T2M_MIN", { unit: "C", longName: "Min Temperature" }],
-        ["RH2M", { unit: "%", longName: "Relative Humidity" }],
-        ["ALLSKY_SFC_SW_DWN", { unit: "MJ/m^2/day", longName: "Surface Solar Irradiance" }],
-      ];
+    : [];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -244,7 +258,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Featured Active Engine Card with rich emerald gradient & glow */}
+            {/* NASA POWER historical climate reference */}
             <div className="relative mb-12 overflow-hidden rounded-2xl border-2 border-emerald-500/35 bg-gradient-to-br from-surface via-surface-2/50 to-emerald-500/10 p-6 shadow-km-md backdrop-blur-sm dark:from-surface-card dark:via-surface-card dark:to-emerald-950/30 sm:p-8">
               {/* Vibrant ambient glow */}
               <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-emerald-500/15 blur-3xl" />
@@ -257,7 +271,7 @@ export default function LandingPage() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
                       <span className="text-xs font-bold uppercase tracking-wider text-emerald">
-                        {t("landing.dataActiveTitle")}
+                        {locale === "bn" ? "ঐতিহাসিক জলবায়ু রেফারেন্স" : "Historical climate reference"}
                       </span>
                       <span className="text-xs text-muted">•</span>
                       <span className="text-xs font-medium text-muted">
@@ -282,22 +296,22 @@ export default function LandingPage() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                     </span>
-                    <span>{t("landing.dataActiveBadge")}</span>
+                    <span>{powerAvailabilityLabel}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Dynamic Live Metrics Grid (from live NASA API) */}
+              {/* Dataset coverage and metadata returned by the backend catalog */}
               <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                 <div className="rounded-xl border border-line/80 bg-surface/90 dark:bg-surface/50 p-4 shadow-sm">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald block mb-1">
-                    {locale === "bn" ? "ভেরিফায়েড রেকর্ডস" : "Verified Records"}
+                    {locale === "bn" ? "যাচাইকৃত সংরক্ষিত পর্যবেক্ষণ" : "Validated stored observations"}
                   </span>
                   <span className="text-xl font-extrabold text-content sm:text-2xl block">
                     {formattedObsCount}
                   </span>
                   <span className="text-[11px] text-muted">
-                    {locale === "bn" ? "দৈনিক পর্যবেক্ষণ ডাটা" : "Live daily observations"}
+                    {locale === "bn" ? "ঐতিহাসিক দৈনিক ডেটা" : "Historical daily observations"}
                   </span>
                 </div>
 
@@ -309,7 +323,9 @@ export default function LandingPage() {
                     {dynamicCoverageYears}
                   </span>
                   <span className="text-[11px] text-muted">
-                    {locale === "bn" ? "২৫ বছরের রেকর্ড" : "25-Year NASA baseline"}
+                    {hasCoverageDates
+                      ? (locale === "bn" ? "সংরক্ষিত ডেটার সময়কাল" : "Stored observation period")
+                      : (locale === "bn" ? "সময়কাল অনুপলব্ধ" : "Coverage dates unavailable")}
                   </span>
                 </div>
 
@@ -318,10 +334,10 @@ export default function LandingPage() {
                     {locale === "bn" ? "টাইম স্ট্যান্ডার্ড" : "Time Standard"}
                   </span>
                   <span className="text-xl font-extrabold text-content sm:text-2xl block">
-                    {powerApiSource?.timeStandard || "LST"}
+                    {powerApiSource?.timeStandard || "—"}
                   </span>
                   <span className="text-[11px] text-muted">
-                    {locale === "bn" ? "লোকাল সোলার টাইম" : "Local Solar Time"}
+                    {powerApiSource?.timeStandardDisclosure || (locale === "bn" ? "সময়-মান অনুপলব্ধ" : "Time standard unavailable")}
                   </span>
                 </div>
 
@@ -330,18 +346,18 @@ export default function LandingPage() {
                     {locale === "bn" ? "স্থানিক মডেল" : "Spatial Footprint"}
                   </span>
                   <span className="text-base font-bold text-content sm:text-lg block mt-0.5">
-                    0.5° × 0.5° Gridded
+                    {powerApiSource?.spatialResolution || "—"}
                   </span>
                   <span className="text-[11px] text-muted">
-                    {powerApiSource?.spatialResolutionNote || "Continuous Global Grid"}
+                    {powerApiSource?.product || (locale === "bn" ? "পণ্য পরিচিতি অনুপলব্ধ" : "Product metadata unavailable")}
                   </span>
                 </div>
               </div>
 
-              {/* Dynamic Active Parameters from Live NASA API with vibrant badges */}
+              {/* NASA POWER parameters from the dataset catalog */}
               <div className="relative mt-6 pt-5 border-t border-line/80">
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald block mb-3">
-                  {locale === "bn" ? "সক্রিয় নাসা প্যারামিটার (লাইভ এপিআই)" : "Active Meteorological & Solar Parameters (Live NASA API)"}
+                  {locale === "bn" ? "NASA POWER প্যারামিটার" : "NASA POWER parameters"}
                 </span>
                 <div className="flex flex-wrap gap-2.5">
                   {activeParameters.map(([code, meta]) => (

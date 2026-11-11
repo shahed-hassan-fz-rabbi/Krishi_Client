@@ -14,10 +14,10 @@ describe("Auth UI Alignment & Google OAuth UX Suite", () => {
     const imageFiles = fs.readdirSync(publicImagesDir);
     const homeSrc = fs.readFileSync(path.join(clientDir, "app", "page.js"), "utf8");
 
-    assert.strictEqual(imageFiles.includes("hero.jpeg"), true);
-    assert.strictEqual(homeSrc.includes('const HERO_SRC = "/images/hero.jpeg"'), true);
+    assert.strictEqual(imageFiles.includes("hero.png"), true);
+    assert.strictEqual(homeSrc.includes('const HERO_SRC = "/images/hero.png"'), true);
 
-    // Verify login and register pages have NO reference to hero.jpeg
+    // Verify login and register pages have NO reference to hero assets
     const loginSrc = fs.readFileSync(path.join(clientDir, "app", "login", "page.js"), "utf8");
     const registerSrc = fs.readFileSync(path.join(clientDir, "app", "register", "page.js"), "utf8");
     const heroPanelSrc = fs.readFileSync(
@@ -25,6 +25,9 @@ describe("Auth UI Alignment & Google OAuth UX Suite", () => {
       "utf8"
     );
 
+    assert.strictEqual(loginSrc.includes("hero.png"), false);
+    assert.strictEqual(registerSrc.includes("hero.png"), false);
+    assert.strictEqual(heroPanelSrc.includes("hero.png"), false);
     assert.strictEqual(loginSrc.includes("hero.jpeg"), false);
     assert.strictEqual(registerSrc.includes("hero.jpeg"), false);
     assert.strictEqual(heroPanelSrc.includes("hero.jpeg"), false);

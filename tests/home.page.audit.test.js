@@ -55,6 +55,18 @@ test("homepage satellite availability is read from the environmental data catalo
   assert.doesNotMatch(page, /statusPlanned/);
 });
 
+test("homepage POWER coverage is sourced and disclosed as historical data", () => {
+  const page = read("../app/page.js");
+  assert.match(page, /datasetKey === "nasa:power:daily:point"/);
+  assert.match(page, /Number\.isFinite\(powerApiSource\?\.validObservationCount\)/);
+  assert.match(page, /firstObservationDate/);
+  assert.match(page, /lastObservationDate/);
+  assert.match(page, /Historical climate reference/);
+  assert.match(page, /Historical daily observations/);
+  assert.match(page, /Historical data unavailable/);
+  assert.doesNotMatch(page, /109\s*,?\s*572|Live daily observations|Live & Available|25-Year NASA baseline/);
+});
+
 test("hero uses conflict-free theme-specific button variants and keeps its overlay above the image", () => {
   const page = read("../app/page.js");
   const button = read("../components/ui/Button.js");

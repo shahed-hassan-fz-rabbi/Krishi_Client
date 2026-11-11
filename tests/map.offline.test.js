@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const geojsonPath = path.resolve(__dirname, "../../Krishi_server/data/gis/bbs_admin2_cumilla_chattogram.geojson");
+const geojsonPath = path.resolve(__dirname, "../../server/data/gis/bbs_admin2_cumilla_chattogram.geojson");
 
 test("Phase 8.2 Client Map: BBS 2020 GeoJSON Boundaries Parse Offline", async () => {
   assert.ok(fs.existsSync(geojsonPath), "GeoJSON boundary file must exist");

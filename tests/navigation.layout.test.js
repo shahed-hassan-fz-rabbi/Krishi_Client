@@ -35,6 +35,20 @@ test("sidebar and mobile navigation mark nested routes active", () => {
   assert.match(bottomNav, /bg-forest text-white/);
 });
 
+test("Climate Data groups the three public intelligence pages in an accessible sidebar disclosure", () => {
+  const sidebar = read("../components/layout/AppSidebar.js");
+  const translations = read("../lib/i18n/translations.js");
+  assert.match(translations, /climate: "Climate Data"/);
+  assert.match(translations, /climate: "জলবায়ু তথ্য"/);
+  assert.match(sidebar, /aria-expanded=\{climateIsExpanded\}/);
+  assert.match(sidebar, /aria-controls=\{climateSubnavId\}/);
+  for (const path of ["/rainfall", "/soil-moisture", "/vegetation"]) {
+    assert.ok(sidebar.includes(`href: "${path}"`));
+  }
+  assert.match(sidebar, /setClimateExpanded\(!climateIsExpanded\)/);
+  assert.match(sidebar, /aria-current=\{childActive \? "page" : undefined\}/);
+});
+
 test("mobile drawer locks background scroll and supports keyboard dismissal and focus return", () => {
   const source = read("../components/layout/AppSidebar.js");
   assert.match(source, /aria-modal="true"/);

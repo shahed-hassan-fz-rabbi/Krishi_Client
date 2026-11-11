@@ -77,15 +77,15 @@ function AssistantContent() {
   const { theme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const { selectedDistrict, setSelectedDistrict, districts } = useLocation();
+  const userKey = user?._id || user?.id || null;
 
   const isBn = locale === "bn";
   const isDark = theme === "dark";
 
   const [selectedCrop, setSelectedCrop] = useState("all");
-  const [farmsList, setFarmsList] = useState([]);
-  const [farmsLoadError, setFarmsLoadError] = useState(false);
-  const [isFarmsLoading, setIsFarmsLoading] = useState(false);
+  const [farmLoadResult, setFarmLoadResult] = useState(null);
   const [farmReloadCount, setFarmReloadCount] = useState(0);
+  const farmRequestKey = `${userKey || "guest"}:${farmReloadCount}`;
   const loadedFarmUserRef = useRef(user?._id || user?.id || null);
   const [farmSelection, setFarmSelection] = useState({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
   const selectedFarmId = farmSelection.queryFarmId === urlFarmId
@@ -129,17 +129,11 @@ function AssistantContent() {
 
   useEffect(() => {
     let isMounted = true;
-    const userKey = user?._id || user?.id || null;
     if (loadedFarmUserRef.current !== userKey) {
       loadedFarmUserRef.current = userKey;
       setFarmSelection({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
     }
-    setFarmsList([]);
-    setFarmsLoadError(false);
-    setIsFarmsLoading(isAuthenticated);
     if (!isAuthenticated) {
-      setFarmSelection({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
-      setIsFarmsLoading(false);
       return () => { isMounted = false; };
     }
     async function loadFarms() {
@@ -147,7 +141,7 @@ function AssistantContent() {
         const res = await fetchFarms();
         if (!isMounted) return;
         if (res.success && Array.isArray(res.data?.farms)) {
-          setFarmsList(res.data.farms);
+          setFarmLoadResult({ requestKey: farmRequestKey, farms: res.data.farms, error: false });
           const queryFarm = res.data.farms.find((farm) => farm._id === urlFarmId);
           if (urlFarmId && !queryFarm) {
             setFarmSelection({ queryFarmId: urlFarmId, farmId: "" });
@@ -160,20 +154,22 @@ function AssistantContent() {
             setSelectedCrop(queryFarm.crop.cropCode);
           }
         } else {
-          setFarmsLoadError(true);
+          setFarmLoadResult({ requestKey: farmRequestKey, farms: [], error: true });
         }
       } catch (err) {
         if (!isMounted) return;
-        setFarmsList([]);
-        setFarmsLoadError(true);
+        setFarmLoadResult({ requestKey: farmRequestKey, farms: [], error: true });
         console.error("Failed to load user farms:", err);
-      } finally {
-        if (isMounted) setIsFarmsLoading(false);
       }
     }
     loadFarms();
     return () => { isMounted = false; };
-  }, [isAuthenticated, user?._id, user?.id, urlFarmId, farmReloadCount, router, setSelectedDistrict]);
+  }, [isAuthenticated, userKey, urlFarmId, farmRequestKey, router, setSelectedDistrict]);
+
+  const farmResultIsCurrent = farmLoadResult?.requestKey === farmRequestKey;
+  const farmsList = isAuthenticated && farmResultIsCurrent ? farmLoadResult.farms : [];
+  const farmsLoadError = isAuthenticated && farmResultIsCurrent && farmLoadResult.error;
+  const isFarmsLoading = isAuthenticated && !farmResultIsCurrent;
 
   const activeFarm = farmsList.find((f) => f._id === selectedFarmId) || null;
 
@@ -198,7 +194,7 @@ function AssistantContent() {
     setTimeout(() => {
       textareaRef.current?.focus();
     }, 50);
-  }, []);
+  }, [setInputValue]);
 
   const {
     isSupported: isVoiceSupported,
@@ -359,7 +355,8 @@ function AssistantContent() {
   }, [urlConversationId]);
 
   // Handle New Conversation
-  const handleNewConversation = useCallback((preserveFarmId = selectedFarmId) => {
+  const handleNewConversation = useCallback((requestedFarmId) => {
+    const preserveFarmId = requestedFarmId || "";
     stopTts();
     if (isListening) stopListening();
     loadedConvIdRef.current = null;
@@ -375,14 +372,14 @@ function AssistantContent() {
     setTimeout(() => {
       textareaRef.current?.focus();
     }, 100);
-  }, [stopTts, isListening, stopListening, router, selectedFarmId]);
+  }, [stopTts, isListening, stopListening, router, setConversationId, setConversationTitle, setMessages, setError, setFailedPrompt, setIsGuestSession]);
 
   // Listen for global custom events from Sidebar
   useEffect(() => {
-    const handleGlobalNewChat = () => handleNewConversation();
+    const handleGlobalNewChat = () => handleNewConversation(selectedFarmId);
     const handleGlobalChatDeleted = (e) => {
       if (e.detail?.id === conversationId) {
-        handleNewConversation();
+        handleNewConversation(selectedFarmId);
       }
     };
 
@@ -393,7 +390,7 @@ function AssistantContent() {
       window.removeEventListener("krishi:new-chat", handleGlobalNewChat);
       window.removeEventListener("krishi:chat-deleted", handleGlobalChatDeleted);
     };
-  }, [handleNewConversation, conversationId]);
+  }, [handleNewConversation, conversationId, selectedFarmId]);
 
   // Send message handler
   const handleSendMessage = useCallback(
@@ -499,6 +496,14 @@ function AssistantContent() {
       isListening,
       stopListening,
       stopTts,
+      setMessages,
+      setInputValue,
+      setIsLoading,
+      setError,
+      setFailedPrompt,
+      setConversationId,
+      setConversationTitle,
+      setIsGuestSession,
     ]
   );
 
@@ -762,7 +767,7 @@ function AssistantContent() {
           {/* New Chat Button */}
           <button
             type="button"
-            onClick={handleNewConversation}
+            onClick={() => handleNewConversation(selectedFarmId)}
             className="inline-flex items-center gap-1 rounded-xl bg-forest hover:bg-forest/90 active:scale-[0.98] text-white px-2.5 sm:px-3 h-8 text-xs font-semibold shadow-xs hover:shadow-km-sm transition-all duration-150 cursor-pointer ring-1 ring-white/10 shrink-0"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -1522,10 +1527,10 @@ function AssistantContent() {
               </ul>
             </div>
 
-            {/* Bottom Crop Thumbnail Image from /images/hero.jpeg */}
+            {/* Bottom Crop Thumbnail Image from /images/hero.png */}
             <div className="relative w-full h-28 border-t border-line/60 overflow-hidden">
               <Image
-                src="/images/hero.jpeg"
+                src="/images/hero.png"
                 alt="Agricultural Paddy Field"
                 fill
                 className="object-cover object-center"

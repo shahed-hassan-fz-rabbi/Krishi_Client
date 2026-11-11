@@ -454,18 +454,24 @@ export default function EnvironmentalIntelligenceCards({
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-forest-700 dark:text-emerald-400">
-              {isBn ? "নাসা উপগ্রহ ও জলবায়ু পর্যবেক্ষণ" : "NASA Satellite & Climate Observations"}
+              {isBn ? "জলবায়ু তথ্য" : "Climate Data"}
             </p>
           </div>
           <h2 id="environmental-intelligence-title" className="mt-1 text-xl font-bold tracking-tight text-stone-900 sm:text-2xl dark:text-stone-50">
-            {isBn ? "পরিবেশ ও উপগ্রহ বুদ্ধিমত্তা" : "Environmental & Satellite Intelligence"}
+            {isBn ? "আপনার এলাকার জলবায়ু তথ্য" : "Climate data for your area"}
           </h2>
         </div>
+        <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="max-w-xl text-xs leading-relaxed text-stone-600 dark:text-stone-300">
           {isBn
-            ? `${districtDisplayName} জেলার জন্য সংরক্ষিত নাসার ৪টি প্রামাণ্য বৈজ্ঞানিক উপাত্ত। প্রতিটি মান অপরিবর্তিত ও নির্ভুলভাবে প্রদর্শিত।`
-            : `Officially validated NASA observations for ${districtDisplayName}. Values are presented without fabrication or alteration.`}
+            ? `${districtDisplayName} জেলার NASA পর্যবেক্ষণ; তারিখ, গুণমান ও সীমাবদ্ধতা প্রতিটি কার্ডে দেখানো হয়েছে।`
+            : `NASA observations for ${districtDisplayName}. Dates, quality, and limitations are shown on each card.`}
         </p>
+        <Link href="/climate" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-forest-700 transition-colors hover:bg-forest/5 hover:text-forest-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-climate dark:text-emerald-400 dark:hover:bg-white/5">
+          <span>{isBn ? "সব জলবায়ু তথ্য দেখুন" : "Explore Climate Data"}</span>
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+        </div>
       </div>
 
       {/* Grid of 4 Symmetrical Enterprise SaaS Cards (2 Cards per Row) */}

@@ -4,8 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const project = process.cwd();
-const config = fs.readFileSync(path.join(project, "../Krishi_server/src/config/division.config.js"), "utf8");
-const service = fs.readFileSync(path.join(project, "../Krishi_server/src/services/regional-intelligence.service.js"), "utf8");
+const config = fs.readFileSync(path.join(project, "../server/src/config/division.config.js"), "utf8");
+const service = fs.readFileSync(path.join(project, "../server/src/services/regional-intelligence.service.js"), "utf8");
 const panel = fs.readFileSync(path.join(project, "components/dashboard/DivisionIntelligencePanel.js"), "utf8");
 const dashboard = fs.readFileSync(path.join(project, "app/(app)/dashboard/page.js"), "utf8");
 const pointMap = fs.readFileSync(path.join(project, "components/dashboard/DivisionPointMap.js"), "utf8");
