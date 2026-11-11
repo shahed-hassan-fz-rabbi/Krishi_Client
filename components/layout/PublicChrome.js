@@ -58,7 +58,12 @@ export function PublicHeader() {
     if (href === "/climate") return ["/climate", "/rainfall", "/soil-moisture", "/vegetation", "/map", "/crop-calendar", "/data-sources"].includes(pathname);
     return pathname === href || pathname?.startsWith(`${href}/`);
   };
-  const navClass = (href) => `rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${isActive(href) ? "bg-[#14532d] text-white hover:bg-[#14532d]" : "text-content hover:bg-surface-2"}`;
+  const navClass = (href) =>
+    `rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${
+      isActive(href)
+        ? "bg-emerald/10 text-emerald font-semibold dark:bg-emerald/15 dark:text-emerald-400"
+        : "text-muted hover:text-content hover:bg-surface-2"
+    }`;
   const handleNavClick = (event, href) => {
     setOpen(false);
     if (pathname === "/" && href.startsWith("/#") && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
@@ -142,7 +147,7 @@ export function PublicHeader() {
   );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-sm shadow-km-sm">
+    <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-md shadow-2xs">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <BrandMark tone="light" />
 

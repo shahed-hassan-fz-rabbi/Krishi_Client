@@ -33,16 +33,14 @@ import { useLang } from "@/lib/i18n/LanguageContext.js";
 import {
   fetchSoilMoistureHistory,
   fetchSoilMoistureLatest,
-  fetchSoilMoistureStatus,
 } from "@/services/api.js";
 
-export default function SoilMoistureSection({ embedded = false }) {
+export default function SoilMoistureSection({ embedded = false, refreshToken = 0, onOverview }) {
   const { t, locale } = useLang();
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } = useLocation();
 
   const [latestData, setLatestData] = useState(null);
   const [historyData, setHistoryData] = useState(null);
-  const [systemStatus, setSystemStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const latestDistrictRef = useRef(selectedDistrict);
@@ -53,23 +51,38 @@ export default function SoilMoistureSection({ embedded = false }) {
     latestDistrictRef.current = districtCode;
     setIsLoading(true);
     setError(null);
+    setLatestData(null);
+    setHistoryData(null);
+    onOverview?.("smap", { districtCode, status: "loading", recommended: false, value: null, date: null });
+    const currentYear = new Date().getUTCFullYear();
+    const toDate = new Date().toISOString().slice(0, 10);
+    const fromDate = `${currentYear - 5}-01-01`;
     try {
-      const [statusRes, latestRes, historyRes] = await Promise.all([
-        fetchSoilMoistureStatus(),
+      const [latestRes, historyRes] = await Promise.all([
         fetchSoilMoistureLatest(districtCode),
-        fetchSoilMoistureHistory(districtCode, "2024-01-01", "2024-01-03"),
+        fetchSoilMoistureHistory(districtCode, fromDate, toDate),
       ]);
 
       if (latestDistrictRef.current !== districtCode) return;
 
-      if (statusRes.success) {
-        setSystemStatus(statusRes.data);
-      }
-
       if (latestRes.success && latestRes.data) {
         setLatestData(latestRes.data);
+        const observation = latestRes.data;
+        const recommended = Number.isFinite(observation.soilMoisture)
+          && observation.soilMoisture >= 0 && observation.soilMoisture <= 1
+          && observation.isRecommendedQuality === true
+          && [0, 8].includes(observation.retrievalQualityFlag);
+        onOverview?.("smap", {
+          districtCode,
+          status: recommended ? "recommended" : "quality-excluded",
+          recommended,
+          value: recommended ? observation.soilMoisture : null,
+          flag: observation.retrievalQualityFlag ?? null,
+          date: observation.dateLabel || null,
+        });
       } else {
         setLatestData(null);
+        onOverview?.("smap", { districtCode, status: "unavailable", recommended: false, value: null, date: null });
       }
 
       if (historyRes.success && historyRes.data) {
@@ -79,6 +92,7 @@ export default function SoilMoistureSection({ embedded = false }) {
       }
     } catch (err) {
       if (latestDistrictRef.current === districtCode) {
+        onOverview?.("smap", { districtCode, status: "unavailable", recommended: false, value: null, date: null });
         setError(err.message || "Failed to load soil moisture intelligence");
       }
     } finally {
@@ -86,14 +100,21 @@ export default function SoilMoistureSection({ embedded = false }) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [onOverview]);
 
   useEffect(() => {
     if (selectedDistrict) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       loadSoilMoistureData(selectedDistrict);
     }
-  }, [selectedDistrict, loadSoilMoistureData]);
+  }, [selectedDistrict, refreshToken, loadSoilMoistureData]);
+
+  const recommendedLatest = latestData
+    && Number.isFinite(latestData.soilMoisture)
+    && latestData.soilMoisture >= 0 && latestData.soilMoisture <= 1
+    && latestData.isRecommendedQuality === true
+    && [0, 8].includes(latestData.retrievalQualityFlag);
+  const observedHistoryDates = (historyData?.series || []).map((row) => row.date).filter(Boolean).sort();
 
   const districtName = isBn ? currentDistrictObj?.nameBn || selectedDistrict : currentDistrictObj?.nameEn || selectedDistrict;
 
@@ -187,8 +208,8 @@ export default function SoilMoistureSection({ embedded = false }) {
             <CalendarRange size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 text-amber-600" />
             <p>
               {isBn
-                ? "বিজ্ঞপ্তি: প্রদর্শিত উপাত্তটি সাম্প্রতিক স্যাটেলাইট যাচাইকরণ স্যাম্পল (২০২৪-০১-০১ থেকে ২০২৪-০১-০৩)। এটি এখনও দীর্ঘমেয়াদী জলবায়ু প্রবণতা নয়। পূর্ণাঙ্গ ইনজেশনের পর বহু-বার্ষিক সময়ানুক্রমিক বিশ্লেষণ সংযুক্ত হবে।"
-                : "Scientific Note: Currently displaying initial verified sample dates (2024-01-01 to 2024-01-03). This is a localized verification window and not yet a multi-decade climatological baseline."}
+                ? "এটি মাটির উপরিভাগের আঞ্চলিক স্যাটেলাইট পর্যবেক্ষণ—আপনার জমির সরাসরি মাপ বা শিকড়ের গভীরের আর্দ্রতা নয়। মান-যাচাইয়ে না টিকলে মানটি দেখানো হয় না।"
+                : "This is a regional satellite observation of surface soil, not a direct measurement of your field or root-zone moisture. Values that fail the quality gate are withheld."}
             </p>
           </div>
         </div>
@@ -198,31 +219,27 @@ export default function SoilMoistureSection({ embedded = false }) {
         <LoadingState message={isBn ? "মাটির আর্দ্রতা উপাত্ত লোড হচ্ছে..." : "Loading soil moisture intelligence..."} />
       ) : error ? (
         <ErrorState message={error} onRetry={() => loadSoilMoistureData(selectedDistrict)} />
-      ) : !latestData && (!systemStatus || systemStatus.totalObservationsStored === 0) ? (
+      ) : !latestData ? (
         <Card>
           <CardBody className="py-12 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-surface-2 text-ink-muted">
               <Droplets size={24} strokeWidth={1.8} />
             </div>
             <h3 className="mt-4 text-base font-semibold text-ink">
-              {isBn ? "এসএমএপি লোকাল ভ্যালিডেশন সম্পন্ন (ডাটাবেস রাইট পেন্ডিং)" : "NASA SMAP Validation Complete (Awaiting DB Ingestion)"}
+              {isBn ? "সুপারিশকৃত মান পাওয়া যায়নি" : "No recommended observation available"}
             </h3>
             <p className="mx-auto mt-2 max-w-lg text-sm text-ink-muted">
               {isBn
-                ? "নাসা হারমনি থেকে কুমিল্লা ও চট্টগ্রামের জন্য আলাদা ভৌগোলিক সাবসেট ডাউনলোড ও লোকাল পাইথন HDF5 ভ্যালিডেশন সফল হয়েছে। আপনার স্পষ্ট অনুমোদনের পর এই উপাত্ত ডাটাবেসে যুক্ত হবে।"
-                : "Dedicated NASA Harmony subsets for both Cumilla and Chattogram have been downloaded and verified with Python HDF5 parser. Records are staged locally pending database ingestion approval."}
+                ? "এই জেলার জন্য মান-যাচাই করা মাটির আর্দ্রতার পর্যবেক্ষণ এখন দেখানোর মতো নেই। এটি শূন্য আর্দ্রতা বোঝায় না। পরে আবার চেষ্টা করুন বা অন্য জেলা বেছে নিন।"
+                : "There is no quality-approved soil-moisture observation to show for this district right now. This does not mean zero moisture. Try again later or choose another district."}
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs">
-              <Badge variant="neutral">Cumilla: 23.478°N, 91.167°E (2.56 km geodesic)</Badge>
-              <Badge variant="neutral">Chattogram: 22.330°N, 91.821°E (1.45 km geodesic)</Badge>
-              <Badge variant="neutral">Status: Zero DB Writes (Safety Preserved)</Badge>
-            </div>
+            <p className="mt-4 text-xs text-ink-muted">{isBn ? "NASA SMAP SPL3SMP_E V006 · উপরিভাগের আর্দ্রতা" : "NASA SMAP SPL3SMP_E V006 · surface soil moisture"}</p>
           </CardBody>
         </Card>
       ) : (
         <>
           {/* Latest Metric Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Card>
               <CardBody className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-ink-muted">
@@ -231,12 +248,12 @@ export default function SoilMoistureSection({ embedded = false }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    {latestData?.soilMoisture !== null ? latestData?.soilMoisture : "N/A"}
+                    {recommendedLatest ? latestData.soilMoisture : "—"}
                   </span>
                   <span className="text-xs text-ink-muted">m³/m³</span>
                 </div>
                 <div className="text-xs text-ink-muted">
-                  {isBn ? "তারিখ:" : "Observed:"} {latestData?.dateLabel || "N/A"} ({latestData?.latestOrbit || "AM"})
+                  {recommendedLatest ? `${isBn ? "পর্যবেক্ষণ:" : "Observed:"} ${latestData.dateLabel || "—"} (${latestData.latestOrbit || "—"})` : (isBn ? `মান-যাচাইয়ে উত্তীর্ণ নয় · ফ্ল্যাগ ${latestData?.retrievalQualityFlag ?? "—"}` : `Quality gate not met · flag ${latestData?.retrievalQualityFlag ?? "—"}`)}
                 </div>
               </CardBody>
             </Card>
@@ -249,7 +266,7 @@ export default function SoilMoistureSection({ embedded = false }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    {latestData?.orbits?.am?.soilMoisture !== null && latestData?.orbits?.am?.soilMoisture !== undefined
+                    {latestData?.orbits?.am?.isRecommended && [0, 8].includes(latestData?.orbits?.am?.qualityFlag) && Number.isFinite(latestData?.orbits?.am?.soilMoisture)
                       ? latestData.orbits.am.soilMoisture
                       : "—"}
                   </span>
@@ -260,7 +277,7 @@ export default function SoilMoistureSection({ embedded = false }) {
                     <span className="inline-flex items-center gap-1 text-emerald font-medium">
                       <ShieldCheck size={12} /> {isBn ? "সুপারিশকৃত মান (Flag 8)" : "Recommended (Flag 8)"}
                     </span>
-                  ) : latestData?.orbits?.am?.soilMoisture !== null ? (
+                  ) : latestData?.orbits?.am?.soilMoisture != null ? (
                     <span className="inline-flex items-center gap-1 text-amber-600 font-medium">
                       <ShieldAlert size={12} /> {isBn ? "সুপারিশহীন (not_recommended, Flag 9)" : "Not recommended (Flag 9)"}
                     </span>
@@ -271,41 +288,6 @@ export default function SoilMoistureSection({ embedded = false }) {
               </CardBody>
             </Card>
 
-            <Card>
-              <CardBody className="space-y-1">
-                <div className="flex items-center justify-between text-xs text-ink-muted">
-                  <span>{isBn ? "মাটির রন্ধ্রতা সীমা (Porosity)" : "Soil Porosity Saturation"}</span>
-                  <Droplets size={16} strokeWidth={1.8} className="text-blue-500" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-ink">
-                    {selectedDistrict === "cumilla" ? "0.5351" : "0.5686"}
-                  </span>
-                  <span className="text-xs text-ink-muted">m³/m³</span>
-                </div>
-                <div className="text-xs text-ink-muted">
-                  {isBn ? "বাল্ক ডেনসিটি থেকে নির্ণীত" : "Computed from pixel bulk density"}
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card>
-              <CardBody className="space-y-1">
-                <div className="flex items-center justify-between text-xs text-ink-muted">
-                  <span>{isBn ? "পিক্সেল সান্নিধ্য (Geodesic)" : "Pixel Geodesic Distance"}</span>
-                  <MapPin size={16} strokeWidth={1.8} className="text-emerald" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-ink">
-                    {selectedDistrict === "cumilla" ? "2.56" : "1.45"}
-                  </span>
-                  <span className="text-xs text-ink-muted">km</span>
-                </div>
-                <div className="text-xs text-ink-muted">
-                  {isBn ? "WGS-84 জিওডেসিক দূরত্ব" : "WGS-84 Geodesic to reference"}
-                </div>
-              </CardBody>
-            </Card>
           </div>
 
           {/* Observation Details Table with Detailed QA Bit Explanations */}
@@ -386,6 +368,7 @@ export default function SoilMoistureSection({ embedded = false }) {
               </CardBody>
             </Card>
           )}
+          {observedHistoryDates.length > 0 && <p className="text-xs text-ink-muted">{isBn ? "উপলভ্য পর্যবেক্ষণ:" : "Available observations:"} {observedHistoryDates[0]} – {observedHistoryDates[observedHistoryDates.length - 1]}</p>}
         </>
       )}
     </section>

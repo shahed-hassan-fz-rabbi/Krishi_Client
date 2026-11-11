@@ -19,7 +19,7 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
   const [logoOk, setLogoOk] = useState(true);
 
   return (
-    <Link href={href} className="group inline-flex items-center gap-2.5">
+    <Link href={href} className="group inline-flex items-center gap-2.5 shrink-0">
       {logoOk ? (
         <Image
           src={LOGO_SRC}
@@ -37,15 +37,15 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
       )}
       {!compact ? (
         <span className="min-w-0 leading-tight">
-          <span className="block text-base font-bold tracking-tight text-inherit transition-colors group-hover:text-emerald">
+          <span className="block text-base font-bold tracking-tight text-inherit transition-colors group-hover:text-emerald whitespace-nowrap">
             {t("brand")}
           </span>
           {showSubtitle ? (
             <span
               className={
                 tone === "dark"
-                  ? "mt-0.5 block text-[11px] font-normal leading-4 text-emerald-100/75"
-                  : "mt-0.5 block text-[11px] font-normal leading-4 text-muted"
+                  ? "mt-0.5 block text-[11px] font-normal leading-4 text-emerald-100/75 whitespace-nowrap"
+                  : "mt-0.5 block text-[11px] font-normal leading-4 text-muted whitespace-nowrap"
               }
             >
               {t("brandSubtitle")}

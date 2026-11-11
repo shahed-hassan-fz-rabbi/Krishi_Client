@@ -34,17 +34,15 @@ import { useLang } from "@/lib/i18n/LanguageContext.js";
 import {
   fetchVegetationHistory,
   fetchVegetationLatest,
-  fetchVegetationStatus,
 } from "@/services/api.js";
 
-export default function VegetationSection({ embedded = false }) {
+export default function VegetationSection({ embedded = false, refreshToken = 0, onOverview }) {
   const { t, locale } = useLang();
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } =
     useLocation();
 
   const [latestData, setLatestData] = useState(null);
   const [historyData, setHistoryData] = useState(null);
-  const [systemStatus, setSystemStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const latestDistrictRef = useRef(selectedDistrict);
@@ -55,27 +53,49 @@ export default function VegetationSection({ embedded = false }) {
     latestDistrictRef.current = districtCode;
     setIsLoading(true);
     setError(null);
+    setLatestData(null);
+    setHistoryData(null);
+    onOverview?.("modis", { districtCode, status: "loading", reliable: false, ndvi: null, evi: null, date: null });
+    const currentYear = new Date().getUTCFullYear();
+    const toDate = new Date().toISOString().slice(0, 10);
+    const fromDate = `${currentYear - 5}-01-01`;
     try {
-      const [statusRes, latestRes, historyRes] = await Promise.all([
-        fetchVegetationStatus(),
+      const [latestRes, historyRes] = await Promise.all([
         fetchVegetationLatest(districtCode),
-        fetchVegetationHistory(districtCode, "2023-12-01", "2024-12-31"),
+        fetchVegetationHistory(districtCode, fromDate, toDate),
       ]);
 
       if (latestDistrictRef.current !== districtCode) return;
 
-      if (statusRes.success) setSystemStatus(statusRes.data);
-      if (latestRes.success) setLatestData(latestRes.data);
+      if (latestRes.success && latestRes.data) {
+        setLatestData(latestRes.data);
+        const observation = latestRes.data;
+        const reliable = observation.isReliableQuality === true
+          && observation.pixelReliability === 0
+          && Number.isFinite(observation.ndvi) && observation.ndvi >= -0.2 && observation.ndvi <= 1;
+        onOverview?.("modis", {
+          districtCode,
+          status: reliable ? "good-quality" : "quality-excluded",
+          reliable,
+          ndvi: reliable ? observation.ndvi : null,
+          evi: reliable && Number.isFinite(observation.evi) && observation.evi >= -0.2 && observation.evi <= 1 ? observation.evi : null,
+          date: observation.dateLabel || null,
+        });
+      } else {
+        setLatestData(null);
+        onOverview?.("modis", { districtCode, status: "unavailable", reliable: false, ndvi: null, evi: null, date: null });
+      }
       if (historyRes.success) setHistoryData(historyRes.data);
     } catch (err) {
       if (latestDistrictRef.current !== districtCode) return;
+      onOverview?.("modis", { districtCode, status: "unavailable", reliable: false, ndvi: null, evi: null, date: null });
       setError(err.message || (isBn ? "উপাত্ত লোড করতে ব্যর্থ" : "Failed to load vegetation data"));
     } finally {
       if (latestDistrictRef.current === districtCode) {
         setIsLoading(false);
       }
     }
-  }, [isBn]);
+  }, [isBn, onOverview]);
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -83,7 +103,11 @@ export default function VegetationSection({ embedded = false }) {
       loadVegetationData(selectedDistrict);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDistrict]);
+  }, [selectedDistrict, refreshToken, loadVegetationData]);
+
+  const reliableLatest = latestData?.isReliableQuality === true
+    && latestData?.pixelReliability === 0
+    && Number.isFinite(latestData?.ndvi) && latestData.ndvi >= -0.2 && latestData.ndvi <= 1;
 
   const districtName = isBn ? currentDistrictObj?.nameBn : currentDistrictObj?.nameEn;
 
@@ -177,8 +201,8 @@ export default function VegetationSection({ embedded = false }) {
             <Layers size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
             <p>
               {isBn
-                ? "কোয়ালিটি ফিল্টারিং: পিক্সেল রিলায়েবিলিটি র্যাঙ্ক ০ (Good Data) নিশ্চিত করে যে পিক্সেলটি মেঘমুক্ত ও উচ্চ মানের। র্যাঙ্ক ১ (মার্জিনাল) বা ৩ (মেঘ) কৃষিজ সিদ্ধান্তে ব্যবহারে সতর্কতা অবলম্বন করা হয়।"
-                : "QA Reliability Filter: Pixel Reliability Rank 0 (Good Data) guarantees cloud-free, high-fidelity reflectance. Rank 1 (Marginal) and Rank 3 (Cloudy) are filtered out of recommended averages."}
+                ? "মান যাচাই: এই পণ্যে র‍্যাঙ্ক ০-কে ভালো মান হিসেবে ধরা হয়েছে। এখানে দেখানো সুপারিশকৃত মানে অন্য র‍্যাঙ্ক ব্যবহার করা হয় না। এই যাচাই ফসলের স্বাস্থ্য নির্ণয় করে না।"
+                : "Quality check: rank 0 is classified as good quality for this product. Other ranks are not used for the recommended value shown here; this check does not diagnose crop health."}
             </p>
           </div>
         </div>
@@ -188,25 +212,21 @@ export default function VegetationSection({ embedded = false }) {
         <LoadingState message={isBn ? "উদ্ভিজ্জ উপাত্ত লোড হচ্ছে..." : "Loading vegetation intelligence..."} />
       ) : error ? (
         <ErrorState message={error} onRetry={() => loadVegetationData(selectedDistrict)} />
-      ) : !latestData && (!systemStatus || systemStatus.totalObservationsStored === 0) ? (
+      ) : !latestData ? (
         <Card>
           <CardBody className="py-12 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-surface-2 text-ink-muted">
               <Leaf size={24} strokeWidth={1.8} className="text-emerald" />
             </div>
             <h3 className="mt-4 text-base font-semibold text-ink">
-              {isBn ? "এমওডিআইএস অ্যাপিয়ার্স প্রস্তুতি সম্পন্ন (ডাটাবেস রাইট পেন্ডিং)" : "NASA AppEEARS Prepared (Awaiting Ingestion Approval)"}
+              {isBn ? "নির্ভরযোগ্য পর্যবেক্ষণ পাওয়া যায়নি" : "No good-quality observation available"}
             </h3>
             <p className="mx-auto mt-2 max-w-lg text-sm text-ink-muted">
               {isBn
-                ? "নাসা অ্যাপিয়ার্স ক্যাটালগ (MOD13Q1.061) এবং ২৫০ মিটার এনডিভিআই/ইভিআই পাইপলাইন লোকালভাবে কনফিগার করা হয়েছে। আপনার স্পষ্ট অনুমোদনের পর পয়েন্ট স্যাম্পলিং টাস্ক ডেটাবেসে সংযুক্ত হবে।"
-                : "NASA AppEEARS product catalog (MOD13Q1.061) and 250m NDVI/EVI pipeline are locally configured. Records will be ingested following explicit sign-off."}
+                ? "এই জেলার জন্য মান-যাচাই করা উদ্ভিজ্জ সূচক এখন দেখানোর মতো নেই। এটি ফসল নেই বা ফসল খারাপ—এমন প্রমাণ নয়। পরে আবার চেষ্টা করুন বা অন্য জেলা বেছে নিন।"
+                : "There is no quality-approved vegetation index to show for this district right now. This does not mean there are no crops or that crop condition is poor. Try again later or choose another district."}
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs">
-              <Badge variant="neutral">Product: MOD13Q1.061 (250m, 16-day)</Badge>
-              <Badge variant="neutral">Layers: NDVI, EVI, Pixel Reliability, DOY</Badge>
-              <Badge variant="neutral">Status: Zero DB Writes (Safety Preserved)</Badge>
-            </div>
+            <p className="mt-4 text-xs text-ink-muted">NASA MODIS MOD13Q1.061 · 16-day vegetation composite</p>
           </CardBody>
         </Card>
       ) : (
@@ -221,24 +241,12 @@ export default function VegetationSection({ embedded = false }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    {latestData?.ndvi !== null ? latestData?.ndvi : "N/A"}
+                    {reliableLatest ? latestData.ndvi : "—"}
                   </span>
                   <span className="text-xs text-ink-muted">Index</span>
                 </div>
                 <div className="text-xs text-ink-muted">
-                  {latestData?.ndvi >= 0.5 ? (
-                    <span className="text-emerald font-medium">
-                      {isBn ? "ঘন ক্যানোপি কভার (> 0.5)" : "Dense Green Canopy (> 0.5)"}
-                    </span>
-                  ) : latestData?.ndvi >= 0.3 ? (
-                    <span className="text-amber-600 font-medium">
-                      {isBn ? "মধ্যম উদ্ভিজ্জ বিকাশ (0.3–0.5)" : "Moderate Vegetative Cover"}
-                    </span>
-                  ) : (
-                    <span className="text-ink-muted">
-                      {isBn ? "কম ক্যানোপি / খোলা জমি" : "Low Biomass / Fallow"}
-                    </span>
-                  )}
+                  <span className="text-ink-muted">{latestData?.dateLabel || "—"}</span>
                 </div>
               </CardBody>
             </Card>
@@ -251,7 +259,7 @@ export default function VegetationSection({ embedded = false }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    {latestData?.evi !== null ? latestData?.evi : "N/A"}
+                    {reliableLatest && Number.isFinite(latestData?.evi) ? latestData.evi : "—"}
                   </span>
                   <span className="text-xs text-ink-muted">Index</span>
                 </div>
@@ -269,11 +277,11 @@ export default function VegetationSection({ embedded = false }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    Rank {latestData?.pixelReliability !== null ? latestData?.pixelReliability : "—"}
+                    {isBn ? "র‍্যাঙ্ক" : "Rank"} {latestData?.pixelReliability ?? "—"}
                   </span>
                 </div>
                 <div className="text-xs">
-                  {latestData?.isReliableQuality ? (
+                  {reliableLatest ? (
                     <span className="inline-flex items-center gap-1 text-emerald font-medium">
                       <ShieldCheck size={12} /> {isBn ? "নির্ভরযোগ্য (Good Data)" : "Reliable (Good Data)"}
                     </span>
@@ -294,7 +302,7 @@ export default function VegetationSection({ embedded = false }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    Day {latestData?.compositeDayOfYear || "N/A"}
+                    {isBn ? "দিন" : "Day"} {latestData?.compositeDayOfYear ?? "—"}
                   </span>
                 </div>
                 <div className="text-xs text-ink-muted">
