@@ -28,6 +28,7 @@ import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchCropPlanningRecommendations, createFarm, fetchFarms } from "@/services/api.js";
 import { getBangladeshDateKey } from "@/lib/bangladeshDate.js";
+import WeatherIntelligenceSection from "@/components/dashboard/WeatherIntelligenceSection.js";
 import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
 import {
   buildCropPlanningPayload,
@@ -143,6 +144,7 @@ function CropPlanningPageContent() {
   const farmsLoading = Boolean(user && (authLoading || farmsOwnerId !== currentUserId || farmsLoadingState));
   const availableFarms = user && !authLoading && farmsOwnerId === currentUserId ? farms : [];
   const activeSelectedFarmId = availableFarms.some((farm) => farm._id === selectedFarmId) ? selectedFarmId : "";
+  const selectedFarm = availableFarms.find((farm) => farm._id === activeSelectedFarmId) || null;
 
   const loadSavedFarms = useCallback(async (ownerId, isCurrent = () => true) => {
     setFarmsLoadingState(true);
@@ -369,6 +371,15 @@ function CropPlanningPageContent() {
             {lang === "bn" ? "আবার চেষ্টা করুন" : "Retry"}
           </button>
         </div>
+      )}
+
+      {selectedFarm && (
+        <WeatherIntelligenceSection
+          locationCode={selectedFarm.location?.districtCode || selectedFarm.location?.district}
+          locale={lang}
+          farmId={String(selectedFarm._id)}
+          crop={formData.preferredCrop || selectedFarm.crop?.cropCode || null}
+        />
       )}
 
       <div>

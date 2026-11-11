@@ -36,4 +36,15 @@ test("Assistant UI preserves factual metadata and recoverable request state", as
     assert.match(assistant, /const handleSpeakMessage = \(msg\) =>/);
     assert.match(assistant, /onClick=\{\(\) => handleSpeakMessage\(msg\)\}/);
   });
+
+  await t.test("farm switching starts a new thread and restores saved farm context", () => {
+    assert.match(assistant, /handleNewConversation\(nextFarmId\)/);
+    assert.match(assistant, /setFarmSelection\(\{ queryFarmId: urlFarmId, farmId: savedFarmId \}\)/);
+    assert.match(assistant, /farmQuery = selectedFarmId/);
+  });
+
+  await t.test("farm controls cannot change while a response is in flight", () => {
+    assert.match(assistant, /onChange=\{\(e\) => handleFarmSelection\(e\.target\.value\)\}[\s\S]{0,100}disabled=\{isLoading\}/);
+    assert.match(assistant, /onChange=\{\(e\) => setSelectedDistrict\(e\.target\.value\)\}[\s\S]{0,100}disabled=\{isLoading\}/);
+  });
 });

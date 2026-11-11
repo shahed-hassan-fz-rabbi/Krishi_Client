@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   CloudSun,
   CloudRain,
@@ -72,10 +72,13 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("shortRange"); // "shortRange", "extended", "subSeasonal", "seasonal"
+  const activeRequest = useRef(0);
 
   const loadWeatherData = useCallback(() => {
+    const requestId = ++activeRequest.current;
     setLoading(true);
     setError(null);
+    setData(null);
 
     fetchCropWeatherPlanning({
       location: locationCode,
@@ -83,6 +86,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
       crop,
     })
       .then((res) => {
+        if (requestId !== activeRequest.current) return;
         if (res.success && res.data) {
           setData(res.data);
         } else {
@@ -91,6 +95,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
         setLoading(false);
       })
       .catch((err) => {
+        if (requestId !== activeRequest.current) return;
         setError(err.message || "Network error loading weather intelligence");
         setLoading(false);
       });
@@ -106,6 +111,7 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
 
     return () => {
       isCancelled = true;
+      activeRequest.current += 1;
     };
   }, [loadWeatherData]);
 
@@ -227,6 +233,9 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
             <div className="flex items-center gap-2">
               {getWeatherIcon(currentCondition.conditionEn?.includes("Rain") ? "CloudRain" : "Sun", "h-6 w-6")}
               <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  {locale === "bn" ? "আজকের পূর্বাভাস" : "Today's forecast"}
+                </div>
                 <div className="text-xs font-semibold text-content">
                   {locale === "bn" ? currentCondition.conditionBn || currentCondition.conditionEn : currentCondition.conditionEn}
                 </div>
@@ -710,20 +719,22 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
               {provenance?.seasonalModel || "Open-Meteo Seasonal Forecast API"}
             </span>
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60">
-              {provenance?.officialAdvisories || (locale === "bn" ? "সরকারি সতর্কতার তথ্য অনুপলব্ধ" : "Government warning status unavailable")}
+              {provenance?.officialWarningsStatus === "UNAVAILABLE"
+                ? (locale === "bn" ? "সরকারি সতর্কতার তথ্যভান্ডার অনুপলব্ধ" : "Government warning store unavailable")
+                : provenance?.officialAdvisories || (locale === "bn" ? "সরকারি সতর্কতার তথ্য অনুপলব্ধ" : "Government warning status unavailable")}
             </span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60 text-emerald dark:text-emerald-400 font-medium text-[10px]">
               {locale === "bn"
-                ? `পূর্বাভাস: ${provenance?.forecastDataStatus !== "AVAILABLE" ? "অপ্রাপ্য" : provenance?.isForecastCached ? "ক্যাশড" : "সরাসরি আনা"}`
-                : `Forecast: ${provenance?.forecastDataStatus !== "AVAILABLE" ? "Unavailable" : provenance?.isForecastCached ? "Cached" : "Fetched"}`}
+              ? `পূর্বাভাস: ${provenance?.forecastDataStatus !== "AVAILABLE" ? "অপ্রাপ্য" : provenance?.isForecastStale ? "মেয়াদোত্তীর্ণ ক্যাশ" : provenance?.isForecastCached ? "ক্যাশড" : "সরাসরি আনা"}`
+                : `Forecast: ${provenance?.forecastDataStatus !== "AVAILABLE" ? "Unavailable" : provenance?.isForecastStale ? "Stale cache" : provenance?.isForecastCached ? "Cached" : "Fetched"}`}
             </span>
             <span className="rounded-md bg-surface-alt px-2 py-0.5 border border-line/60 text-emerald dark:text-emerald-400 font-medium text-[10px]">
               {locale === "bn"
-                ? `মৌসুমি: ${provenance?.seasonalDataStatus !== "AVAILABLE" ? "অপ্রাপ্য" : provenance?.isSeasonalCached ? "ক্যাশড" : "সরাসরি আনা"}`
-                : `Seasonal: ${provenance?.seasonalDataStatus !== "AVAILABLE" ? "Unavailable" : provenance?.isSeasonalCached ? "Cached" : "Fetched"}`}
+              ? `মৌসুমি: ${provenance?.seasonalDataStatus !== "AVAILABLE" ? "অপ্রাপ্য" : provenance?.isSeasonalStale ? "মেয়াদোত্তীর্ণ ক্যাশ" : provenance?.isSeasonalCached ? "ক্যাশড" : "সরাসরি আনা"}`
+                : `Seasonal: ${provenance?.seasonalDataStatus !== "AVAILABLE" ? "Unavailable" : provenance?.isSeasonalStale ? "Stale cache" : provenance?.isSeasonalCached ? "Cached" : "Fetched"}`}
             </span>
             {provenance?.forecastFetchTimestamp && (
               <span className="text-[10px] text-muted">
@@ -737,6 +748,12 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
                 {new Date(provenance.seasonalFetchTimestamp).toLocaleString(locale === "bn" ? "bn-BD" : "en-US", { timeZone: "Asia/Dhaka", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
+            {provenance?.officialWarningsCheckedAt && (
+              <span className="text-[10px] text-muted">
+                {locale === "bn" ? "সরকারি সতর্কতা যাচাই: " : "Warning check: "}
+                {new Date(provenance.officialWarningsCheckedAt).toLocaleString(locale === "bn" ? "bn-BD" : "en-US", { timeZone: "Asia/Dhaka", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
             {provenance?.forecastReferenceTime && (
               <span className="text-[10px] text-muted">
                 {locale === "bn" ? `মডেল রান: ${provenance.forecastReferenceTime}` : `Model Run: ${provenance.forecastReferenceTime}`}
@@ -748,11 +765,18 @@ export default function WeatherIntelligenceSection({ locationCode = "chattogram"
         <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-content-muted">
           <span>
             {locale === "bn"
-              ? "স্থানিক নির্ভুলতা: আঞ্চলিক গ্রিড (~৩৬ কিমি)। মাইক্রোক্লাইমেট পার্থক্যের কারণে স্থানীয় পরিস্থিতি ভিন্ন হতে পারে।"
-              : "Spatial Scale: Coarse regional grid (~36 km). Sub-seasonal & seasonal tendencies are not calibrated for single-farm microclimates."}
+              ? "মৌসুমি দৃষ্টিভঙ্গির স্থানিক স্কেল: আঞ্চলিক গ্রিড (~৩৬ কিমি)। এটি একক খামারের মাইক্রোক্লাইমেটের জন্য ক্যালিব্রেট করা নয়।"
+              : "Seasonal outlook spatial scale: coarse regional grid (~36 km), not calibrated for single-farm microclimates."}
           </span>
           <span>Asia/Dhaka Standard Time</span>
         </div>
+        {(provenance?.isForecastStale || provenance?.isSeasonalStale) && (
+          <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+            {locale === "bn"
+              ? "প্রোভাইডারের সঙ্গে সংযোগ না হওয়ায় পূর্বের ক্যাশ করা তথ্য দেখানো হচ্ছে। সময় ও স্থান বিবেচনা করে ব্যবহার করুন।"
+              : "Provider unavailable; showing a previously cached result. Check its timestamp and regional coverage before acting."}
+          </p>
+        )}
       </div>
     </section>
   );

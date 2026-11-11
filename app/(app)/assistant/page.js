@@ -82,6 +82,10 @@ function AssistantContent() {
 
   const [selectedCrop, setSelectedCrop] = useState("all");
   const [farmsList, setFarmsList] = useState([]);
+  const [farmsLoadError, setFarmsLoadError] = useState(false);
+  const [isFarmsLoading, setIsFarmsLoading] = useState(false);
+  const [farmReloadCount, setFarmReloadCount] = useState(0);
+  const loadedFarmUserRef = useRef(user?._id || user?.id || null);
   const [farmSelection, setFarmSelection] = useState({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
   const selectedFarmId = farmSelection.queryFarmId === urlFarmId
     ? farmSelection.farmId
@@ -108,6 +112,10 @@ function AssistantContent() {
   };
 
   const handleFarmSelection = (farmId) => {
+    const nextFarmId = farmId || "";
+    if (nextFarmId === selectedFarmId) return;
+    // Farm context is fixed for a saved conversation. Start a fresh thread when switching.
+    handleNewConversation(nextFarmId);
     setFarmSelection({ queryFarmId: urlFarmId, farmId });
     const selectedFarm = farmsList.find((farm) => farm._id === farmId);
     if (selectedFarm?.location?.districtCode) {
@@ -119,26 +127,52 @@ function AssistantContent() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    let isMounted = true;
+    const userKey = user?._id || user?.id || null;
+    if (loadedFarmUserRef.current !== userKey) {
+      loadedFarmUserRef.current = userKey;
+      setFarmSelection({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
+    }
+    setFarmsList([]);
+    setFarmsLoadError(false);
+    setIsFarmsLoading(isAuthenticated);
+    if (!isAuthenticated) {
+      setFarmSelection({ queryFarmId: urlFarmId, farmId: urlFarmId || "" });
+      setIsFarmsLoading(false);
+      return () => { isMounted = false; };
+    }
     async function loadFarms() {
       try {
         const res = await fetchFarms();
-        if (res.success && res.data?.farms) {
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.data?.farms)) {
           setFarmsList(res.data.farms);
           const queryFarm = res.data.farms.find((farm) => farm._id === urlFarmId);
+          if (urlFarmId && !queryFarm) {
+            setFarmSelection({ queryFarmId: urlFarmId, farmId: "" });
+            router.replace("/assistant");
+          }
           if (queryFarm?.location?.districtCode) {
             setSelectedDistrict(queryFarm.location.districtCode);
           }
           if (queryFarm?.crop?.cropCode) {
             setSelectedCrop(queryFarm.crop.cropCode);
           }
+        } else {
+          setFarmsLoadError(true);
         }
       } catch (err) {
+        if (!isMounted) return;
+        setFarmsList([]);
+        setFarmsLoadError(true);
         console.error("Failed to load user farms:", err);
+      } finally {
+        if (isMounted) setIsFarmsLoading(false);
       }
     }
     loadFarms();
-  }, [isAuthenticated, urlFarmId, setSelectedDistrict]);
+    return () => { isMounted = false; };
+  }, [isAuthenticated, user?._id, user?.id, urlFarmId, farmReloadCount, router, setSelectedDistrict]);
 
   const activeFarm = farmsList.find((f) => f._id === selectedFarmId) || null;
 
@@ -273,8 +307,13 @@ function AssistantContent() {
           setConversationId(conv._id);
           setConversationTitle(conv.title || "");
           setFailedPrompt("");
-          if (conv.district) setSelectedDistrict(conv.district);
-          if (conv.crop) setSelectedCrop(conv.crop);
+          const savedFarmId = conv.farmId?.toString?.() || conv.farmId || "";
+          setFarmSelection({ queryFarmId: urlFarmId, farmId: savedFarmId });
+          const savedFarm = farmsList.find((farm) => farm._id === savedFarmId);
+          if (savedFarm?.location?.districtCode) setSelectedDistrict(savedFarm.location.districtCode);
+          else if (conv.district) setSelectedDistrict(conv.district);
+          if (savedFarm?.crop?.cropCode) setSelectedCrop(savedFarm.crop.cropCode);
+          else if (conv.crop) setSelectedCrop(conv.crop);
 
           const formattedMessages = (conv.messages || []).map((m) => ({
             id: m._id || `msg-${Math.random()}`,
@@ -319,7 +358,7 @@ function AssistantContent() {
   }, [urlConversationId]);
 
   // Handle New Conversation
-  const handleNewConversation = useCallback(() => {
+  const handleNewConversation = useCallback((preserveFarmId = selectedFarmId) => {
     stopTts();
     if (isListening) stopListening();
     loadedConvIdRef.current = null;
@@ -329,11 +368,13 @@ function AssistantContent() {
     setError(null);
     setFailedPrompt("");
     setIsGuestSession(false);
-    router.replace("/assistant");
+    router.replace(preserveFarmId
+      ? `/assistant?farmId=${encodeURIComponent(preserveFarmId)}`
+      : "/assistant");
     setTimeout(() => {
       textareaRef.current?.focus();
     }, 100);
-  }, [stopTts, isListening, stopListening, router]);
+  }, [stopTts, isListening, stopListening, router, selectedFarmId]);
 
   // Listen for global custom events from Sidebar
   useEffect(() => {
@@ -400,7 +441,8 @@ function AssistantContent() {
             setConversationTitle(data.title);
           }
           if (isAuthenticated && !urlConversationId) {
-            window.history.replaceState(null, "", `/assistant?id=${data.conversationId}`);
+            const farmQuery = selectedFarmId ? `&farmId=${encodeURIComponent(selectedFarmId)}` : "";
+            window.history.replaceState(null, "", `/assistant?id=${data.conversationId}${farmQuery}`);
             window.dispatchEvent(new CustomEvent("krishi:chat-updated"));
           }
         }
@@ -651,6 +693,7 @@ function AssistantContent() {
               <select
                 value={selectedFarmId}
                 onChange={(e) => handleFarmSelection(e.target.value)}
+                disabled={isLoading}
                 aria-label={t("assistant.selectFarm")}
                 className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[110px] sm:max-w-[130px] truncate"
               >
@@ -664,6 +707,17 @@ function AssistantContent() {
               <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
             </div>
           ) : null}
+          {isAuthenticated && isFarmsLoading ? (
+            <span role="status" className="text-[11px] text-content-muted">{isBn ? "খামার লোড হচ্ছে…" : "Loading farms…"}</span>
+          ) : null}
+          {isAuthenticated && farmsLoadError ? (
+            <button type="button" onClick={() => setFarmReloadCount((count) => count + 1)} className="text-[11px] text-rose-700 dark:text-rose-300 underline">
+              {isBn ? "খামার লোড হয়নি · আবার চেষ্টা" : "Farms unavailable · Retry"}
+            </button>
+          ) : null}
+          {isAuthenticated && !isFarmsLoading && !farmsLoadError && farmsList.length === 0 ? (
+            <span role="status" className="text-[11px] text-content-muted">{isBn ? "কোনো সংরক্ষিত খামার নেই" : "No saved farms"}</span>
+          ) : null}
 
           {/* District selector */}
           <div className="relative">
@@ -671,6 +725,7 @@ function AssistantContent() {
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
+              disabled={isLoading}
               aria-label={t("assistant.selectDistrict")}
               className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[95px] sm:max-w-[115px]"
             >
@@ -689,6 +744,7 @@ function AssistantContent() {
             <select
               value={selectedCrop}
               onChange={(e) => setSelectedCrop(e.target.value)}
+              disabled={isLoading}
               aria-label={t("assistant.selectCrop")}
               className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[95px] sm:max-w-[115px]"
             >

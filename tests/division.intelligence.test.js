@@ -40,8 +40,9 @@ test("division point map owns Leaflet lifecycle and guards remount/center update
   assert.match(pointMap, /map\.whenReady\(/);
   assert.match(pointMap, /map\.getPane\("mapPane"\)/);
   assert.match(pointMap, /map\.remove\(\)/);
-  assert.match(pointMap, /map\.setView\(\[point\.latitude, point\.longitude\]/);
-  assert.match(pointMap, /marker\.setLatLng\(\[point\.latitude, point\.longitude\]\)/);
+  assert.match(pointMap, /map\.setView\(\[latitude, longitude\]/);
+  assert.match(pointMap, /marker\.setLatLng\(\[latitude, longitude\]\)/);
+  assert.match(pointMap, /data-latitude=\{point\.latitude\} data-longitude=\{point\.longitude\}/);
   assert.doesNotMatch(pointMap, /MapContainer|TileLayer|useMap/);
 });
 

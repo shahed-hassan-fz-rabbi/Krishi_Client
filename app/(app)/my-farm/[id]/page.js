@@ -59,6 +59,7 @@ import {
   generateFarmActivities,
 } from "@/services/api.js";
 import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
+import WeatherIntelligenceSection from "@/components/dashboard/WeatherIntelligenceSection.js";
 
 function FarmDetailsContent() {
   const router = useRouter();
@@ -684,6 +685,13 @@ function FarmDetailsContent() {
             {t("myFarm.lifecycle.estimateDisclaimer")}
           </p>
         </div>
+
+        <WeatherIntelligenceSection
+          locationCode={farm.location?.districtCode || farm.location?.district}
+          locale={lang}
+          farmId={String(farm._id)}
+          crop={farm.crop?.cropCode || null}
+        />
 
         {/* Vertical Lifecycle Stages Timeline */}
         {stages.length > 0 ? (
