@@ -191,10 +191,10 @@ export async function fetchDataSources() {
  * POST /api/v1/auth/register
  * Register a new user with default role 'farmer'.
  */
-export async function registerUser({ name, email, password, preferredDistrict }) {
+export async function registerUser({ name, email, phone, password, preferredDistrict }) {
   return request("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ name, email, password, preferredDistrict }),
+    body: JSON.stringify({ name, email, phone, password, preferredDistrict }),
   });
 }
 
@@ -202,10 +202,10 @@ export async function registerUser({ name, email, password, preferredDistrict })
  * POST /api/v1/auth/login
  * Log in with email and password, establishing an httpOnly session.
  */
-export async function loginUser({ email, password }) {
+export async function loginUser({ email, phone, identifier, password }) {
   return request("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, phone, identifier, password }),
   });
 }
 

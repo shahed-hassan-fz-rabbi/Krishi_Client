@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
@@ -18,10 +19,10 @@ import {
 
 import { BrandMark } from "@/components/layout/BrandMark.js";
 import { Button } from "@/components/ui/Button.js";
-import { AuthHeroPanel } from "@/components/auth/AuthHeroPanel.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchGoogleAuthStatus, getGoogleAuthEndpoint } from "@/services/api.js";
+import { parseAuthContact } from "@/lib/authContact.js";
 import { safeReturnTo, AUTH_RETURN_KEY } from "@/lib/access.js";
 
 function LoginForm() {
@@ -94,15 +95,14 @@ function LoginForm() {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError(t("auth.invalidEmail"));
+    if (!parseAuthContact(email)) {
+      setError(t("auth.invalidContact"));
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await login({ email, password });
+      const res = await login({ identifier: email.trim(), password });
       if (res.success) {
         router.push(returnTo);
       } else {
@@ -137,7 +137,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="h-full w-full rounded-2xl border border-line bg-surface p-6 sm:p-8 lg:p-10 shadow-sm flex flex-col justify-between">
+    <div className="relative h-full w-full bg-surface p-6 sm:p-8 lg:px-12 lg:py-9 flex flex-col justify-center">
       {/* Top Section: Back Link & Header */}
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -150,8 +150,8 @@ function LoginForm() {
           </Link>
         </div>
 
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-content sm:text-3xl">
+        <div className="mb-7 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight text-content sm:text-3xl">
             {t("auth.loginTitle")}
           </h1>
           <p className="mt-1.5 text-sm text-muted">{t("auth.loginSubtitle")}</p>
@@ -191,6 +191,83 @@ function LoginForm() {
           </div>
         )}
 
+        {/* Form Inputs */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="login-contact" className="block text-xs font-semibold text-content mb-1.5">
+              {t("auth.contactLabel")}
+            </label>
+            <div className="relative flex items-center">
+              <Mail className="absolute left-3.5 h-4 w-4 text-muted pointer-events-none" />
+              <input
+                id="login-contact" type="text" autoCapitalize="none" spellCheck={false} autoComplete="username"
+                required
+                placeholder={t("auth.contactPlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-line bg-surface pl-10 pr-3 py-2.5 text-sm text-content placeholder:text-muted/60 focus:border-emerald focus:outline-none focus:ring-1 focus:ring-emerald min-h-[44px]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="login-password" className="block text-xs font-semibold text-content">
+                {t("auth.passwordLabel")}
+              </label>
+            </div>
+            <div className="relative flex items-center">
+              <Lock className="absolute left-3.5 h-4 w-4 text-muted pointer-events-none" />
+              <input
+                id="login-password" autoComplete="current-password" type={showPassword ? "text" : "password"}
+                required
+                placeholder={t("auth.passwordPlaceholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-line bg-surface pl-10 pr-10 py-2.5 text-sm text-content placeholder:text-muted/60 focus:border-emerald focus:outline-none focus:ring-1 focus:ring-emerald min-h-[44px]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3.5 text-muted hover:text-content transition-colors focus:outline-none p-1"
+                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full mt-2 bg-emerald hover:bg-emerald-600 text-white font-medium shadow-xs min-h-[44px]"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
+                <span>{t("auth.loggingIn")}</span>
+              </>
+            ) : (
+              <>
+                <span>{t("auth.loginButton")}</span>
+                <ArrowRight className="h-4 w-4 ml-1.5" aria-hidden="true" />
+              </>
+            )}
+          </Button>
+        </form>
+        {/* Divider */}
+        <div className="relative my-5">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-line" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-surface px-2.5 text-muted tracking-wider text-[11px]">
+              {t("auth.orContinueWith")}
+            </span>
+          </div>
+        </div>
+
         {/* Continue with Google button */}
         <button
           type="button"
@@ -228,87 +305,11 @@ function LoginForm() {
           )}
         </button>
 
-        {/* Divider */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-line" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-surface px-2.5 text-muted tracking-wider text-[11px]">
-              {t("auth.orContinueWith")}
-            </span>
-          </div>
-        </div>
 
-        {/* Form Inputs */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-content mb-1.5">
-              {t("auth.emailLabel")}
-            </label>
-            <div className="relative flex items-center">
-              <Mail className="absolute left-3.5 h-4 w-4 text-muted pointer-events-none" />
-              <input
-                type="email"
-                required
-                placeholder={t("auth.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-line bg-surface pl-10 pr-3 py-2.5 text-sm text-content placeholder:text-muted/60 focus:border-emerald focus:outline-none focus:ring-1 focus:ring-emerald min-h-[44px]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-semibold text-content">
-                {t("auth.passwordLabel")}
-              </label>
-            </div>
-            <div className="relative flex items-center">
-              <Lock className="absolute left-3.5 h-4 w-4 text-muted pointer-events-none" />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                placeholder={t("auth.passwordPlaceholder")}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-line bg-surface pl-10 pr-10 py-2.5 text-sm text-content placeholder:text-muted/60 focus:border-emerald focus:outline-none focus:ring-1 focus:ring-emerald min-h-[44px]"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3.5 text-muted hover:text-content transition-colors focus:outline-none p-1"
-                aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full mt-2 bg-emerald hover:bg-emerald-600 text-white font-medium shadow-xs min-h-[44px]"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
-                <span>{t("auth.loggingIn")}</span>
-              </>
-            ) : (
-              <>
-                <span>{t("auth.loginButton")}</span>
-                <ArrowRight className="h-4 w-4 ml-1.5" aria-hidden="true" />
-              </>
-            )}
-          </Button>
-        </form>
       </div>
 
       {/* Bottom Footer Section */}
-      <p className="mt-6 text-center text-xs text-muted pt-4 border-t border-line/60">
+      <p className="mt-6 text-center text-sm text-muted">
         {t("auth.noAccount")}{" "}
         <Link
           href={`/register?redirect=${encodeURIComponent(returnTo)}`}
@@ -323,24 +324,18 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/60">
+    <div className="min-h-screen flex flex-col bg-bg">
       <header className="border-b border-line bg-surface/95 backdrop-blur-sm sticky top-0 z-20">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <BrandMark />
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 lg:py-12">
-        <div className="w-full max-w-5xl">
-          {/* Shared responsive grid: Equal visual height on desktop with items-stretch */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">
-            {/* Left Promotional Panel */}
-            <div className="hidden lg:flex lg:flex-col h-full">
-              <AuthHeroPanel mode="login" />
-            </div>
-
-            {/* Right Authentication Form Panel */}
-            <div className="flex flex-col h-full w-full max-w-md mx-auto lg:max-w-none">
+      <main className="relative isolate flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:py-10">
+        <Image src="/images/auth-farmer.png" alt="" fill sizes="100vw" className="-z-20 object-cover object-[center_65%]" priority />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-[#032b1e]/80 via-[#032b1e]/30 to-[#032b1e]/10" />
+        <div className="w-full max-w-lg">
+          <div className="overflow-hidden rounded-2xl border border-white/40 shadow-xl">
               <Suspense
                 fallback={
                   <div className="h-full rounded-2xl border border-line bg-surface p-12 flex items-center justify-center">
@@ -350,7 +345,6 @@ export default function LoginPage() {
               >
                 <LoginForm />
               </Suspense>
-            </div>
           </div>
         </div>
       </main>

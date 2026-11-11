@@ -8,6 +8,11 @@ test("public record routes render through a dedicated layout without dropping ro
   const layout = read("../app/(public-data)/layout.js");
   assert.match(layout, /<PublicDataLayout>\{children\}<\/PublicDataLayout>/);
   assert.doesNotMatch(layout, /PrivateAccess|useSyncExternalStore|LayoutRouter/);
+  const dataShell = read("../components/layout/PublicDataLayout.js");
+  assert.match(dataShell, /const Shell = user \? AppShell : PublicRecordsShell/);
+  assert.match(dataShell, /return <Shell>\{children\}<\/Shell>/);
+  assert.doesNotMatch(dataShell, /return null|PrivateAccess/);
+  assert.match(read("../app/(app)/layout.js"), /return <AppShell>\{children\}<\/AppShell>/);
   for (const route of ["climate", "rainfall", "soil-moisture", "vegetation", "map", "crop-calendar", "data-sources"]) {
     assert.ok(existsSync(new URL(`../app/(public-data)/${route}/page.js`, import.meta.url)));
     assert.equal(existsSync(new URL(`../app/(app)/${route}/page.js`, import.meta.url)), false);
@@ -40,7 +45,7 @@ test("mobile drawer locks background scroll and supports keyboard dismissal and 
 });
 
 test("desktop content max-width is measured after reserving sidebar width", () => {
-  const layout = read("../app/(app)/layout.js");
+  const layout = read("../components/layout/AppShell.js");
   assert.match(
     layout,
     /isCollapsed \? "lg:pl-\[72px\]" : "lg:pl-\[250px\]"[\s\S]*?<main className="mx-auto w-full max-w-\[1440px\]/
@@ -61,7 +66,7 @@ test("sidebar supports 250px expanded and 72px collapsed states with 200ms width
 });
 
 test("authenticated app layout mounts one persistent utility header before page content", () => {
-  const layout = read("../app/(app)/layout.js");
+  const layout = read("../components/layout/AppShell.js");
   const shell = read("../components/layout/AppSidebar.js");
   const assistant = read("../app/(app)/assistant/page.js");
   assert.match(layout, /<GlobalAppHeader\s*\/>[\s\S]*?<main/);

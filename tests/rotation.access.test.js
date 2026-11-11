@@ -43,3 +43,26 @@ test("comparison and saving call separate private endpoints with session credent
     assert.deepEqual(JSON.parse(calls[0].options.body), input);
   } finally { global.fetch = original; }
 });
+
+
+test("auth contact input accepts email and normalized Bangladesh phone numbers", async () => {
+  const { parseAuthContact } = await import("../lib/authContact.js");
+  assert.deepEqual(parseAuthContact(" USER@Example.com "), { email: "user@example.com" });
+  for (const value of ["01712345678", "+8801712345678", "০১৭১২৩৪৫৬৭৮"]) assert.deepEqual(parseAuthContact(value), { phone: "+8801712345678" });
+  for (const value of ["01212345678", "bad@email", "0171234567", "", null]) assert.equal(parseAuthContact(value), null);
+});
+
+
+test("account API forwards phone registration and email-or-phone login without dropping fields", async () => {
+  const { registerUser, loginUser } = await import("../services/api.js");
+  const original = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, options) => { calls.push(JSON.parse(options.body)); return { ok: true, status: 200, json: async () => ({ data: {} }) }; };
+  try {
+    await registerUser({ name: "Farmer", phone: "+8801712345678", password: "test-password", preferredDistrict: "cumilla" });
+    await loginUser({ identifier: "01712345678", password: "test-password" });
+    assert.equal(calls[0].phone, "+8801712345678");
+    assert.equal(calls[0].email, undefined);
+    assert.equal(calls[1].identifier, "01712345678");
+  } finally { globalThis.fetch = original; }
+});

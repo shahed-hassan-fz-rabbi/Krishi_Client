@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js";
+import { AppShell } from "@/components/layout/AppShell.js";
+import { useAuth } from "@/contexts/AuthContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const dataLinks = [
@@ -14,7 +16,7 @@ const dataLinks = [
   { href: "/data-sources", key: "publicData.sources" },
 ];
 
-export function PublicDataLayout({ children }) {
+function PublicRecordsShell({ children }) {
   const pathname = usePathname();
   const { t } = useLang();
   return <div className="flex min-h-screen flex-col bg-bg">
@@ -31,4 +33,11 @@ export function PublicDataLayout({ children }) {
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
     <PublicFooter />
   </div>;
+}
+
+/** Keep records public, with workspace navigation for signed-in farmers. */
+export function PublicDataLayout({ children }) {
+  const { user } = useAuth();
+  const Shell = user ? AppShell : PublicRecordsShell;
+  return <Shell>{children}</Shell>;
 }

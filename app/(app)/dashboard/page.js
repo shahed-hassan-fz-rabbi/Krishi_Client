@@ -10,7 +10,6 @@ import {
   ChevronDown,
   CloudRain,
   Droplets,
-  Info,
   MapPin,
   RefreshCw,
   Sun,
@@ -339,16 +338,8 @@ export default function DashboardPage() {
                 <MapPin className="h-3 w-3" aria-hidden="true" />
                 {districtDisplayName}
               </Badge>
-              <Badge tone="blue">
-                <CalendarRange className="h-3 w-3" aria-hidden="true" />
-                {powerCoverageLabel}
-              </Badge>
-              <Badge tone="neutral">NASA POWER · {locale === "bn" ? "ঐতিহাসিক" : "Historical"}</Badge>
             </div>
             <h1 className="text-3xl font-semibold tracking-tight text-content sm:text-4xl">{t("dashboard.title")}</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
-              {t("dashboard.subtitleNote")}
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 xl:justify-end">
@@ -369,14 +360,6 @@ export default function DashboardPage() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" aria-hidden="true" />
           </label>
-
-          {/* LST standard disclosure badge */}
-          <Tooltip label={t("dashboard.timeStandardTooltip")}>
-            <span className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-climate/20 bg-climate/10 px-3 text-xs font-medium text-climate-text cursor-help">
-              <Info className="h-3 w-3" aria-hidden="true" />
-              {t("dashboard.timeStandardBadge")}
-            </span>
-          </Tooltip>
 
           {/* Refresh action */}
           <Tooltip label={t("dashboard.refreshNote")}>

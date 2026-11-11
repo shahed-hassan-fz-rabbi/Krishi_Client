@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext.js";
 const items = [
   { href: "/dashboard", icon: Sprout, key: "nav.dashboard" },
   { href: "/handoff", icon: Wheat, key: "nav.handoff" },
-  { href: "/climate", icon: BarChart3, key: "nav.climate" },
+  { href: "/climate", icon: BarChart3, key: "publicHeader.climateData" },
   { href: "/map", icon: MapIcon, key: "nav.map" },
   { href: "/settings", icon: Settings, key: "nav.settings" },
 ];

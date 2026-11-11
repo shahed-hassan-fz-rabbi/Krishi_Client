@@ -57,10 +57,10 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const login = useCallback(async ({ email, password }) => {
+  const login = useCallback(async ({ email, phone, identifier, password }) => {
     setIsLoading(true);
     try {
-      const res = await loginUser({ email, password });
+      const res = await loginUser({ email, phone, identifier, password });
       if (res.success && res.data?.user) {
         setUser(res.data.user);
         setIsLoading(false);
@@ -82,10 +82,10 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const register = useCallback(async ({ name, email, password, preferredDistrict }) => {
+  const register = useCallback(async ({ name, email, phone, password, preferredDistrict }) => {
     setIsLoading(true);
     try {
-      const res = await registerUser({ name, email, password, preferredDistrict });
+      const res = await registerUser({ name, email, phone, password, preferredDistrict });
       if (res.success && res.data?.user) {
         setUser(res.data.user);
         setIsLoading(false);
