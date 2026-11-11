@@ -1,4 +1,5 @@
 "use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -1792,7 +1793,7 @@ function FarmDetailsContent() {
   );
 }
 
-export default function FarmDetailsPage() {
+function FarmDetailsPage() {
   return (
     <Suspense
       fallback={
@@ -1808,4 +1809,8 @@ export default function FarmDetailsPage() {
       <FarmDetailsContent />
     </Suspense>
   );
+}
+
+export default function ProtectedFarmDetailsPage() {
+  return <PrivateAccess><FarmDetailsPage /></PrivateAccess>;
 }

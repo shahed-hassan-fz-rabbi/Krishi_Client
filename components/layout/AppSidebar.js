@@ -32,6 +32,7 @@ import {
 
 import { BrandMark } from "@/components/layout/BrandMark.js";
 import { appNav } from "@/lib/nav.js";
+import { isPrivatePath } from "@/lib/access.js";
 import { LanguageSwitcher, ThemeSwitcher } from "@/components/layout/Switchers.js";
 import { GlobalSearch } from "@/components/layout/GlobalSearch.js";
 import { NotificationCenter } from "@/components/NotificationCenter.js";
@@ -47,6 +48,8 @@ import {
 const icons = {
   "/dashboard": LayoutDashboard,
   "/my-farm": Sprout,
+  "/rotation-planner": Sprout,
+  "/crop-rotation": Sprout,
   "/assistant": MessageCircle,
   "/handoff": Layers,
   "/climate": ChartNoAxesCombined,
@@ -62,10 +65,13 @@ const icons = {
 function NavList({ onNavigate, isCollapsed = false }) {
   const pathname = usePathname();
   const { t } = useLang();
+  const { user } = useAuth();
+  const navigation = appNav.map((item) => !user && item.href === "/rotation-planner" ? { ...item, href: "/crop-rotation" } : item)
+    .filter((item) => user || !isPrivatePath(item.href));
 
   return (
     <nav className={`space-y-1 ${isCollapsed ? "px-2 py-2" : "px-3 py-3"}`} aria-label="Application">
-      {appNav.map(({ href, key }) => {
+      {navigation.map(({ href, key }) => {
         const Icon = icons[href] || ScanLine;
         const active = pathname === href || pathname.startsWith(`${href}/`);
         const label = t(key);

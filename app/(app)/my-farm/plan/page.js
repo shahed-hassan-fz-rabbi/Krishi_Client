@@ -1,4 +1,5 @@
 "use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -985,8 +986,12 @@ function CropPlanningPageContent() {
   );
 }
 
-export default function CropPlanningPage() {
+function CropPlanningPage() {
   const { user, isLoading } = useAuth();
   const identityKey = isLoading ? "session-loading" : String(user?._id || user?.id || "guest");
   return <CropPlanningPageContent key={identityKey} />;
+}
+
+export default function ProtectedCropPlanningPage() {
+  return <PrivateAccess><CropPlanningPage /></PrivateAccess>;
 }

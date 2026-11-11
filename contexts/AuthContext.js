@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { safeReturnTo, AUTH_RETURN_KEY } from "../lib/access.js";
 import {
   fetchCurrentUser,
   loginUser,
@@ -32,6 +33,13 @@ export function AuthProvider({ children }) {
         const res = await fetchCurrentUser();
         if (active && res.success && res.data?.user) {
           setUser(res.data.user);
+          if (new URLSearchParams(window.location.search).get("auth") === "google_success") {
+            try {
+              const storedReturn = sessionStorage.getItem(AUTH_RETURN_KEY);
+              sessionStorage.removeItem(AUTH_RETURN_KEY);
+              if (storedReturn && safeReturnTo(storedReturn) !== "/dashboard") window.location.replace(safeReturnTo(storedReturn));
+            } catch { /* Storage is optional; keep the default dashboard. */ }
+          }
         } else if (active) {
           setUser(null);
         }

@@ -22,10 +22,12 @@ import { AuthHeroPanel } from "@/components/auth/AuthHeroPanel.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchGoogleAuthStatus, getGoogleAuthEndpoint } from "@/services/api.js";
+import { safeReturnTo, AUTH_RETURN_KEY } from "@/lib/access.js";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const returnTo = safeReturnTo(searchParams.get("redirect"));
   const { t } = useLang();
   const { login } = useAuth();
   const errorParam = searchParams.get("error");
@@ -102,7 +104,7 @@ function LoginForm() {
     try {
       const res = await login({ email, password });
       if (res.success) {
-        router.push("/dashboard");
+        router.push(returnTo);
       } else {
         setError(res.error || "Invalid email or password");
       }
@@ -122,6 +124,7 @@ function LoginForm() {
       const statusRes = await fetchGoogleAuthStatus();
       if (statusRes.success && statusRes.data?.configured) {
         // Redirect directly to backend OAuth initiator
+        try { sessionStorage.setItem(AUTH_RETURN_KEY, returnTo); } catch { /* Storage is optional. */ }
         window.location.href = getGoogleAuthEndpoint();
       } else {
         setIsGoogleLoading(false);
@@ -308,7 +311,7 @@ function LoginForm() {
       <p className="mt-6 text-center text-xs text-muted pt-4 border-t border-line/60">
         {t("auth.noAccount")}{" "}
         <Link
-          href="/register"
+          href={`/register?redirect=${encodeURIComponent(returnTo)}`}
           className="font-semibold text-emerald hover:text-emerald-700 underline-offset-2 hover:underline"
         >
           {t("auth.register")}

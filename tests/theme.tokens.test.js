@@ -1,8 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 
 import { resolveThemePreference } from "../lib/theme.js";
+
+test("pre-hydration theme script preserves preferences without a raw React script tag", () => {
+  const source = readFileSync(new URL("../app/layout.js", import.meta.url), "utf8");
+  assert.match(source, /import Script from "next\/script"/);
+  assert.match(source, /<Script id="km-theme-init" strategy="beforeInteractive">/);
+  assert.doesNotMatch(source, /<script\b/);
+  const script = source.match(/const themeInitScript = `([^`]+)`/)[1];
+  for (const [saved, systemDark] of [["dark", false], ["light", true], [null, true], [null, false], ["invalid", true]]) {
+    let active;
+    runInNewContext(script, {
+      localStorage: { getItem: () => saved },
+      window: { matchMedia: () => ({ matches: systemDark }) },
+      document: { documentElement: { classList: { toggle: (name, value) => { assert.equal(name, "dark"); active = value; } } } },
+    });
+    assert.equal(active, resolveThemePreference(saved, systemDark) === "dark");
+  }
+  assert.doesNotThrow(() => runInNewContext(script, { localStorage: { getItem: () => { throw new Error("Storage blocked"); } } }));
+});
 
 test("saved theme preference wins over system mode and survives initialization", () => {
   assert.equal(resolveThemePreference("dark", false), "dark");

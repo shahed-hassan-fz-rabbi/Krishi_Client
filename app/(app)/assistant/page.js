@@ -1,4 +1,5 @@
 "use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 
 import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import Image from "next/image";
@@ -1537,7 +1538,7 @@ function AssistantContent() {
   );
 }
 
-export default function AssistantPage() {
+function AssistantPage() {
   return (
     <Suspense
       fallback={
@@ -1552,4 +1553,8 @@ export default function AssistantPage() {
       <AssistantContent />
     </Suspense>
   );
+}
+
+export default function ProtectedAssistantPage() {
+  return <PrivateAccess><AssistantPage /></PrivateAccess>;
 }

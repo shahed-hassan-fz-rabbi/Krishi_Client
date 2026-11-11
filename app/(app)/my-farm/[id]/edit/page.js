@@ -1,4 +1,5 @@
 "use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -390,7 +391,7 @@ function EditFarmContent() {
   );
 }
 
-export default function EditFarmPage() {
+function EditFarmPage() {
   return (
     <Suspense
       fallback={
@@ -403,4 +404,8 @@ export default function EditFarmPage() {
       <EditFarmContent />
     </Suspense>
   );
+}
+
+export default function ProtectedEditFarmPage() {
+  return <PrivateAccess><EditFarmPage /></PrivateAccess>;
 }

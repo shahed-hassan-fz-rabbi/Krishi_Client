@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { useLang } from "@/lib/i18n/LanguageContext.js";
+import { useAuth } from "@/contexts/AuthContext.js";
 
 const items = [
   { href: "/dashboard", icon: Sprout, key: "nav.dashboard" },
@@ -27,6 +28,12 @@ const items = [
 export function BottomNav() {
   const pathname = usePathname();
   const { t } = useLang();
+  const { user } = useAuth();
+  const navigation = items.map((item) => {
+    if (item.href === "/handoff") return { href: user ? "/rotation-planner" : "/crop-rotation", icon: Wheat, key: "publicHeader.cropRotation" };
+    if (item.href === "/settings" && !user) return { ...item, href: "/login", key: "auth.login" };
+    return item;
+  });
 
   return (
     <nav
@@ -34,7 +41,7 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch">
-        {items.map(({ href, icon: Icon, key }) => {
+        {navigation.map(({ href, icon: Icon, key }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <li key={href} className="flex-1">

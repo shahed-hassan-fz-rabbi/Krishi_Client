@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -24,7 +24,6 @@ import {
 
 import { fetchDataSources } from "@/services/api.js";
 import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js";
-import { AgriculturalNewsTicker } from "@/components/home/AgriculturalNewsTicker.js";
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
@@ -47,50 +46,10 @@ const powerDataset = {
 };
 
 const steps = [
-  {
-    n: "1",
-    icon: MapPin,
-    titleKey: "step1Title",
-    descKey: "step1Desc",
-    stageKey: "District Resolution",
-    stageBn: "জেলা নির্বাচন",
-    spec: "Chattogram & Cumilla",
-    specBn: "চট্টগ্রাম ও কুমিল্লা",
-    tone: "emerald",
-  },
-  {
-    n: "2",
-    icon: Database,
-    titleKey: "step2Title",
-    descKey: "step2Desc",
-    stageKey: "NASA POWER Ingestion",
-    stageBn: "নাসা পাওয়ার ফেচিং",
-    spec: "Meteorological & Solar",
-    specBn: "আবহাওয়া ও সৌর বিকিরণ",
-    tone: "climate",
-  },
-  {
-    n: "3",
-    icon: BarChart3,
-    titleKey: "step3Title",
-    descKey: "step3Desc",
-    stageKey: "Historical Calibration",
-    stageBn: "ঐতিহাসিক বিশ্লেষণ",
-    spec: "25-Year Daily Normal",
-    specBn: "২৫ বছরের দৈনিক রেকর্ড",
-    tone: "amber",
-  },
-  {
-    n: "4",
-    icon: Sprout,
-    titleKey: "step4Title",
-    descKey: "step4Desc",
-    stageKey: "Agronomic Decision Support",
-    stageBn: "কৃষি সিদ্ধান্ত সহায়তা",
-    spec: "DAE & BAMIS Alignment",
-    specBn: "ডিএই ও বামিস সমন্বয়",
-    tone: "forest",
-  },
+  { n: "1", icon: MapPin, titleKey: "step1Title", descKey: "step1Desc" },
+  { n: "2", icon: Database, titleKey: "step2Title", descKey: "step2Desc" },
+  { n: "3", icon: BarChart3, titleKey: "step3Title", descKey: "step3Desc" },
+  { n: "4", icon: Sprout, titleKey: "step4Title", descKey: "step4Desc" },
 ];
 
 export default function LandingPage() {
@@ -152,11 +111,6 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <PublicHeader />
 
-      {/* TV News Style Agricultural Breaking News Ticker */}
-      <Suspense fallback={null}>
-        <AgriculturalNewsTicker />
-      </Suspense>
-
       <main className="flex-1">
         {/* Hero with background image */}
         <section className="relative min-h-[700px] flex items-center justify-center overflow-hidden">
@@ -174,25 +128,25 @@ export default function LandingPage() {
           </div>
 
           {/* Hero content overlay - centered */}
-          <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
+          <div className="relative mx-auto w-full min-w-0 max-w-4xl px-4 text-center sm:px-6">
+            <h1 className="break-words text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
               {t("landing.heroTitle")}
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-white/95 sm:text-xl lg:text-2xl max-w-3xl mx-auto">
               {t("landing.heroSubtitle")}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-              <Button href="/dashboard" size="lg" variant="hero" className="px-8">
-                {t("landing.heroCta")}
+              <Button href="/crop-rotation" size="lg" variant="hero" className="px-8">
+                {t("rotation.start")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button
-                href="#how-it-works"
+                href="/dashboard"
                 size="lg"
                 variant="heroOutline"
                 className="px-8"
               >
-                {t("landing.heroSecondary")}
+                {t("publicHeader.exploreDashboard")}
               </Button>
             </div>
             <p className="mt-8 max-w-2xl mx-auto text-sm text-white/80 leading-relaxed">
@@ -254,109 +208,21 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* How it works — High-End Scientific Methodology & Workflow Architecture */}
-        <section id="how-it-works" className="scroll-mt-20 border-t border-line/60 bg-gradient-to-b from-surface via-surface-2/20 to-surface py-20 dark:from-bg dark:via-surface-card/10 dark:to-bg sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            {/* Section Header */}
-            <div className="mx-auto max-w-3xl text-center mb-14">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald/30 bg-emerald/10 px-4 py-1.5 text-xs font-bold text-emerald mb-4 shadow-sm backdrop-blur-sm">
-                <span className="uppercase tracking-wider text-[11px] font-bold">
-                  {locale === "bn" ? "বিজ্ঞানসম্মত কার্যপ্রণালী" : "END-TO-END METHODOLOGY"}
-                </span>
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl lg:text-5xl">
-                {t("landing.sectionHow")}
-              </h2>
-              <p className="mt-4 text-base text-muted sm:text-lg leading-relaxed max-w-2xl mx-auto">
-                {t("landing.sectionHowSub")}
-              </p>
-            </div>
-
-            {/* 4 Interactive Process Step Cards */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
-              {steps.map((s, i) => (
-                <div key={s.n} className="relative group">
-                  <div className="flex flex-col justify-between rounded-2xl border border-line bg-surface p-6 sm:p-7 shadow-km-sm transition-all duration-300 hover:border-emerald-500/40 hover:shadow-km-md dark:bg-surface-card h-full">
-                    <div>
-                      {/* Top Step Counter & Icon Badge */}
-                      <div className="flex items-center justify-between gap-3 mb-5">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-surface-2 font-mono text-xs font-extrabold text-emerald ring-1 ring-emerald-500/25">
-                          0{s.n}
-                        </span>
-                        <div
-                          className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-110 ${
-                            s.tone === "climate"
-                              ? "bg-climate/15 text-climate ring-1 ring-climate/30"
-                              : s.tone === "amber"
-                                ? "bg-amber-500/15 text-amber-strong ring-1 ring-amber-500/30"
-                                : s.tone === "forest"
-                                  ? "bg-forest/15 text-forest dark:bg-emerald-500/15 dark:text-emerald ring-1 ring-emerald-500/30"
-                                  : "bg-emerald-500/15 text-emerald ring-1 ring-emerald-500/30"
-                          }`}
-                        >
-                          <s.icon className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
-                        </div>
-                      </div>
-
-                      {/* Stage Tag & Title */}
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
-                        {locale === "bn" ? s.stageBn : s.stageKey}
-                      </span>
-                      <h3 className="text-lg font-bold text-content mb-2.5">
-                        {t(`landing.${s.titleKey}`)}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-muted leading-relaxed">
-                        {t(`landing.${s.descKey}`)}
-                      </p>
-                    </div>
-
-                    {/* Technical Spec & Ground Calibration Footer */}
-                    <div className="mt-6 pt-3.5 border-t border-line/70 flex items-center justify-between text-[11px]">
-                      <span className="text-muted">{locale === "bn" ? "ক্যালিব্রেশন:" : "Calibration:"}</span>
-                      <span className="font-semibold text-content">{locale === "bn" ? s.specBn : s.spec}</span>
-                    </div>
-                  </div>
-
-                  {/* Flow Connector Arrow between cards (Desktop) */}
-                  {i < steps.length - 1 && (
-                    <div className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10 h-7 w-7 items-center justify-center rounded-full border border-line bg-surface shadow-sm text-muted transition-colors group-hover:text-emerald group-hover:border-emerald-500/40 dark:bg-surface-card">
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Scientific Pipeline Assurance Banner */}
-            <div className="rounded-2xl border border-line bg-surface-2/60 dark:bg-surface-card/60 p-6 sm:p-8 shadow-km-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="flex h-2 w-2 rounded-full bg-emerald" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald">
-                    {locale === "bn" ? "প্রমাণভিত্তিক বৈজ্ঞানিক নিশ্চয়তা" : "Evidence-Driven Scientific Pipeline"}
-                  </span>
-                </div>
-                <h4 className="text-base sm:text-lg font-bold text-content">
-                  {locale === "bn"
-                    ? "স্যাটেলাইট কক্ষপথ থেকে সরাসরি মাঠ পর্যায়: কোনো অনুমান বা ভিত্তিহীন পূর্বাভাস নয়"
-                    : "From Satellite Orbit to Field Level: Zero Speculation, Pure Evidence"}
-                </h4>
-                <p className="mt-1 text-xs sm:text-sm text-muted leading-relaxed">
-                  {locale === "bn"
-                    ? "কৃষি মামা প্ল্যাটফর্মের প্রতিটি পর্যবেক্ষণ নাসার নির্ভরযোগ্য সোলার ও মেটিওরোলজিক্যাল মডেল (MERRA-2, CERES) এবং কৃষি সম্প্রসারণ অধিদপ্তরের (DAE) শস্য পঞ্জিকার সাথে সরাসরি সমন্বিত।"
-                    : "Every insight on Krishi Mama is directly mapped to documented NASA satellite footprints and Bangladesh Department of Agricultural Extension (DAE) phenological crop calendars."}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
-                <Button href="/dashboard" size="md">
-                  <span>{locale === "bn" ? "ড্যাশবোর্ড দেখুন" : "Explore Dashboard"}</span>
-                  <ArrowRight className="h-4 w-4 ml-1.5" />
-                </Button>
-                <Button href="/data-sources" size="md" variant="outline">
-                  {locale === "bn" ? "ডাটা সোর্স পদ্ধতি" : "Data Methodology"}
-                </Button>
-              </div>
+        <section id="how-it-works" className="scroll-mt-20 border-t border-line bg-surface-2/40 px-4 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="text-center text-3xl font-bold text-content sm:text-4xl">{t("landing.sectionHow")}</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center leading-7 text-muted">{t("landing.sectionHowSub")}</p>
+            <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((s) => <li key={s.n} className="rounded-2xl border border-line bg-surface p-6">
+                <div className="flex items-center justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald text-sm font-semibold text-white">{s.n}</span><s.icon className="h-6 w-6 text-emerald" aria-hidden="true" /></div>
+                <h3 className="mt-5 text-lg font-semibold text-content">{t(`landing.${s.titleKey}`)}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted">{t(`landing.${s.descKey}`)}</p>
+              </li>)}
+            </ol>
+            <div className="mt-8 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+              <h3 className="text-xl font-semibold text-content">{t("rotation.assistantTitle")}</h3>
+              <p className="mt-3 max-w-3xl leading-7 text-muted">{t("rotation.assistantBody")}</p>
+              <Button href="/crop-rotation" variant="outline" className="mt-5">{t("access.demo")}</Button>
             </div>
           </div>
         </section>

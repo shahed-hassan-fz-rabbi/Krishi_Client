@@ -5,18 +5,31 @@ import { translations } from "../lib/i18n/translations.js";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
-test("public footer feature links target their existing routes", () => {
+test("public footer explores existing pages and localizes the new project content", () => {
   const chrome = read("../components/layout/PublicChrome.js");
-  for (const [href, key] of [
-    ["/climate", "nav.climate"],
-    ["/rainfall", "nav.rainfall"],
-    ["/soil-moisture", "nav.soilMoisture"],
-    ["/vegetation", "nav.vegetation"],
+  const footer = chrome.slice(chrome.indexOf("export function PublicFooter"));
+  for (const [href, key, page] of [
+    ["/", "common.home", "../app/page.js"],
+    ["/crop-rotation", "publicHeader.cropRotation", "../app/crop-rotation/page.js"],
+    ["/climate", "publicHeader.climateData", "../app/(public-data)/climate/page.js"],
+    ["/#how-it-works", "common.howItWorks", "../app/page.js"],
+    ["/#about", "common.about", "../app/page.js"],
   ]) {
-    assert.match(chrome, new RegExp(`<Link href="${href}"[\\s\\S]*?t\\("${key}"\\)`));
+    assert.ok(chrome.includes(`{ href: "${href}", key: "${key}" }`));
+    assert.ok(read(page).length > 0);
+    for (const lang of ["en", "bn"]) assert.ok(key.split(".").reduce((value, part) => value[part], translations[lang]));
   }
-  assert.match(chrome, /aria-expanded=\{open\}/);
-  assert.match(chrome, /aria-controls="public-mobile-navigation"/);
+  assert.ok(read("../app/page.js").includes('id="about"'));
+  assert.ok(footer.includes('<BrandMark tone="dark" />'));
+  assert.ok(footer.includes('sm:grid-cols-[minmax(0,1fr)_auto]'));
+  assert.doesNotMatch(footer, /footer\.(features|account|platform)|landing\.footerRights|t\("tagline"\)/);
+  assert.doesNotMatch(footer, /GITHUB_REPO_URL|footer\.(team|github|githubPlaceholder)/);
+  assert.ok(read("../lib/config.js").includes('GITHUB_REPO_URL = ""'));
+  for (const lang of ["en", "bn"]) {
+    for (const key of ["tagline", "explore", "project", "team", "github", "githubPlaceholder", "dataFromNasa", "planningNote", "copyright"]) {
+      assert.ok(translations[lang].footer[key], `${lang} footer ${key}`);
+    }
+  }
 });
 
 test("home page claims and process descriptions exist in both locales", () => {
@@ -27,8 +40,8 @@ test("home page claims and process descriptions exist in both locales", () => {
       assert.ok(landing[key].length > 0, `${locale}.landing.${key}`);
     }
   }
-  assert.match(translations.en.landing.featureEvidenceDesc, /recommendations are not available yet/i);
-  assert.match(translations.bn.landing.featureEvidenceDesc, /সুপারিশ দেওয়া হয় না/);
+  assert.match(translations.en.landing.featureEvidenceDesc, /Signed-in farmers/);
+  assert.match(translations.bn.landing.featureEvidenceDesc, /লগইন/);
 });
 
 test("homepage satellite availability is read from the environmental data catalog", () => {

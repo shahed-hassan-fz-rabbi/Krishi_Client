@@ -1,8 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
+
+test("public record routes render through a dedicated layout without dropping route children", () => {
+  const layout = read("../app/(public-data)/layout.js");
+  assert.match(layout, /<PublicDataLayout>\{children\}<\/PublicDataLayout>/);
+  assert.doesNotMatch(layout, /PrivateAccess|useSyncExternalStore|LayoutRouter/);
+  for (const route of ["climate", "rainfall", "soil-moisture", "vegetation", "map", "crop-calendar", "data-sources"]) {
+    assert.ok(existsSync(new URL(`../app/(public-data)/${route}/page.js`, import.meta.url)));
+    assert.equal(existsSync(new URL(`../app/(app)/${route}/page.js`, import.meta.url)), false);
+  }
+  assert.doesNotMatch(read("../app/(app)/layout.js"), /PrivateAccess|useSyncExternalStore|LayoutRouter/);
+});
+
+test("private pages own their login gate while the shared layout keeps their route slot", () => {
+  for (const route of ["my-farm", "my-farm/new", "my-farm/plan", "my-farm/[id]", "my-farm/[id]/edit", "assistant", "settings", "rotation-planner"]) {
+    assert.match(read(`../app/(app)/${route}/page.js`), /return <PrivateAccess>/);
+  }
+});
 
 test("sidebar and mobile navigation mark nested routes active", () => {
   const sidebar = read("../components/layout/AppSidebar.js");

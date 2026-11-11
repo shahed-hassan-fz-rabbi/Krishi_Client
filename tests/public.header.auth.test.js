@@ -10,7 +10,7 @@ test("public header provides separate guest and authenticated dashboard actions"
   assert.match(header, /isAuthenticated\s*\?\s*t\("publicHeader\.myDashboard"\)/);
   assert.match(header, /:\s*t\("publicHeader\.exploreDashboard"\)/);
   assert.match(header, /t\("auth\.login"\)/);
-  assert.match(header, /t\("auth\.register"\)/);
+  assert.doesNotMatch(header, /t\("auth\.register"\)/);
   assert.match(header, /isAuthenticated\s*&&\s*user\s*\?/);
   assert.match(header, /<NotificationCenter\s*\/>/);
   assert.match(header, /aria-haspopup="menu"/);
@@ -31,8 +31,8 @@ test("homepage dashboard remains public and auth forms keep their existing redir
   const register = read("../app/register/page.js");
   assert.ok(read("../app/(app)/dashboard/page.js").length > 0);
   assert.doesNotMatch(appLayout, /useAuth|redirect\(/);
-  assert.match(login, /router\.push\("\/dashboard"\)/);
-  assert.match(register, /router\.push\("\/dashboard"\)/);
+  assert.match(login, /router\.push\(returnTo\)/);
+  assert.match(register, /router\.push\(safeReturnTo/);
   assert.match(register, /Step 2 = Location/);
 });
 

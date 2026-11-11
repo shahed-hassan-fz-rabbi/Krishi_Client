@@ -29,6 +29,7 @@ import { useLocation } from "@/contexts/LocationContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { fetchGoogleAuthStatus, getGoogleAuthEndpoint } from "@/services/api.js";
+import { safeReturnTo, AUTH_RETURN_KEY } from "@/lib/access.js";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -145,7 +146,7 @@ export default function RegisterPage() {
       });
 
       if (res.success) {
-        router.push("/dashboard");
+        router.push(safeReturnTo(new URLSearchParams(window.location.search).get("redirect")));
       } else {
         setError(res.error || "Registration failed");
       }
@@ -164,6 +165,7 @@ export default function RegisterPage() {
     try {
       const statusRes = await fetchGoogleAuthStatus();
       if (statusRes.success && statusRes.data?.configured) {
+        try { sessionStorage.setItem(AUTH_RETURN_KEY, safeReturnTo(new URLSearchParams(window.location.search).get("redirect"))); } catch { /* Storage is optional. */ }
         window.location.href = getGoogleAuthEndpoint();
       } else {
         setIsGoogleLoading(false);
@@ -580,6 +582,7 @@ export default function RegisterPage() {
                       {t("auth.alreadyHaveAccount")}{" "}
                       <Link
                         href="/login"
+                        onClick={(event) => { event.preventDefault(); router.push(`/login?redirect=${encodeURIComponent(safeReturnTo(new URLSearchParams(window.location.search).get("redirect")))}`); }}
                         className="font-semibold text-emerald hover:text-emerald-700 underline-offset-2 hover:underline"
                       >
                         {t("auth.login")}

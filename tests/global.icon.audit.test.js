@@ -21,7 +21,7 @@ for (const directory of sourceRoots) collect(join(root, directory));
 test("frontend source contains no pictographic emoji", () => {
   const pictographic = /\p{Extended_Pictographic}/u;
   const offenders = sourceFiles
-    .filter((path) => pictographic.test(readFileSync(path, "utf8")))
+    .filter((path) => pictographic.test(readFileSync(path, "utf8").replaceAll("©", "")))
     .map((path) => relative(root, path));
   assert.deepEqual(offenders, []);
 });

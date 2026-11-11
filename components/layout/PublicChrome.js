@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bookmark,
   ChevronDown,
@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 
+
 import { BrandMark } from "@/components/layout/BrandMark.js";
 import { NotificationCenter } from "@/components/NotificationCenter.js";
 import { LanguageSwitcher, ThemeSwitcher } from "@/components/layout/Switchers.js";
@@ -24,20 +25,47 @@ import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 
 const links = [
-  { href: "/#features", key: "common.features" },
+  { href: "/", key: "common.home" },
+  { href: "/crop-rotation", key: "publicHeader.cropRotation" },
+  { href: "/climate", key: "publicHeader.climateData" },
   { href: "/#how-it-works", key: "common.howItWorks" },
-  { href: "/#data", key: "nav.dataSources" },
   { href: "/#about", key: "common.about" },
 ];
 
 const authLinks = [
   { href: "/login", key: "auth.login" },
-  { href: "/register", key: "auth.register" },
 ];
 
-/** Public website header (landing). Not authentication — app is open-access for now. */
+function subscribeHash(callback) {
+  window.addEventListener("hashchange", callback);
+  window.addEventListener("popstate", callback);
+  return () => {
+    window.removeEventListener("hashchange", callback);
+    window.removeEventListener("popstate", callback);
+  };
+}
+const getHash = () => window.location.hash;
+const getServerHash = () => "";
+
+/** Public navigation with one guest sign-in action and an authenticated account menu. */
 export function PublicHeader() {
   const router = useRouter();
+  const pathname = usePathname();
+  const hash = useSyncExternalStore(subscribeHash, getHash, getServerHash);
+  const isActive = (href) => {
+    if (href.includes("#")) return pathname === "/" && hash === href.slice(1);
+    if (href === "/") return pathname === "/" && !["#about", "#how-it-works"].includes(hash);
+    if (href === "/climate") return ["/climate", "/rainfall", "/soil-moisture", "/vegetation", "/map", "/crop-calendar", "/data-sources"].includes(pathname);
+    return pathname === href || pathname?.startsWith(`${href}/`);
+  };
+  const navClass = (href) => `rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${isActive(href) ? "bg-[#14532d] text-white hover:bg-[#14532d]" : "text-content hover:bg-surface-2"}`;
+  const handleNavClick = (event, href) => {
+    setOpen(false);
+    if (pathname === "/" && href.startsWith("/#") && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      window.location.assign(href);
+    }
+  };
   const { t, locale } = useLang();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -116,18 +144,18 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-sm shadow-km-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <BrandMark />
+        <BrandMark tone="light" />
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-muted lg:flex xl:gap-8" aria-label="Primary">
+        <nav className="hidden items-center gap-1 whitespace-nowrap text-sm font-medium text-muted xl:flex" aria-label="Primary">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="transition-colors hover:text-content">
+            <Link key={l.href} href={l.href} onClick={(event) => handleNavClick(event, l.href)} aria-current={isActive(l.href) ? (l.href.includes("#") ? "location" : "page") : undefined} className={navClass(l.href)}>
               {t(l.key)}
             </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-2 lg:gap-3">
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="hidden items-center gap-3 xl:flex">
             <LanguageSwitcher />
             <ThemeSwitcher />
             <div className="h-6 w-px bg-line" />
@@ -174,22 +202,14 @@ export function PublicHeader() {
                   </div>
                 </>
               ) : !isLoading ? (
-                <>
-                  <Button href="/login" size="sm" variant="ghost">
+                  <Button href="/login" size="sm" variant="primary">
                     {t("auth.login")}
                   </Button>
-                  <Button href="/register" size="sm" variant="primary">
-                    {t("auth.register")}
-                  </Button>
-                  <Button href="/dashboard" size="sm" variant="outline">
-                    {dashboardLabel}
-                  </Button>
-                </>
-              ) : <Button href="/dashboard" size="sm" variant="outline">{dashboardLabel}</Button>}
+              ) : null}
             </div>
           </div>
           {isAuthenticated && user ? <NotificationCenter /> : null}
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-2 xl:hidden">
             <button
               type="button"
               aria-expanded={open}
@@ -209,14 +229,15 @@ export function PublicHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-line bg-surface px-4 py-4 lg:hidden">
+        <div className="border-t border-line bg-surface px-4 py-4 xl:hidden">
           <nav id="public-mobile-navigation" className="flex flex-col gap-1" aria-label="Mobile">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-content hover:bg-surface-2"
+                onClick={(event) => handleNavClick(event, l.href)}
+                aria-current={isActive(l.href) ? (l.href.includes("#") ? "location" : "page") : undefined}
+                className={navClass(l.href)}
               >
                 {t(l.key)}
               </Link>
@@ -257,122 +278,53 @@ export function PublicHeader() {
             <LanguageSwitcher />
             <ThemeSwitcher />
           </div>
-          <div className="mt-4 flex flex-col gap-2">
+          {isAuthenticated && user ? <div className="mt-4 flex flex-col gap-2">
             <Button href="/dashboard" size="sm" className="w-full">
               {dashboardLabel}
             </Button>
-          </div>
+          </div> : null}
         </div>
       ) : null}
     </header>
   );
 }
 
-/** Public footer. No fabricated stats, no testimonials. */
+/** Public footer. */
 export function PublicFooter() {
   const { t } = useLang();
+
+
   return (
-    <footer className="bg-forest text-sidebar-text">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="space-y-4">
+    <footer className="relative isolate overflow-hidden bg-[#032b1e] text-sidebar-text">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,rgba(49,106,65,0.18),transparent_65%)]" />
+      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 sm:pb-24 lg:px-8 lg:pt-10">
+        <div className="grid gap-7 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-16">
+          <div className="space-y-5">
             <BrandMark tone="dark" />
-            <p className="text-sm text-sidebar-muted leading-relaxed">{t("tagline")}</p>
+            <p className="max-w-sm text-sm leading-7 text-[#c0d2c5]">{t("footer.description")}</p>
           </div>
 
-          {/* Platform */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.platform")}</h3>
-            <ul className="space-y-2 text-sm text-sidebar-muted">
-              <li>
-                <Link href="/#features" className="hover:text-sidebar-text transition-colors">
-                  {t("common.features")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/#how-it-works" className="hover:text-sidebar-text transition-colors">
-                  {t("common.howItWorks")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/#data" className="hover:text-sidebar-text transition-colors">
-                  {t("nav.dataSources")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/#about" className="hover:text-sidebar-text transition-colors">
-                  {t("common.about")}
-                </Link>
-              </li>
+          <div className="sm:min-w-40 sm:justify-self-end">
+            <h3 className="mb-3 text-sm font-semibold text-sidebar-text">{t("footer.explore")}</h3>
+            <div aria-hidden="true" className="mb-3 h-0.5 w-10 rounded-full bg-[#a3cb70]" />
+            <ul className="space-y-2 text-sm text-[#c0d2c5]">
+              {links.map(({ href, key }) => (
+                <li key={key}>
+                  <Link href={href} className="inline-block rounded-sm transition-colors hover:text-[#c2e994] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c2e994]">
+                    {t(key)}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Features */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.features")}</h3>
-            <ul className="space-y-2 text-sm text-sidebar-muted">
-              <li>
-                <Link href="/climate" className="hover:text-sidebar-text transition-colors">
-                  {t("nav.climate")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/rainfall" className="hover:text-sidebar-text transition-colors">
-                  {t("nav.rainfall")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/soil-moisture" className="hover:text-sidebar-text transition-colors">
-                  {t("nav.soilMoisture")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/vegetation" className="hover:text-sidebar-text transition-colors">
-                  {t("nav.vegetation")}
-                </Link>
-              </li>
-            </ul>
-          </div>
 
-          {/* Account */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("footer.account")}</h3>
-            <ul className="space-y-2 text-sm text-sidebar-muted">
-              <li>
-                <Link href="/login" className="hover:text-sidebar-text transition-colors">
-                  {t("auth.login")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="hover:text-sidebar-text transition-colors">
-                  {t("auth.register")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard" className="hover:text-sidebar-text transition-colors">
-                  {t("nav.dashboard")}
-                </Link>
-              </li>
-            </ul>
-          </div>
         </div>
 
-        {/* Data sources */}
-        <div className="mt-12 border-t border-sidebar-hover pt-8">
-          <h3 className="mb-4 text-sm font-semibold text-sidebar-text">{t("landing.poweredByLabel")}</h3>
-          <div className="grid gap-2 text-sm text-sidebar-muted sm:grid-cols-2 lg:grid-cols-4">
-            <p>NASA POWER · Agroclimatology Daily</p>
-            <p>SMAP SPL3SMP_E · historical observations</p>
-            <p>GPM IMERG V07 · historical observations</p>
-            <p>MODIS MOD13Q1 · 16-day composites</p>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-8 border-t border-sidebar-hover pt-8 text-xs text-sidebar-muted">
-          <p>{t("landing.footerRights")}</p>
-        </div>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[url('/images/footer-landscape.svg')] bg-[length:100%_100%] bg-no-repeat sm:h-20" />
+      </div>
+      <div className="border-t border-white/10 bg-black/10 px-4 py-3 text-center text-xs leading-relaxed text-[#c0d2c5] sm:px-6">
+        <p>{t("footer.copyright")}</p>
       </div>
     </footer>
   );

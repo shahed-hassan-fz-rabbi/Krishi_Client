@@ -1,4 +1,5 @@
 "use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -35,7 +36,7 @@ const DISTRICTS = [
   { code: "chattogram", nameEn: "Chattogram", nameBn: "চট্টগ্রাম" },
 ];
 
-export default function NewFarmWizardPage() {
+function NewFarmWizardPage() {
   const router = useRouter();
   const { t, lang } = useLang();
   const { user, isLoading: authLoading } = useAuth();
@@ -833,4 +834,8 @@ export default function NewFarmWizardPage() {
       </div>
     </div>
   );
+}
+
+export default function ProtectedNewFarmWizardPage() {
+  return <PrivateAccess><NewFarmWizardPage /></PrivateAccess>;
 }

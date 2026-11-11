@@ -1,9 +1,10 @@
 ﻿"use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 import { Settings } from "lucide-react";
 
 import { PlaceholderScreen } from "@/components/ui/States.js";
 
-export default function SettingsPage() {
+function SettingsPage() {
   return (
     <PlaceholderScreen
       icon={Settings}
@@ -12,4 +13,8 @@ export default function SettingsPage() {
       phaseTag="Phase 3"
     />
   );
+}
+
+export default function ProtectedSettingsPage() {
+  return <PrivateAccess><SettingsPage /></PrivateAccess>;
 }

@@ -14,7 +14,7 @@ const LOGO_SRC = "/images/logo.png";
  * If the asset is missing, falls back to the temporary inline mark without
  * breaking layout; it displays automatically once the user adds the file.
  */
-export function BrandMark({ href = "/", tone = "dark", compact = false }) {
+export function BrandMark({ href = "/", tone = "dark", compact = false, showSubtitle = true }) {
   const { t } = useLang();
   const [logoOk, setLogoOk] = useState(true);
 
@@ -37,13 +37,13 @@ export function BrandMark({ href = "/", tone = "dark", compact = false }) {
       {!compact ? (
         <span className="leading-tight">
           <span className="block text-base font-semibold text-inherit">{t("brand")}</span>
-          <span
+          {showSubtitle ? <span
             className={
-              tone === "dark" ? "block text-[11px] text-sidebar-muted" : "block text-[11px] text-muted"
+              tone === "dark" ? "block text-[11px] font-normal text-sidebar-text" : "block text-[11px] font-normal text-content"
             }
           >
-            Climate Intelligence
-          </span>
+            {t("brandSubtitle")}
+          </span> : null}
         </span>
       ) : null}
     </Link>

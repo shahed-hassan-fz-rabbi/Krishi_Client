@@ -1,4 +1,5 @@
 "use client";
+import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -29,7 +30,7 @@ import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchFarms, deleteFarm, fetchActivitiesOverview, updateFarmActivity } from "@/services/api.js";
 import { dispatchFarmNotificationUpdate } from "@/lib/farmNotificationEvents.js";
 
-export default function MyFarmPage() {
+function MyFarmPage() {
   const { t, lang } = useLang();
   const { user, isLoading: authLoading } = useAuth();
 
@@ -651,4 +652,8 @@ export default function MyFarmPage() {
       )}
     </div>
   );
+}
+
+export default function ProtectedMyFarmPage() {
+  return <PrivateAccess><MyFarmPage /></PrivateAccess>;
 }

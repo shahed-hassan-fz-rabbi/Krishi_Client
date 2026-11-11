@@ -53,34 +53,10 @@ describe("TV News Agricultural Breaking News Ticker Suite", () => {
     assert.match(globalsCss, /animation:\s*none\s*!important/, "Must disable animation when reduced motion is requested");
   });
 
-  test("DOM Structure & Placement: Ticker is immediately below PublicHeader and above Hero", () => {
+  test("Landing page keeps the removed bulletin out of the public layout", () => {
     const pageJs = fs.readFileSync(path.resolve(__dirname, "../app/page.js"), "utf8");
-
-    assert.ok(
-      pageJs.includes('import { AgriculturalNewsTicker } from "@/components/home/AgriculturalNewsTicker.js";'),
-      "page.js must import AgriculturalNewsTicker"
-    );
-
-    const publicHeaderIdx = pageJs.indexOf("<PublicHeader />");
-    const tickerIdx = pageJs.indexOf("<AgriculturalNewsTicker />");
-    const heroSectionIdx = pageJs.indexOf("<section className=\"relative min-h-[700px]");
-
-    assert.ok(publicHeaderIdx !== -1, "PublicHeader must exist");
-    assert.ok(tickerIdx !== -1, "AgriculturalNewsTicker must exist");
-    assert.ok(heroSectionIdx !== -1, "Hero section must exist");
-
-    assert.ok(
-      publicHeaderIdx < tickerIdx,
-      "Ticker must be placed immediately below PublicHeader"
-    );
-    assert.ok(
-      tickerIdx < heroSectionIdx,
-      "Ticker must be placed immediately above Hero section"
-    );
-
-    // Verify Sticky Positioning under Navbar (top-16)
-    const tickerJs = fs.readFileSync(path.resolve(__dirname, "../components/home/AgriculturalNewsTicker.js"), "utf8");
-    assert.match(tickerJs, /sticky\s+top-16/, "Ticker must have sticky top-16 to stick under navbar on scroll");
+    assert.ok(pageJs.includes("<PublicHeader />"));
+    assert.ok(!pageJs.includes("AgriculturalNewsTicker"));
   });
 
   test("Homepage Hero Preservation: Hero heading, description, buttons, and background remain intact", () => {
@@ -89,8 +65,8 @@ describe("TV News Agricultural Breaking News Ticker Suite", () => {
     assert.ok(pageJs.includes('src={HERO_SRC}'), "Hero background image must remain preserved");
     assert.ok(pageJs.includes('{t("landing.heroTitle")}'), "Hero title must remain preserved");
     assert.ok(pageJs.includes('{t("landing.heroSubtitle")}'), "Hero subtitle must remain preserved");
-    assert.ok(pageJs.includes('{t("landing.heroCta")}'), "Hero CTA button must remain preserved");
-    assert.ok(pageJs.includes('{t("landing.heroSecondary")}'), "Hero secondary button must remain preserved");
+    assert.ok(pageJs.includes('{t("rotation.start")}'), "Hero CTA button must remain preserved");
+    assert.ok(pageJs.includes('{t("publicHeader.exploreDashboard")}'), "Hero secondary button must remain preserved");
     assert.ok(pageJs.includes('{t("landing.heroNote")}'), "Hero note must remain preserved");
   });
 

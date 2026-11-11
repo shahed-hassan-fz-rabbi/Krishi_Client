@@ -121,7 +121,7 @@ export function ClimateMonthlyChart({
  * TemperatureRangeChart
  * Visualizes TMAX, T2M (mean), and TMIN with diurnal range.
  */
-export function TemperatureRangeChart({ data = [], title = "Monthly Temperature Range" }) {
+export function TemperatureRangeChart({ data = [], title = "Monthly Temperature Range", highLabel = "Max Temp (TMAX)", meanLabel = "Mean Temp (T2M)", lowLabel = "Min Temp (TMIN)" }) {
   if (!data || data.length === 0) {
     return (
       <div className="flex h-64 w-full items-center justify-center text-sm text-muted">
@@ -167,7 +167,7 @@ export function TemperatureRangeChart({ data = [], title = "Monthly Temperature 
           <Line
             type="monotone"
             dataKey="tmax"
-            name="Max Temp (TMAX)"
+            name={highLabel}
             stroke="#ef4444"
             strokeWidth={2}
             dot={{ r: 3, fill: "#ef4444" }}
@@ -175,7 +175,7 @@ export function TemperatureRangeChart({ data = [], title = "Monthly Temperature 
           <Line
             type="monotone"
             dataKey="t2m"
-            name="Mean Temp (T2M)"
+            name={meanLabel}
             stroke="#f59e0b"
             strokeWidth={2}
             dot={{ r: 3, fill: "#f59e0b" }}
@@ -183,7 +183,7 @@ export function TemperatureRangeChart({ data = [], title = "Monthly Temperature 
           <Line
             type="monotone"
             dataKey="tmin"
-            name="Min Temp (TMIN)"
+            name={lowLabel}
             stroke="#3b82f6"
             strokeWidth={2}
             dot={{ r: 3, fill: "#3b82f6" }}

@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const geojsonPath = path.resolve(__dirname, "../../server/data/gis/bbs_admin2_cumilla_chattogram.geojson");
+const geojsonPath = path.resolve(__dirname, "../../Krishi_server/data/gis/bbs_admin2_cumilla_chattogram.geojson");
 
 test("Phase 8.2 Client Map: BBS 2020 GeoJSON Boundaries Parse Offline", async () => {
   assert.ok(fs.existsSync(geojsonPath), "GeoJSON boundary file must exist");
@@ -54,7 +54,7 @@ test("Phase 8.2 Client Map: Offline Vector Canvas CSS Pattern", async () => {
 });
 
 test("Environmental GIS map renders actual source observations with quality and coverage disclosures", () => {
-  const pagePath = path.resolve(__dirname, "../app/(app)/map/page.js");
+  const pagePath = path.resolve(__dirname, "../app/(public-data)/map/page.js");
   const mapPath = path.resolve(__dirname, "../components/map/DistrictGisMap.js");
   const page = fs.readFileSync(pagePath, "utf8");
   const map = fs.readFileSync(mapPath, "utf8");

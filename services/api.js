@@ -8,6 +8,20 @@
 
 const DEFAULT_BASE_URL = "http://localhost:5000/api/v1";
 
+export function compareCropRotations(input) {
+  return request("/rotations/compare", { method: "POST", body: JSON.stringify(input) });
+}
+export function previewCropRotations(input) {
+  return request("/rotations/preview", { method: "POST", body: JSON.stringify(input) });
+}
+export function saveRotationPlan(payload) {
+  return request("/rotations/plans", { method: "POST", body: JSON.stringify(payload) });
+}
+export function fetchRotationPlans() { return request("/rotations/plans"); }
+export function explainRotationResult(payload) {
+  return request("/rotations/explain", { method: "POST", body: JSON.stringify(payload), timeoutMs: 16000 });
+}
+
 export function getApiBaseUrl() {
   const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
   let url = (envUrl && typeof envUrl === "string" ? envUrl : DEFAULT_BASE_URL).replace(/\/+$/, "");

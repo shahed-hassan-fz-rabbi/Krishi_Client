@@ -1,4 +1,5 @@
 import { Inter, Noto_Sans_Bengali } from "next/font/google";
+import Script from "next/script";
 
 import { AppProviders } from "../components/providers/AppProviders.js";
 import "./globals.css";
@@ -22,7 +23,7 @@ export const metadata = {
 };
 
 /** Applies the persisted theme before first paint to avoid a flash of the wrong mode. */
-const themeInitScript = `(function(){try{var t=localStorage.getItem('km-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+const themeInitScript = `(function(){try{var t=localStorage.getItem('km-theme');document.documentElement.classList.toggle('dark',t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches));}catch(e){}})();`;
 
 export default function RootLayout({ children }) {
   return (
@@ -31,10 +32,8 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${inter.variable} ${bengali.variable} h-full`}
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full antialiased">
+        <Script id="km-theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
