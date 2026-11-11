@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { BrandMark } from "@/components/layout/BrandMark.js";
+import { LanguageSwitcher, ThemeSwitcher } from "@/components/layout/Switchers.js";
 import { Button } from "@/components/ui/Button.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
@@ -325,26 +326,40 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-bg">
-      <header className="border-b border-line bg-surface/95 backdrop-blur-sm sticky top-0 z-20">
+      <header className="border-b border-line bg-surface/90 backdrop-blur-md sticky top-0 z-20">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <BrandMark />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
         </div>
       </header>
 
-      <main className="relative isolate flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:py-10">
-        <Image src="/images/auth-farmer.png" alt="" fill sizes="100vw" className="-z-20 object-cover object-[center_65%]" priority />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-[#032b1e]/80 via-[#032b1e]/30 to-[#032b1e]/10" />
+      <main className="relative isolate flex flex-1 items-center justify-center px-4 py-10 sm:px-6 lg:py-14">
+        {/* Subtle, premium atmospheric background */}
+        <Image
+          src="/images/auth-farmer.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="-z-20 object-cover object-center opacity-20 dark:opacity-15 filter blur-[1px]"
+          priority
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-[#021d13]/90 via-[#03261a]/85 to-[#01140e]/95" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.15),transparent_60%)]" />
+
         <div className="w-full max-w-lg">
-          <div className="overflow-hidden rounded-2xl border border-white/40 shadow-xl">
-              <Suspense
-                fallback={
-                  <div className="h-full rounded-2xl border border-line bg-surface p-12 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-emerald" />
-                  </div>
-                }
-              >
-                <LoginForm />
-              </Suspense>
+          <div className="overflow-hidden rounded-3xl border border-line bg-surface/95 dark:bg-surface/95 shadow-2xl backdrop-blur-md">
+            <Suspense
+              fallback={
+                <div className="h-full rounded-3xl border border-line bg-surface p-12 flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald" />
+                </div>
+              }
+            >
+              <LoginForm />
+            </Suspense>
           </div>
         </div>
       </main>

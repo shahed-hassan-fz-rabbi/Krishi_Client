@@ -24,12 +24,10 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
         <Image
           src={LOGO_SRC}
           alt="Krishi Mama"
-          width={64}
+          width={36}
           height={36}
           onError={() => setLogoOk(false)}
-          className={`h-9 w-auto max-w-[130px] shrink-0 object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105 ${
-            tone === "dark" ? "brightness-100" : ""
-          }`}
+          className="h-9 w-9 shrink-0 object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
           priority
         />
       ) : (

@@ -829,13 +829,13 @@ function AssistantContent() {
                   {/* Centered Content */}
                   <div className="relative z-10 flex flex-col items-center max-w-xl mx-auto py-1">
                     {/* Logo Emblem */}
-                    <div className="flex h-14 w-auto min-w-[56px] px-3 items-center justify-center rounded-2xl bg-surface border border-line shadow-xs mb-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface border border-line shadow-xs mb-3">
                       <Image
                         src="/images/logo.png"
                         alt="Krishi Mama Logo"
-                        width={64}
-                        height={36}
-                        className="h-9 w-auto object-contain"
+                        width={44}
+                        height={44}
+                        className="h-11 w-11 object-contain"
                       />
                     </div>
 
