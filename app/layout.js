@@ -20,6 +20,10 @@ export const metadata = {
   title: "Krishi Mama — Climate Intelligence for Agriculture",
   description:
     "NASA-powered climate-informed agricultural decision support for Bangladesh, starting with Chattogram.",
+  icons: {
+    icon: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
 };
 
 /** Applies the persisted theme before first paint to avoid a flash of the wrong mode. */

@@ -1,19 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useId } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   ChartNoAxesCombined,
-  ChevronDown,
   ChevronRight,
-  CloudRain,
   Database,
-  Droplets,
   History,
   Layers,
-  Leaf,
   LogOut,
   MapPin,
   Map as MapIcon,
@@ -54,9 +50,6 @@ const icons = {
   "/assistant": MessageCircle,
   "/handoff": Layers,
   "/climate": ChartNoAxesCombined,
-  "/rainfall": CloudRain,
-  "/soil-moisture": Droplets,
-  "/vegetation": Leaf,
   "/map": MapIcon,
   "/crop-calendar": CalendarDays,
   "/data-sources": Database,
@@ -65,20 +58,9 @@ const icons = {
 
 function NavList({ onNavigate, isCollapsed = false }) {
   const pathname = usePathname();
-  const { t, locale } = useLang();
-  const isBn = locale === "bn";
+  const { t } = useLang();
   const { user } = useAuth();
-  const climateSubnavId = useId();
-  const [climateExpanded, setClimateExpanded] = useState(null);
-  const climateItems = [
-    { href: "/rainfall", key: "nav.rainfall" },
-    { href: "/soil-moisture", key: "nav.soilMoisture" },
-    { href: "/vegetation", key: "nav.vegetation" },
-  ];
-  const isClimateRoute = climateItems.some(({ href }) => pathname === href || pathname.startsWith(`${href}/`));
-  const climateIsExpanded = climateExpanded ?? isClimateRoute;
   const navigation = appNav
-    .filter((item) => !climateItems.some(({ href }) => href === item.href))
     .map((item) => !user && item.href === "/rotation-planner" ? { ...item, href: "/crop-rotation" } : item)
     .filter((item) => user || !isPrivatePath(item.href));
 
@@ -88,89 +70,6 @@ function NavList({ onNavigate, isCollapsed = false }) {
         const Icon = icons[href] || ScanLine;
         const active = pathname === href || pathname.startsWith(`${href}/`);
         const label = t(key);
-
-        if (href === "/climate") {
-          if (isCollapsed) {
-            return (
-              <div key={href} className="group relative flex justify-center">
-                <Link
-                  href={href}
-                  onClick={onNavigate}
-                  aria-label={label}
-                  title={label}
-                  aria-current={pathname === href ? "page" : undefined}
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
-                    active || isClimateRoute
-                      ? "bg-white font-semibold text-forest shadow-sm ring-1 ring-white/15"
-                      : "text-sidebar-text/80 hover:bg-sidebar-hover hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                </Link>
-                <div role="tooltip" className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex group-focus-within:flex items-center rounded-md bg-[#0d3122] px-2.5 py-1 text-xs font-medium text-white shadow-lg ring-1 ring-white/10 whitespace-nowrap">
-                  {label}
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div key={href}>
-              <div className={`flex items-center rounded-lg transition-colors ${
-                active || isClimateRoute
-                  ? "bg-white font-semibold text-forest shadow-sm ring-1 ring-white/15"
-                  : "text-sidebar-text/80 hover:bg-sidebar-hover hover:text-white"
-              }`}>
-                <Link
-                  href={href}
-                  onClick={onNavigate}
-                  aria-current={pathname === href ? "page" : undefined}
-                  className="flex min-w-0 flex-1 items-center gap-3 rounded-l-lg px-3 py-2 text-xs font-medium"
-                >
-                  <Icon className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
-                  <span className="truncate">{label}</span>
-                </Link>
-                <button
-                  type="button"
-                  aria-label={isBn ? `${label} বিভাগ ${climateIsExpanded ? "বন্ধ করুন" : "খুলুন"}` : `${climateIsExpanded ? "Collapse" : "Expand"} ${label} sections`}
-                  aria-expanded={climateIsExpanded}
-                  aria-controls={climateSubnavId}
-                  onClick={() => setClimateExpanded(!climateIsExpanded)}
-                  className="mr-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-forest/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-climate dark:hover:bg-white/10"
-                >
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-150 ${climateIsExpanded ? "rotate-180" : ""}`} aria-hidden="true" />
-                </button>
-              </div>
-              {climateIsExpanded && (
-                <div id={climateSubnavId} role="group" className="ml-5 mt-1 space-y-1 border-l border-white/15 pl-3" aria-label={label}>
-                  {climateItems.map(({ href: childHref, key: childKey }) => {
-                    const ChildIcon = icons[childHref];
-                    const childActive = pathname === childHref || pathname.startsWith(`${childHref}/`);
-                    return (
-                      <Link
-                        key={childHref}
-                        href={childHref}
-                        onClick={(event) => {
-                          setClimateExpanded(true);
-                          onNavigate?.(event);
-                        }}
-                        aria-current={childActive ? "page" : undefined}
-                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-colors ${
-                          childActive
-                            ? "bg-white/15 font-semibold text-white"
-                            : "text-sidebar-text/75 hover:bg-sidebar-hover hover:text-white"
-                        }`}
-                      >
-                        <ChildIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                        <span className="truncate">{t(childKey)}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        }
 
         if (isCollapsed) {
           return (

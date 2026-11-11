@@ -227,7 +227,7 @@ export default function EnvironmentalIntelligenceCards({
       icon: CloudRain,
       topBorder: "border-t-sky-500",
       iconWrap: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/30",
-      href: "/rainfall",
+      href: "/climate#rainfall",
       badge: {
         text: isGpmDayComplete
           ? (isBn ? "৪৮/৪৮ সম্পন্ন" : "48/48 Complete")
@@ -301,7 +301,7 @@ export default function EnvironmentalIntelligenceCards({
       icon: Droplets,
       topBorder: "border-t-teal-600",
       iconWrap: "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-200/50 dark:border-teal-800/30",
-      href: "/soil-moisture",
+      href: "/climate#soil-moisture",
       badge: {
         text: isSmapRecommended
           ? (isBn ? "প্রস্তাবিত" : "Recommended")
@@ -379,7 +379,7 @@ export default function EnvironmentalIntelligenceCards({
       icon: Leaf,
       topBorder: "border-t-emerald-600",
       iconWrap: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/30",
-      href: "/vegetation",
+      href: "/climate#vegetation",
       badge: {
         text: isModisGood
           ? (isBn ? "উত্তম মান" : "Good Data")

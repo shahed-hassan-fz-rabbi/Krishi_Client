@@ -29,7 +29,7 @@ export function RotationResults({ result, publicMode, onSave, saveBusy, explainB
       <dl className="mt-4 grid gap-4 sm:grid-cols-2">{[{ key: "warmest", row: area?.warmest, unit: "°C" }, { key: "wettest", row: area?.wettest, unit: "mm" }].map(({ key, row, unit }) => <div key={key} className="rounded-xl border border-line bg-surface p-4"><dt className="text-sm text-muted">{t(`rotationGuide.${key}`)}</dt><dd className="mt-2 text-xl font-semibold text-content">{row ? `${month(row.month)} · ${num(row.value, 1)} ${unit}` : t("rotationGuide.unknown")}</dd></div>)}</dl>
       <p className="mt-3 text-xs leading-6 text-muted">NASA POWER · {t("rotationGuide.period")}: {area?.period ? `${area.period.start} – ${area.period.end}` : t("rotationGuide.unknown")}</p>
       {((area?.temperature?.length || 0) < 12 || (area?.rainfall?.length || 0) < 12) && <p className="text-xs leading-6 text-muted">{t("rotationGuide.partial")}</p>}
-      <div className="mt-4 flex flex-wrap gap-3"><Button href="/climate" onClick={sourceDistrict} variant="outline">{t("rotationGuide.climateLink")}</Button><Button href="/rainfall" onClick={sourceDistrict} variant="outline">{t("rotationGuide.rainfallLink")}</Button></div>
+      <div className="mt-4 flex flex-wrap gap-3"><Button href="/climate" onClick={sourceDistrict} variant="outline">{t("rotationGuide.climateLink")}</Button><Button href="/climate#rainfall" onClick={sourceDistrict} variant="outline">{t("rotationGuide.rainfallLink")}</Button></div>
     </section>
 
     <p className="text-sm text-muted">{t("rotation.priority")}: {t(`rotation.options.${result.priority}`)}</p>

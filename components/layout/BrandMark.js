@@ -19,31 +19,40 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
   const [logoOk, setLogoOk] = useState(true);
 
   return (
-    <Link href={href} className="inline-flex items-center gap-2.5">
+    <Link href={href} className="group inline-flex items-center gap-2.5">
       {logoOk ? (
         <Image
           src={LOGO_SRC}
           alt="Krishi Mama"
-          width={36}
+          width={64}
           height={36}
           onError={() => setLogoOk(false)}
-          className="h-9 w-9 shrink-0 rounded-lg bg-surface object-contain shadow-km-sm"
+          className={`h-9 w-auto max-w-[130px] shrink-0 object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105 ${
+            tone === "dark" ? "brightness-100" : ""
+          }`}
+          priority
         />
       ) : (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald text-white shadow-km-sm">
           <Sprout className="h-5 w-5" aria-hidden="true" />
         </span>
       )}
       {!compact ? (
         <span className="min-w-0 leading-tight">
-          <span className="block text-base font-semibold text-inherit">{t("brand")}</span>
-          {showSubtitle ? <span
-            className={
-              tone === "dark" ? "mt-0.5 block text-[11px] font-normal leading-4 text-[#d6e8dd]" : "mt-0.5 block text-[11px] font-normal leading-4 text-content"
-            }
-          >
-            {t("brandSubtitle")}
-          </span> : null}
+          <span className="block text-base font-bold tracking-tight text-inherit transition-colors group-hover:text-emerald">
+            {t("brand")}
+          </span>
+          {showSubtitle ? (
+            <span
+              className={
+                tone === "dark"
+                  ? "mt-0.5 block text-[11px] font-normal leading-4 text-emerald-100/75"
+                  : "mt-0.5 block text-[11px] font-normal leading-4 text-muted"
+              }
+            >
+              {t("brandSubtitle")}
+            </span>
+          ) : null}
         </span>
       ) : null}
     </Link>

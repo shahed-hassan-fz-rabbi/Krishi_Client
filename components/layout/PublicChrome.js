@@ -298,38 +298,58 @@ export function PublicHeader() {
 export function PublicFooter() {
   const { t } = useLang();
 
-
   return (
-    <footer className="relative isolate overflow-hidden bg-[#032b1e] text-sidebar-text">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,rgba(49,106,65,0.18),transparent_65%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 sm:pb-24 lg:px-8 lg:pt-10">
-        <div className="grid gap-7 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-16">
-          <div className="space-y-5">
+    <footer className="relative isolate overflow-hidden border-t border-emerald-900/35 bg-gradient-to-b from-[#03261a] via-[#021f15] to-[#01140e] text-sidebar-text">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,rgba(52,211,153,0.12),transparent_60%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.08),transparent_50%)]" />
+      <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-10 sm:px-6 sm:pb-28 lg:px-8 lg:pt-14">
+        <div className="grid gap-10 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-16 lg:gap-24 items-start">
+          <div className="space-y-4">
             <BrandMark tone="dark" />
-            <p className="max-w-sm text-sm leading-7 text-[#c0d2c5]">{t("footer.description")}</p>
+            <p className="max-w-md text-sm leading-relaxed text-[#c0d2c5] font-normal">{t("footer.description")}</p>
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-950/50 px-3 py-1.5 text-xs text-emerald-200/90 shadow-2xs backdrop-blur-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <span className="font-medium">{t("footer.dataFromNasa")}</span>
+                <span className="text-emerald-500/40">•</span>
+                <span className="text-emerald-300/80">{t("footer.planningNote")}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="sm:min-w-40 sm:justify-self-end">
-            <h3 className="mb-3 text-sm font-semibold text-sidebar-text">{t("footer.explore")}</h3>
-            <div aria-hidden="true" className="mb-3 h-0.5 w-10 rounded-full bg-[#a3cb70]" />
-            <ul className="space-y-2 text-sm text-[#c0d2c5]">
+          <div className="sm:min-w-44 sm:justify-self-end">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-300/90">{t("footer.explore")}</h3>
+            <div aria-hidden="true" className="mb-4 h-0.5 w-10 rounded-full bg-gradient-to-r from-emerald-400 to-[#a3cb70]" />
+            <ul className="space-y-2.5 text-sm text-[#c0d2c5]">
               {links.map(({ href, key }) => (
                 <li key={key}>
-                  <Link href={href} className="inline-block rounded-sm transition-colors hover:text-[#c2e994] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c2e994]">
-                    {t(key)}
+                  <Link
+                    href={href}
+                    className="group inline-flex items-center gap-2 rounded-md transition-all duration-200 hover:translate-x-1 hover:text-[#c2e994] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2e994]"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/40 transition-colors group-hover:bg-[#c2e994]" aria-hidden="true" />
+                    <span>{t(key)}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
-
-
         </div>
 
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[url('/images/footer-landscape.svg')] bg-[length:100%_100%] bg-no-repeat sm:h-20" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[url('/images/footer-landscape.svg')] bg-[length:100%_100%] bg-no-repeat opacity-40 sm:h-20" />
       </div>
-      <div className="border-t border-white/10 bg-black/10 px-4 py-3 text-center text-xs leading-relaxed text-[#c0d2c5] sm:px-6">
-        <p>{t("footer.copyright")}</p>
+      <div className="border-t border-emerald-900/40 bg-black/30 px-4 py-4 text-xs leading-relaxed text-[#c0d2c5] sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
+          <p>{t("footer.copyright")}</p>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-[#a4bba9]">
+            <span>{t("footer.dataFromNasa")}</span>
+            <span>•</span>
+            <span>BARC & BMD Data Integration</span>
+          </div>
+        </div>
       </div>
     </footer>
   );

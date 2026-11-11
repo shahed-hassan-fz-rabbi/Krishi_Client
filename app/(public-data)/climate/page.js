@@ -11,6 +11,9 @@ import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { fetchTemperature } from "@/services/api.js";
 import { fillClimateText, observedTemperature, rotationLinkForDistrict, summarizeMonthlyTemperature } from "@/lib/climatePlanning.js";
+import RainfallSection from "@/components/climate/RainfallSection.js";
+import SoilMoistureSection from "@/components/climate/SoilMoistureSection.js";
+import VegetationSection from "@/components/climate/VegetationSection.js";
 
 export default function ClimatePage() {
   const { t, locale } = useLang();
@@ -65,7 +68,7 @@ export default function ClimatePage() {
     warmValue: number.format(summary.warmest.value), coolValue: number.format(summary.coolest.value), count: integer.format(summary.monthsAvailable),
   }) : t("climatePlanning.noData");
 
-  return <div className="space-y-7">
+  return <div className="space-y-8">
     <header className="flex flex-wrap items-start justify-between gap-5">
       <div className="max-w-2xl">
         <p className="mb-3 flex items-center gap-2 text-xs font-medium text-muted"><Thermometer className="h-4 w-4 text-emerald" aria-hidden="true" />{t("climatePlanning.source")}</p>
@@ -86,6 +89,17 @@ export default function ClimatePage() {
       </div>
     </header>
 
+    <nav aria-label={locale === "bn" ? "জলবায়ু তথ্যের বিভাগ" : "Climate data sections"} className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      {[
+        { href: "#rainfall", title: locale === "bn" ? "বৃষ্টিপাত" : "Rainfall", detail: "NASA GPM IMERG" },
+        { href: "#soil-moisture", title: locale === "bn" ? "মাটির উপরিভাগের আর্দ্রতা" : "Surface soil moisture", detail: "NASA SMAP" },
+        { href: "#vegetation", title: locale === "bn" ? "ফসলের সবুজত্ব" : "Crop greenness", detail: "NASA MODIS" },
+      ].map((item) => <a key={item.href} href={item.href} className="group rounded-xl border border-line bg-surface p-3 transition-colors hover:border-emerald/40 hover:bg-emerald/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald">
+        <span className="block text-sm font-semibold text-content">{item.title}</span>
+        <span className="mt-1 block text-xs text-muted">{item.detail}</span>
+      </a>)}
+    </nav>
+
     {(isLoading || (!error && dataDistrict !== selectedDistrict)) && <Card><CardBody><LoadingState /></CardBody></Card>}
     {error && !isLoading && <Card><CardBody><ErrorState onRetry={() => loadClimateData(selectedDistrict)} /><p className="mt-3 text-center text-sm text-muted">{t("climatePlanning.loadError")}</p></CardBody></Card>}
 
@@ -104,7 +118,7 @@ export default function ClimatePage() {
         <p className="max-w-3xl text-sm leading-7 text-muted">{t("climatePlanning.readingBody")}</p>
         <div className="grid gap-5 lg:grid-cols-2">
           <Card><CardBody className="flex h-full flex-col"><h3 className="text-base font-semibold text-content">{t("climatePlanning.calendarTitle")}</h3><p className="mb-5 mt-3 flex-1 text-sm leading-7 text-muted">{t("climatePlanning.calendarBody")}</p><Button href="/crop-calendar" variant="outline" className="w-fit">{t("climatePlanning.calendarCta")}</Button></CardBody></Card>
-          <Card><CardBody className="flex h-full flex-col"><h3 className="text-base font-semibold text-content">{t("climatePlanning.waterTitle")}</h3><p className="mb-5 mt-3 flex-1 text-sm leading-7 text-muted">{t("climatePlanning.waterBody")}</p><div className="flex flex-wrap gap-3"><Button href="/rainfall" variant="outline">{t("climatePlanning.rainfallCta")}</Button><Button href="/soil-moisture" variant="outline">{t("climatePlanning.soilCta")}</Button></div></CardBody></Card>
+          <Card><CardBody className="flex h-full flex-col"><h3 className="text-base font-semibold text-content">{t("climatePlanning.waterTitle")}</h3><p className="mb-5 mt-3 flex-1 text-sm leading-7 text-muted">{t("climatePlanning.waterBody")}</p><div className="flex flex-wrap gap-3"><a href="#rainfall" className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-sm font-medium text-content hover:bg-surface-2">{t("climatePlanning.rainfallCta")}</a><a href="#soil-moisture" className="inline-flex min-h-10 items-center rounded-lg border border-line bg-surface px-3 text-sm font-medium text-content hover:bg-surface-2">{t("climatePlanning.soilCta")}</a></div></CardBody></Card>
         </div>
         <div className="rounded-2xl border border-line bg-forest p-5 text-white sm:p-7">
           <h3 className="text-lg font-semibold">{t("climatePlanning.compareTitle")}</h3><p className="mt-3 max-w-3xl text-sm leading-7 text-white/85">{t("climatePlanning.compareBody")}</p>
@@ -129,5 +143,23 @@ export default function ClimatePage() {
         </div>
       </details>
     </>}
+
+    <div className="border-t border-line pt-7">
+      <div className="mb-5 max-w-3xl">
+        <h2 className="text-xl font-bold tracking-tight text-content sm:text-2xl">
+          {locale === "bn" ? "বৃষ্টি, মাটির আর্দ্রতা ও ফসলের সবুজত্ব" : "Rainfall, soil moisture, and crop greenness"}
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          {locale === "bn"
+            ? "একই নির্বাচিত জেলার জন্য উপগ্রহের পর্যবেক্ষণ। এগুলো এলাকার চিত্র, নির্দিষ্ট জমির সরাসরি পরিমাপ নয়।"
+            : "Satellite observations for the selected district. They describe regional conditions, not direct measurements from an individual field."}
+        </p>
+      </div>
+      <div className="space-y-8">
+        <RainfallSection embedded />
+        <SoilMoistureSection embedded />
+        <VegetationSection embedded />
+      </div>
+    </div>
   </div>;
 }

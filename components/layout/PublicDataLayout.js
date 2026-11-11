@@ -7,10 +7,7 @@ import { useAuth } from "@/contexts/AuthContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const dataLinks = [
-  { href: "/climate", key: "publicData.temperature" },
-  { href: "/rainfall", key: "publicData.rainfall" },
-  { href: "/soil-moisture", key: "publicData.soil" },
-  { href: "/vegetation", key: "publicData.vegetation" },
+  { href: "/climate", key: "publicHeader.climateData" },
   { href: "/map", key: "publicData.map" },
   { href: "/crop-calendar", key: "publicData.calendar" },
   { href: "/data-sources", key: "publicData.sources" },

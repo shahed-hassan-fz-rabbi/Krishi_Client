@@ -35,18 +35,29 @@ test("sidebar and mobile navigation mark nested routes active", () => {
   assert.match(bottomNav, /bg-forest text-white/);
 });
 
-test("Climate Data groups the three public intelligence pages in an accessible sidebar disclosure", () => {
+test("Climate Data is a single sidebar destination; specialist data pages are not separate navigation items", () => {
   const sidebar = read("../components/layout/AppSidebar.js");
+  const navigation = read("../lib/nav.js");
+  const publicLayout = read("../components/layout/PublicDataLayout.js");
   const translations = read("../lib/i18n/translations.js");
   assert.match(translations, /climate: "Climate Data"/);
   assert.match(translations, /climate: "জলবায়ু তথ্য"/);
-  assert.match(sidebar, /aria-expanded=\{climateIsExpanded\}/);
-  assert.match(sidebar, /aria-controls=\{climateSubnavId\}/);
+  assert.match(navigation, /href: "\/climate", key: "publicHeader\.climateData"/);
   for (const path of ["/rainfall", "/soil-moisture", "/vegetation"]) {
-    assert.ok(sidebar.includes(`href: "${path}"`));
+    assert.doesNotMatch(navigation, new RegExp(`href: "${path}"`));
+    assert.doesNotMatch(sidebar, new RegExp(`href: "${path}"`));
   }
-  assert.match(sidebar, /setClimateExpanded\(!climateIsExpanded\)/);
-  assert.match(sidebar, /aria-current=\{childActive \? "page" : undefined\}/);
+  assert.match(publicLayout, /href: "\/climate", key: "publicHeader\.climateData"/);
+});
+
+test("Climate Data embeds all three NASA detail sections and old routes redirect into the same page", () => {
+  const climatePage = read("../app/(public-data)/climate/page.js");
+  for (const section of ["RainfallSection", "SoilMoistureSection", "VegetationSection"]) {
+    assert.match(climatePage, new RegExp(`<${section} embedded \/>`));
+  }
+  for (const [route, anchor] of [["rainfall", "rainfall"], ["soil-moisture", "soil-moisture"], ["vegetation", "vegetation"]]) {
+    assert.match(read(`../app/(public-data)/${route}/page.js`), new RegExp(`redirect\\("/climate#${anchor}"\\)`));
+  }
 });
 
 test("mobile drawer locks background scroll and supports keyboard dismissal and focus return", () => {
