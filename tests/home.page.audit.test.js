@@ -84,3 +84,11 @@ test("homepage feature and workflow labels resolve in their landing translation 
   assert.match(page, /t\(`landing\.\$\{s\.titleKey\}`\)/);
   assert.match(page, /t\(`landing\.\$\{s\.descKey\}`\)/);
 });
+
+test("homepage contains verified project mission and NASA earth observation context", () => {
+  const page = read("../app/page.js");
+  assert.ok(page.includes('id="about"'));
+  assert.match(page, /Evidence-Based Decision Support|প্রমাণভিত্তিক সিদ্ধান্ত গ্রহণ/);
+  assert.match(page, /NASA Earth observation/);
+  assert.match(page, /POWER, SMAP, MODIS, GPM/);
+});

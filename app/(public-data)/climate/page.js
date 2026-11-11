@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, CalendarRange, ChevronDown, Info, MapPin, RefreshCw, Thermometer } from "lucide-react";
+import { ArrowRight, CalendarRange, ChevronDown, CloudRain, Droplets, Info, Leaf, MapPin, RefreshCw, Thermometer } from "lucide-react";
 import { TemperatureRangeChart } from "@/components/charts/ClimateMonthlyChart.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
@@ -23,6 +23,8 @@ export default function ClimatePage() {
   const [dataDistrict, setDataDistrict] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [datasetOverview, setDatasetOverview] = useState({});
   const requestId = useRef(0);
   const number = new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-GB", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
   const integer = new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-GB");
@@ -67,6 +69,51 @@ export default function ClimatePage() {
     district: districtName, warmMonths: months(summary.warmest.months), coolMonths: months(summary.coolest.months),
     warmValue: number.format(summary.warmest.value), coolValue: number.format(summary.coolest.value), count: integer.format(summary.monthsAvailable),
   }) : t("climatePlanning.noData");
+  const reportDatasetOverview = useCallback((dataset, payload) => {
+    setDatasetOverview((current) => ({ ...current, [dataset]: payload }));
+  }, []);
+  const refreshAllData = () => {
+    setRefreshToken((current) => current + 1);
+    loadClimateData(selectedDistrict);
+  };
+  const overviewCards = [
+    {
+      key: "power", icon: Thermometer, accent: "text-amber-700 bg-amber-500/10",
+      title: locale === "bn" ? "এলাকার জলবায়ুর ইতিহাস" : "Area climate history",
+      source: "NASA POWER · Historical",
+      value: summary.warmest ? `${number.format(summary.warmest.value)} °C` : "—",
+      detail: summary.warmest ? `${locale === "bn" ? "তুলনামূলক উষ্ণ মাস" : "Warmest monthly average"}: ${months(summary.warmest.months)}` : (locale === "bn" ? "তথ্য পাওয়া যায়নি" : "No available observation"),
+      date: summary.monthsAvailable ? (metaData?.from && metaData?.to ? `${metaData.from} – ${metaData.to}` : (locale === "bn" ? "ঐতিহাসিক উপাত্ত" : "Historical record")) : "—",
+      href: "#power",
+    },
+    {
+      key: "gpm", icon: CloudRain, accent: "text-sky-700 bg-sky-500/10",
+      title: locale === "bn" ? "বৃষ্টিপাত" : "Rainfall",
+      source: "NASA GPM IMERG Final V07",
+      value: datasetOverview.gpm?.districtCode === selectedDistrict && datasetOverview.gpm?.complete ? `${number.format(datasetOverview.gpm.value)} mm` : "—",
+      detail: datasetOverview.gpm?.districtCode !== selectedDistrict ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.gpm?.complete ? (locale === "bn" ? "৪৮টির ৪৮টি সময়-খণ্ড যাচাই করা" : "All 48 half-hour intervals validated") : (locale === "bn" ? "সম্পূর্ণ দৈনিক মোট পাওয়া যায়নি" : "No complete daily total available"),
+      date: datasetOverview.gpm?.districtCode === selectedDistrict ? datasetOverview.gpm?.date || "—" : "—",
+      href: "#rainfall",
+    },
+    {
+      key: "smap", icon: Droplets, accent: "text-blue-700 bg-blue-500/10",
+      title: locale === "bn" ? "মাটির উপরিভাগের আর্দ্রতা" : "Surface soil moisture",
+      source: "NASA SMAP SPL3SMP_E V006",
+      value: datasetOverview.smap?.districtCode === selectedDistrict && datasetOverview.smap?.recommended ? `${number.format(datasetOverview.smap.value)} m³/m³` : "—",
+      detail: datasetOverview.smap?.districtCode !== selectedDistrict ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.smap?.recommended ? (locale === "bn" ? `মানের ফ্ল্যাগ ${datasetOverview.smap.flag} · সুপারিশকৃত` : `Quality flag ${datasetOverview.smap.flag} · recommended`) : (locale === "bn" ? "সুপারিশকৃত মান পাওয়া যায়নি" : "No recommended-quality value available"),
+      date: datasetOverview.smap?.districtCode === selectedDistrict ? datasetOverview.smap?.date || "—" : "—",
+      href: "#soil-moisture",
+    },
+    {
+      key: "modis", icon: Leaf, accent: "text-emerald-700 bg-emerald-500/10",
+      title: locale === "bn" ? "ফসলের সবুজত্বের সূচক" : "Vegetation greenness index",
+      source: "NASA MODIS MOD13Q1.061",
+      value: datasetOverview.modis?.districtCode === selectedDistrict && datasetOverview.modis?.reliable ? `NDVI ${number.format(datasetOverview.modis.ndvi)}` : "—",
+      detail: datasetOverview.modis?.districtCode !== selectedDistrict ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.modis?.reliable ? (locale === "bn" ? `নির্ভরযোগ্য পিক্সেল · EVI ${number.format(datasetOverview.modis.evi)}` : `Good-quality pixel · EVI ${number.format(datasetOverview.modis.evi)}`) : (locale === "bn" ? "নির্ভরযোগ্য মান পাওয়া যায়নি" : "No good-quality value available"),
+      date: datasetOverview.modis?.districtCode === selectedDistrict ? datasetOverview.modis?.date || "—" : "—",
+      href: "#vegetation",
+    },
+  ];
 
   return <div className="space-y-8">
     <header className="flex flex-wrap items-start justify-between gap-5">
@@ -83,28 +130,32 @@ export default function ClimatePage() {
             {districts.map((d) => <option key={d.code} value={d.code} className="bg-surface text-content">{locale === "bn" ? d.nameBn || d.nameEn : d.nameEn}</option>)}
           </select><ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-muted" aria-hidden="true" />
         </label>
-        <button type="button" onClick={() => loadClimateData(selectedDistrict)} disabled={isLoading} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm text-content transition-colors hover:bg-surface-2 disabled:opacity-50">
+        <button type="button" onClick={refreshAllData} disabled={isLoading} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm text-content transition-colors hover:bg-surface-2 disabled:opacity-50">
           <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} aria-hidden="true" />{t("dashboard.refresh")}
         </button>
       </div>
     </header>
 
-    <nav aria-label={locale === "bn" ? "জলবায়ু তথ্যের বিভাগ" : "Climate data sections"} className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-      {[
-        { href: "#rainfall", title: locale === "bn" ? "বৃষ্টিপাত" : "Rainfall", detail: "NASA GPM IMERG" },
-        { href: "#soil-moisture", title: locale === "bn" ? "মাটির উপরিভাগের আর্দ্রতা" : "Surface soil moisture", detail: "NASA SMAP" },
-        { href: "#vegetation", title: locale === "bn" ? "ফসলের সবুজত্ব" : "Crop greenness", detail: "NASA MODIS" },
-      ].map((item) => <a key={item.href} href={item.href} className="group rounded-xl border border-line bg-surface p-3 transition-colors hover:border-emerald/40 hover:bg-emerald/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald">
-        <span className="block text-sm font-semibold text-content">{item.title}</span>
-        <span className="mt-1 block text-xs text-muted">{item.detail}</span>
-      </a>)}
-    </nav>
+    <section aria-label={locale === "bn" ? "নির্বাচিত এলাকার NASA তথ্য" : "NASA data for the selected area"} className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div><h2 className="text-lg font-semibold text-content">{locale === "bn" ? `${districtName} এলাকার তথ্য এক নজরে` : `${districtName} at a glance`}</h2><p className="mt-1 text-sm text-muted">{locale === "bn" ? "প্রতিটি মানের পাশে পর্যবেক্ষণের তারিখ ও মান-যাচাই দেখুন। ফাঁকা মান শূন্য নয়।" : "Check each observation date and quality note. An unavailable value does not mean zero."}</p></div>
+        <span className="text-xs text-muted">{locale === "bn" ? "জেলা-ভিত্তিক উপগ্রহ/ঐতিহাসিক তথ্য; জমির সরাসরি পরিমাপ নয়" : "District-level satellite or historical data, not a direct field measurement"}</span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {overviewCards.map(({ key, icon: Icon, accent, title, source, value, detail, date, href }) => <a key={key} href={href} className="group min-w-0 rounded-2xl border border-line bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald">
+          <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-content">{title}</p><p className="mt-1 truncate text-[11px] text-muted">{source}</p></div><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accent}`}><Icon className="h-4 w-4" aria-hidden="true" /></span></div>
+          <p className="mt-4 truncate text-2xl font-semibold tracking-tight text-content" title={value}>{value}</p>
+          <p className="mt-1 min-h-10 text-xs leading-5 text-muted">{detail}</p>
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3 text-[11px] text-muted"><span>{locale === "bn" ? "পর্যবেক্ষণ" : "Observed"}</span><span className="truncate font-medium text-content">{date}</span></div>
+        </a>)}
+      </div>
+    </section>
 
     {(isLoading || (!error && dataDistrict !== selectedDistrict)) && <Card><CardBody><LoadingState /></CardBody></Card>}
     {error && !isLoading && <Card><CardBody><ErrorState onRetry={() => loadClimateData(selectedDistrict)} /><p className="mt-3 text-center text-sm text-muted">{t("climatePlanning.loadError")}</p></CardBody></Card>}
 
     {!isLoading && !error && tempData && dataDistrict === selectedDistrict && <>
-      <section aria-labelledby="climate-summary" className="rounded-2xl border border-emerald/20 bg-emerald/5 p-5 sm:p-7">
+      <section id="power" aria-labelledby="climate-summary" className="scroll-mt-24 rounded-2xl border border-emerald/20 bg-emerald/5 p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="climate-summary" className="text-xl font-semibold text-content">{t("climatePlanning.snapshotTitle")}</h2><p className="flex items-center gap-2 text-xs text-muted"><CalendarRange className="h-4 w-4" aria-hidden="true" />{t("climatePlanning.period")}</p></div>
         <p className="mt-4 max-w-4xl text-base leading-8 text-content">{summaryText}</p>
         <dl className="mt-6 grid gap-4 md:grid-cols-3">
@@ -156,9 +207,9 @@ export default function ClimatePage() {
         </p>
       </div>
       <div className="space-y-8">
-        <RainfallSection embedded />
-        <SoilMoistureSection embedded />
-        <VegetationSection embedded />
+        <RainfallSection embedded refreshToken={refreshToken} onOverview={reportDatasetOverview} />
+        <SoilMoistureSection embedded refreshToken={refreshToken} onOverview={reportDatasetOverview} />
+        <VegetationSection embedded refreshToken={refreshToken} onOverview={reportDatasetOverview} />
       </div>
     </div>
   </div>;

@@ -32,7 +32,7 @@ const MONTH_NAMES_BN = [
   "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
 ];
 
-export default function RainfallSection({ embedded = false }) {
+export default function RainfallSection({ embedded = false, refreshToken = 0, onOverview }) {
   const { t, locale } = useLang();
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } = useLocation();
 
@@ -50,6 +50,10 @@ export default function RainfallSection({ embedded = false }) {
     latestDistrictRef.current = districtCode;
     setIsLoading(true);
     setError(null);
+    setMonthlyData(null);
+    setSeasonalData(null);
+    setGpmData(null);
+    onOverview?.("gpm", { districtCode, status: "loading", complete: false, value: null, date: null });
     try {
       const [mRes, sRes, gRes] = await Promise.all([
         fetchRainfall(districtCode, { grouping: "monthly" }),
@@ -69,9 +73,20 @@ export default function RainfallSection({ embedded = false }) {
       if (sRes.success && sRes.data) {
         setSeasonalData(sRes.data);
       }
-      setGpmData(gRes?.success && gRes.data ? { ...gRes.data, meta: gRes.meta } : null);
+      const nextGpmData = gRes?.success && gRes.data ? { ...gRes.data, meta: gRes.meta } : null;
+      setGpmData(nextGpmData);
+      const daily = nextGpmData?.latestDailySummary;
+      const complete = daily?.completeness === "complete" && daily?.validIntervals === 48 && Number.isFinite(daily?.totalPrecipitationMm);
+      onOverview?.("gpm", {
+        districtCode,
+        status: nextGpmData ? (complete ? "complete" : "incomplete") : "unavailable",
+        complete,
+        value: complete ? daily.totalPrecipitationMm : null,
+        date: daily?.dateLabel || null,
+      });
     } catch (err) {
       if (latestDistrictRef.current === districtCode) {
+        onOverview?.("gpm", { districtCode, status: "unavailable", complete: false, value: null, date: null });
         setError(err.message || "Failed to load rainfall intelligence");
       }
     } finally {
@@ -79,14 +94,14 @@ export default function RainfallSection({ embedded = false }) {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [onOverview]);
 
   useEffect(() => {
     if (selectedDistrict) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       loadRainfallData(selectedDistrict);
     }
-  }, [selectedDistrict, loadRainfallData]);
+  }, [selectedDistrict, refreshToken, loadRainfallData]);
 
   // Transform monthly normals for chart and table
   const chartSeries = [];

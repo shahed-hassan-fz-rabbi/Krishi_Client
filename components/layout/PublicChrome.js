@@ -58,12 +58,7 @@ export function PublicHeader() {
     if (href === "/climate") return ["/climate", "/rainfall", "/soil-moisture", "/vegetation", "/map", "/crop-calendar", "/data-sources"].includes(pathname);
     return pathname === href || pathname?.startsWith(`${href}/`);
   };
-  const navClass = (href) =>
-    `rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${
-      isActive(href)
-        ? "bg-emerald text-white shadow-km-sm hover:bg-emerald-strong"
-        : "text-content/85 hover:bg-surface-2 hover:text-content"
-    }`;
+  const navClass = (href) => `rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${isActive(href) ? "bg-[#14532d] text-white hover:bg-[#14532d]" : "text-content hover:bg-surface-2"}`;
   const handleNavClick = (event, href) => {
     setOpen(false);
     if (pathname === "/" && href.startsWith("/#") && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {

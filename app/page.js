@@ -523,6 +523,11 @@ export default function LandingPage() {
                   <p className="mt-3 text-base text-content sm:text-lg leading-relaxed">
                     {t("landing.sectionAboutBody")}
                   </p>
+                  <p className="mt-3 text-sm text-muted leading-relaxed">
+                    {locale === "bn"
+                      ? "কৃষি মামা নাসা আর্থ অবজারভেশন ডেটা (POWER, SMAP, MODIS, GPM) এবং কৃষি সম্প্রসারণ অধিদপ্তর (DAE) ও বিএএমআইএস-এর শস্য বর্ষপঞ্জি সমন্বয় করে প্রতিটি মৌসুমে কৃষকের নিজস্ব খামারের জন্য বাস্তবসম্মত ও যাচাইকৃত জলবায়ু তথ্য উপস্থাপন করে।"
+                      : "Krishi Mama bridges NASA Earth observation satellites directly with Bangladeshi farming communities. By synthesizing multi-decade meteorological reanalysis from NASA POWER, soil moisture from SMAP, and vegetation health indices from MODIS with DAE crop calendars, we provide verified, evidence-backed agricultural intelligence."}
+                  </p>
                   <div className="mt-6 flex flex-wrap items-center gap-4">
                     <Button href="/dashboard" size="lg">
                       {t("landing.heroCta")}
