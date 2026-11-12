@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { fetchDistricts } from "../services/api.js";
 import { useAuth } from "./AuthContext.js";
+import { getProjectDistricts, resolveProjectDistrictCode } from "../lib/districtGeography.js";
 
 const DISTRICT_STORAGE_KEY = "km-selected-district";
 
@@ -66,9 +67,13 @@ export function LocationProvider({ children }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(DISTRICT_STORAGE_KEY);
-      if (stored) {
+      if (stored && resolveProjectDistrictCode(stored, DEFAULT_DISTRICTS) === stored) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedDistrictState(stored);
+      } else if (stored) {
+        const supportedDefault = resolveProjectDistrictCode(null, DEFAULT_DISTRICTS);
+        setSelectedDistrictState(supportedDefault);
+        localStorage.setItem(DISTRICT_STORAGE_KEY, supportedDefault);
       }
     } catch {
       /* ignore storage access error */
@@ -94,16 +99,19 @@ export function LocationProvider({ children }) {
     async function loadDistricts() {
       setIsLoadingDistricts(true);
       const res = await fetchDistricts();
-      if (active && res.success && Array.isArray(res.data) && res.data.length > 0) {
-        setDistricts(res.data);
-        const def = res.data.find((d) => d.isDefault)?.code || res.data[0].code;
+      const supportedDistricts = getProjectDistricts(res?.data);
+      if (active && res?.success && supportedDistricts.length > 0) {
+        setDistricts(supportedDistricts);
+        const def = resolveProjectDistrictCode(null, supportedDistricts);
         try {
           const stored = localStorage.getItem(DISTRICT_STORAGE_KEY);
-          if (!stored && !user?.preferredDistrict) {
-            setSelectedDistrictState(def);
+          const selected = resolveProjectDistrictCode(user?.preferredDistrict || stored, supportedDistricts) || def;
+          if (selected !== stored && !user?.preferredDistrict) {
+            localStorage.setItem(DISTRICT_STORAGE_KEY, selected);
           }
+          if (selected !== stored) setSelectedDistrictState(selected);
         } catch {
-          /* ignore */
+          if (!user?.preferredDistrict) setSelectedDistrictState(def);
         }
       }
       if (active) setIsLoadingDistricts(false);
@@ -115,6 +123,7 @@ export function LocationProvider({ children }) {
   }, [user?.preferredDistrict]);
 
   const setSelectedDistrict = useCallback((code) => {
+    if (!getProjectDistricts(districts).some((district) => district.code === code)) return;
     setSelectedDistrictState(code);
     try {
       localStorage.setItem(DISTRICT_STORAGE_KEY, code);
@@ -125,7 +134,7 @@ export function LocationProvider({ children }) {
     if (user) {
       updateProfile({ preferredDistrict: code }).catch(() => {});
     }
-  }, [user, updateProfile]);
+  }, [user, updateProfile, districts]);
 
   const currentDistrictObj =
     districts.find((d) => d.code === selectedDistrict) ||

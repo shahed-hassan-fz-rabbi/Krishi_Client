@@ -85,10 +85,89 @@ test("homepage feature and workflow labels resolve in their landing translation 
   assert.match(page, /t\(`landing\.\$\{s\.descKey\}`\)/);
 });
 
-test("homepage contains verified project mission and NASA earth observation context", () => {
+test("homepage About scope and NASA claims are accurate in English and Bangla", () => {
   const page = read("../app/page.js");
+  const layout = read("../app/layout.js");
   assert.ok(page.includes('id="about"'));
   assert.match(page, /Evidence-Based Decision Support|প্রমাণভিত্তিক সিদ্ধান্ত গ্রহণ/);
-  assert.match(page, /NASA Earth observation/);
-  assert.match(page, /POWER, SMAP, MODIS, GPM/);
+  assert.match(page, /Our current work focuses on Cumilla and Chattogram/);
+  assert.match(page, /বর্তমানে আমাদের কাজ কুমিল্লা ও চট্টগ্রামকে কেন্দ্র করে/);
+  assert.match(layout, /currently focused on Cumilla and Chattogram/);
+  assert.doesNotMatch(layout, /starting with Chattogram/);
+
+  for (const locale of ["en", "bn"]) {
+    const landing = translations[locale].landing;
+    assert.match(landing.aboutSubtitle, /Cumilla.*Chattogram|কুমিল্লা.*চট্টগ্রাম/);
+    assert.match(landing.sectionAboutBody, /Cumilla.*Chattogram|কুমিল্লা.*চট্টগ্রাম/);
+    assert.match(landing.aboutPillar1Desc, /POWER|পাওয়ার/);
+    assert.match(landing.aboutPillar1Desc, /GPM|জিপিএম/);
+    assert.match(landing.aboutPillar1Desc, /SMAP|স্ম্যাপ/);
+    assert.match(landing.aboutPillar1Desc, /MODIS|মডিস/);
+    assert.match(landing.aboutPillar3Desc, /quality|missing|গুণমান|অনুপস্থিত/i);
+    const aboutCopy = Object.entries(landing)
+      .filter(([key]) => key.startsWith("about") || key === "sectionAboutBody")
+      .map(([, value]) => value)
+      .filter((value) => typeof value === "string")
+      .join(" ");
+    assert.doesNotMatch(aboutCopy, /25\+|২৫\+|9,131\+|৯,১৩১\+|100%|১০০%/);
+  }
+});
+
+test("How Krishi Mama Works presents an accurate 4-step decision support path", () => {
+  const page = read("../app/page.js");
+  const start = page.indexOf('id="how-it-works"');
+  const end = page.indexOf('id="data"', start);
+  assert.ok(start >= 0 && end > start, "How section is present before the NASA data section");
+  const section = page.slice(start, end);
+  assert.match(section, /aria-labelledby="how-it-works-title"/);
+  assert.match(section, /<ol className=.*sm:grid-cols-2.*lg:grid-cols-4/);
+  assert.match(section, /href="\/climate"/);
+  assert.match(section, /href="\/crop-rotation"/);
+
+  for (const locale of ["en", "bn"]) {
+    const landing = translations[locale].landing;
+    for (const key of [
+      "howKicker",
+      "howStepLabel",
+      "sectionHow",
+      "sectionHowSub",
+      "step1Title",
+      "step1Desc",
+      "step2Title",
+      "step2Desc",
+      "step3Title",
+      "step3Desc",
+      "step4Title",
+      "step4Desc",
+      "step5Title",
+      "step5Desc",
+      "howClimateCta",
+      "howCtaPlan",
+    ]) {
+      assert.equal(typeof landing[key], "string", `${locale}.landing.${key}`);
+      assert.ok(landing[key].length > 0, `${locale}.landing.${key}`);
+    }
+  }
+
+  assert.match(translations.en.landing.step1Desc, /Cumilla and Chattogram|Cumilla or Chattogram/);
+  assert.match(translations.en.landing.step2Desc, /POWER/);
+  assert.match(translations.en.landing.step2Desc, /GPM/);
+  assert.match(translations.en.landing.step2Desc, /SMAP/);
+  assert.match(translations.en.landing.step2Desc, /MODIS/);
+  assert.match(translations.en.landing.step3Desc, /crop calendar|DAE/i);
+  assert.match(translations.en.landing.step4Desc, /Crop Rotation|Sowing|Assistant/i);
+  assert.match(translations.en.landing.step5Desc, /never false promises|guaranteed crop yields|decision-support/i);
+  assert.match(translations.en.landing.step1Desc, /without signing in/);
+  assert.match(translations.en.landing.step2Desc, /quality checks/);
+  assert.match(translations.en.landing.step2Desc, /stays unavailable/);
+  assert.doesNotMatch(translations.en.landing.step1Desc, /ground-verified/i);
+  assert.doesNotMatch(translations.en.landing.step3Desc, /calibrated|guaranteed/i);
+
+  assert.match(translations.bn.landing.step1Desc, /কুমিল্লা ও চট্টগ্রাম|কুমিল্লা বা চট্টগ্রাম/);
+  assert.match(translations.bn.landing.step1Desc, /লগইন ছাড়াই/);
+  assert.match(translations.bn.landing.step2Desc, /POWER|জিপিএম|স্ম্যাপ|মডিস/);
+  assert.match(translations.bn.landing.step2Desc, /গুণমান যাচাই/);
+  assert.match(translations.bn.landing.step2Desc, /অনুপলব্ধ থাকে/);
+  assert.doesNotMatch(translations.bn.landing.step2Desc, /নাসার অনুমোদিত/);
+  assert.match(translations.bn.landing.step5Desc, /ফলন নিশ্চয়তা|গ্যারান্টি/);
 });

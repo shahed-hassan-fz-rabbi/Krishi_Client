@@ -45,10 +45,10 @@ const powerDataset = {
 };
 
 const steps = [
-  { n: "1", icon: MapPin, titleKey: "step1Title", descKey: "step1Desc" },
-  { n: "2", icon: Database, titleKey: "step2Title", descKey: "step2Desc" },
-  { n: "3", icon: BarChart3, titleKey: "step3Title", descKey: "step3Desc" },
-  { n: "4", icon: Sprout, titleKey: "step4Title", descKey: "step4Desc" },
+  { n: "01", icon: MapPin, titleKey: "step1Title", descKey: "step1Desc" },
+  { n: "02", icon: Satellite, titleKey: "step2Title", descKey: "step2Desc" },
+  { n: "03", icon: Layers, titleKey: "step3Title", descKey: "step3Desc" },
+  { n: "04", icon: Sprout, titleKey: "step4Title", descKey: "step4Desc" },
 ];
 
 export default function LandingPage() {
@@ -201,21 +201,68 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="how-it-works" className="scroll-mt-20 border-t border-line bg-surface-2/40 px-4 py-16 sm:px-6 sm:py-20">
+        <section id="how-it-works" aria-labelledby="how-it-works-title" className="scroll-mt-20 border-t border-line bg-surface-2/40 px-4 py-16 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-6xl">
-            <h2 className="text-center text-3xl font-bold text-content sm:text-4xl">{t("landing.sectionHow")}</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-center leading-7 text-muted">{t("landing.sectionHowSub")}</p>
-            <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {steps.map((s) => <li key={s.n} className="rounded-2xl border border-line bg-surface p-6">
-                <div className="flex items-center justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald text-sm font-semibold text-white">{s.n}</span><s.icon className="h-6 w-6 text-emerald" aria-hidden="true" /></div>
-                <h3 className="mt-5 text-lg font-semibold text-content">{t(`landing.${s.titleKey}`)}</h3>
-                <p className="mt-3 text-sm leading-7 text-muted">{t(`landing.${s.descKey}`)}</p>
-              </li>)}
+            <div className="mx-auto max-w-3xl text-center">
+              <Badge tone="emerald" className="mb-4 uppercase tracking-wider text-[11px] font-bold">
+                {t("landing.howKicker")}
+              </Badge>
+              <h2 id="how-it-works-title" className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
+                {t("landing.sectionHow")}
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted sm:text-lg">
+                {t("landing.sectionHowSub")}
+              </p>
+            </div>
+
+            <ol className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4" aria-label={t("landing.sectionHow")}>
+              {steps.map((s) => (
+                <li
+                  key={s.n}
+                  className="group relative flex h-full flex-col justify-between rounded-2xl border border-line bg-surface p-6 shadow-sm transition-all duration-300 hover:border-emerald/40 hover:shadow-km-md dark:bg-surface-card"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold tracking-widest text-emerald uppercase font-mono">
+                        {t("landing.howStepLabel")} {s.n}
+                      </span>
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald/10 text-emerald dark:bg-emerald/15 transition-transform duration-300 group-hover:scale-105">
+                        <s.icon className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
+                      </div>
+                    </div>
+
+                    <h3 className="mt-5 text-lg font-bold text-content tracking-tight leading-snug">
+                      {t(`landing.${s.titleKey}`)}
+                    </h3>
+                    <p className="mt-2.5 text-sm text-muted leading-relaxed">
+                      {t(`landing.${s.descKey}`)}
+                    </p>
+                  </div>
+                </li>
+              ))}
             </ol>
-            <div className="mt-8 rounded-2xl border border-line bg-surface p-6 sm:p-8">
-              <h3 className="text-xl font-semibold text-content">{t("rotation.assistantTitle")}</h3>
-              <p className="mt-3 max-w-3xl leading-7 text-muted">{t("rotation.assistantBody")}</p>
-              <Button href="/crop-rotation" variant="outline" className="mt-5">{t("access.demo")}</Button>
+
+            {/* Implemented Decision Support & Action Card */}
+            <div className="mt-10 rounded-2xl border border-line bg-surface p-6 shadow-sm dark:bg-surface-card sm:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-2xl">
+                  <h3 className="text-xl font-bold text-content sm:text-2xl">
+                    {t("landing.howCtaTitle")}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
+                    {t("landing.howCtaBody")}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-3">
+                  <Button href="/climate" variant="outline" size="md">
+                    {t("landing.howClimateCta")}
+                  </Button>
+                  <Button href="/crop-rotation" size="md">
+                    {t("landing.howCtaPlan")}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -500,8 +547,8 @@ export default function LandingPage() {
                   </p>
                   <p className="mt-3 text-sm text-muted leading-relaxed">
                     {locale === "bn"
-                      ? "কৃষি মামা নাসা আর্থ অবজারভেশন ডেটা (POWER, SMAP, MODIS, GPM) এবং কৃষি সম্প্রসারণ অধিদপ্তর (DAE) ও বিএএমআইএস-এর শস্য বর্ষপঞ্জি সমন্বয় করে প্রতিটি মৌসুমে কৃষকের নিজস্ব খামারের জন্য বাস্তবসম্মত ও যাচাইকৃত জলবায়ু তথ্য উপস্থাপন করে।"
-                      : "Krishi Mama bridges NASA Earth observation satellites directly with Bangladeshi farming communities. By synthesizing multi-decade meteorological reanalysis from NASA POWER, soil moisture from SMAP, and vegetation health indices from MODIS with DAE crop calendars, we provide verified, evidence-backed agricultural intelligence."}
+                      ? "বর্তমানে আমাদের কাজ কুমিল্লা ও চট্টগ্রামকে কেন্দ্র করে। বাকি জেলাগুলোর সীমানা ও ডেটা যাচাই করে ভবিষ্যতে কভারেজ বাড়ানোর পরিকল্পনা রয়েছে।"
+                      : "Our current work focuses on Cumilla and Chattogram. We plan to expand to other districts after their boundaries and data coverage are verified."}
                   </p>
                   <div className="mt-6 flex flex-wrap items-center gap-4">
                     <Button href="/dashboard" size="lg">
@@ -519,19 +566,19 @@ export default function LandingPage() {
                   <div className="flex items-start gap-3">
                     <Globe className="h-5 w-5 text-emerald shrink-0 mt-0.5" />
                     <span className="text-sm font-medium text-content">
-                      {locale === "bn" ? "নাসা পাওয়ার ও আর্থ অবজারভেশন সরাসরি যুক্ত" : "Direct NASA Earth Observation integration"}
+                      {locale === "bn" ? "বৈধ পর্যবেক্ষণ থাকলে নাসা ডেটা দেখানো হয়" : "NASA observations are shown when valid data is available"}
                     </span>
                   </div>
                   <div className="flex items-start gap-3">
                     <Sprout className="h-5 w-5 text-emerald shrink-0 mt-0.5" />
                     <span className="text-sm font-medium text-content">
-                      {locale === "bn" ? "ডিএই ও বিএএমআইএস সরকারি শস্য ক্যালেন্ডার" : "DAE & BAMIS national crop calendar alignment"}
+                      {locale === "bn" ? "শস্য বর্ষপঞ্জি সহায়ক প্রেক্ষাপট দেয়" : "Crop calendars provide supporting context"}
                     </span>
                   </div>
                   <div className="flex items-start gap-3">
                     <ShieldCheck className="h-5 w-5 text-emerald shrink-0 mt-0.5" />
                     <span className="text-sm font-medium text-content">
-                      {locale === "bn" ? "১০০% সত্যতা — কোনো ভিত্তিহীন পূর্বাভাস নয়" : "100% Integrity — no unverified weather forecasts"}
+                      {locale === "bn" ? "অনুপস্থিত বা নিম্নমানের তথ্যকে বৈধ দেখানো হয় না" : "Missing or low-quality data is not presented as valid"}
                     </span>
                   </div>
                 </div>
@@ -620,7 +667,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="text-center pt-4 lg:pt-0 lg:pl-6">
-                  <div className="text-3xl font-extrabold text-amber-strong sm:text-4xl">
+                  <div className="text-3xl font-extrabold text-amber-strong sm:text-4xl whitespace-nowrap">
                     {t("landing.aboutStat4Value")}
                   </div>
                   <div className="mt-1 text-xs sm:text-sm font-medium text-muted">

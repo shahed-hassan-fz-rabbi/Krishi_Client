@@ -114,6 +114,17 @@ test("four NASA cards use the live summary shape, district coverage, quality cou
   assert.doesNotMatch(source, /25-Yr Normal|২৫ বছরের গড়|intervals \(7d\)/);
 });
 
+test("Dashboard explains stored SMAP records that fail quality without treating them as zero", async () => {
+  const source = await readFile(new URL("../components/dashboard/EnvironmentalIntelligenceCards.js", import.meta.url), "utf8");
+  assert.match(source, /smapTotalStoredCount > 0 && smapValidCount === 0/);
+  assert.match(source, /did not pass the recommended quality check/);
+  assert.match(source, /এটি শূন্য আর্দ্রতা নয়/);
+  assert.match(source, /Quality filtered/);
+  assert.match(source, /Data Withheld/);
+  assert.match(source, /Stored observations did not pass the quality gate/);
+  assert.match(source, /card\.metric\.unavailableNote/);
+});
+
 test("dataset cards keep the responsive multi-column and wide-desktop layout restrained", async () => {
   const source = await readFile(new URL("../components/dashboard/EnvironmentalIntelligenceCards.js", import.meta.url), "utf8");
   assert.match(source, /grid.*items-stretch.*(?:sm|md):grid-cols-2/);

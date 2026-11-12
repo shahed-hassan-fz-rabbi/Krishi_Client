@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { isPrivatePath, isPublicDataPath, safeReturnTo } from "../lib/access.js";
 import { translations } from "../lib/i18n/translations.js";
 import { compareCropRotations, previewCropRotations, saveRotationPlan } from "../services/api.js";
@@ -42,6 +45,43 @@ test("comparison and saving call separate private endpoints with session credent
     assert.equal(calls[0].options.credentials, "include");
     assert.deepEqual(JSON.parse(calls[0].options.body), input);
   } finally { global.fetch = original; }
+});
+
+test("guest and signed-in rotation routes share the same farmer-facing planner overview", async () => {
+  const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+  const [planner, publicRoute, privateRoute] = await Promise.all([
+    readFile(path.join(root, "components/RotationPlanner.js"), "utf8"),
+    readFile(path.join(root, "app/crop-rotation/page.js"), "utf8"),
+    readFile(path.join(root, "app/(app)/rotation-planner/page.js"), "utf8"),
+  ]);
+  assert.match(planner, /<RotationOverview publicMode=\{publicMode\} \/>/);
+  assert.match(publicRoute, /<RotationPlanner publicMode initialDistrict=\{district\}/);
+  assert.match(privateRoute, /<PrivateAccess>/);
+  assert.match(privateRoute, /<RotationPlanner key=/);
+  assert.doesNotMatch(publicRoute, /fetchFarms|fetchRotationPlans|saveRotationPlan/);
+});
+
+test("public rotation preview never loads private farm data and uses the selected district", async () => {
+  const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+  const [planner, privateRoute] = await Promise.all([
+    readFile(path.join(root, "components/RotationPlanner.js"), "utf8"),
+    readFile(path.join(root, "app/(app)/rotation-planner/page.js"), "utf8"),
+  ]);
+  assert.match(planner, /if \(publicMode\) return;[\s\S]*?Promise\.all\(\[fetchFarms\(\), fetchRotationPlans\(\)\]\)/);
+  assert.match(planner, /const \{ selectedDistrict \} = useLocation\(\)/);
+  assert.match(planner, /districtCode: startingDistrict/);
+  assert.match(privateRoute, /\$\{selectedDistrict\}/);
+  assert.match(planner, /publicMode \? previewCropRotations : compareCropRotations/);
+});
+
+test("rotation overview uses the existing homepage hero image with a neutral readable overlay", async () => {
+  const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+  const overview = await readFile(path.join(root, "components/RotationOverview.js"), "utf8");
+  assert.match(overview, /from "next\/image"/);
+  assert.match(overview, /src="\/images\/hero\.png"/);
+  assert.match(overview, /from-slate-950\/75[\s\S]*to-amber-950\/20/);
+  assert.match(overview, /dark:bg-slate-950\/85/);
+  assert.doesNotMatch(overview, /bg-gradient-to-br from-forest to-forest/);
 });
 
 

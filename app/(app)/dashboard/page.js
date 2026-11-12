@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -20,6 +19,7 @@ import {
 
 import { ClimateMonthlyChart } from "@/components/charts/ClimateMonthlyChart.js";
 import EnvironmentalIntelligenceCards from "@/components/dashboard/EnvironmentalIntelligenceCards.js";
+import DistrictLocationPanel from "@/components/dashboard/DistrictLocationPanel.js";
 import WeatherIntelligenceSection from "@/components/dashboard/WeatherIntelligenceSection.js";
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
@@ -34,17 +34,14 @@ import {
   responseBelongsToDistrict,
   isSupportedPowerProvenance,
 } from "@/lib/dashboardData.js";
+import { getProjectDistricts, isProjectDistrictCode } from "@/lib/districtGeography.js";
 import {
   fetchClimateSummary,
   fetchEnvironmentalDataSources,
-  fetchDivisionIntelligence,
-  fetchDivisions,
   fetchPrecipitationLatest,
   fetchSoilMoistureLatest,
   fetchVegetationLatest,
 } from "@/services/api.js";
-
-const DivisionPanel = dynamic(() => import("@/components/dashboard/DivisionIntelligencePanel.js"), { ssr: false });
 
 const MONTH_NAMES_EN = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -72,22 +69,7 @@ export default function DashboardPage() {
   const [error, setError] = useState(null);
   const [environmentalSources, setEnvironmentalSources] = useState([]);
   const [latestEnvironmental, setLatestEnvironmental] = useState({ district: null, loaded: false, gpm: null, smap: null, modis: null });
-  const [divisionList, setDivisionList] = useState([]);
-  const [selectedDivision, setSelectedDivision] = useState("chattogram");
-  const [divisionData, setDivisionData] = useState(null);
-  const [divisionError, setDivisionError] = useState(false);
-  const [divisionLoading, setDivisionLoading] = useState(true);
   const latestDistrictRef = useRef(selectedDistrict);
-
-  useEffect(() => {
-    let active = true;
-    fetchDivisions().then((response) => {
-      if (!active || !response?.success || !Array.isArray(response.data)) return;
-      setDivisionList(response.data);
-      if (response.data.some((division) => division.code === "chattogram")) setSelectedDivision("chattogram");
-    }).catch(() => {});
-    return () => { active = false; };
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -107,21 +89,8 @@ export default function DashboardPage() {
     return () => { active = false; };
   }, [selectedDistrict]);
 
-  useEffect(() => {
-    let active = true;
-    fetchDivisionIntelligence(selectedDivision).then((response) => {
-      if (!active) return;
-      if (response?.success && response.data?.division?.code === selectedDivision) setDivisionData(response.data);
-      else setDivisionError(true);
-    }).catch(() => { if (active) setDivisionError(true); }).finally(() => { if (active) setDivisionLoading(false); });
-    return () => { active = false; };
-  }, [selectedDivision]);
-
-  const handleDivisionChange = (divisionCode) => {
-    setSelectedDivision(divisionCode);
-    setDivisionData(null);
-    setDivisionError(false);
-    setDivisionLoading(true);
+  const handleDistrictChange = (districtCode) => {
+    setSelectedDistrict(districtCode);
   };
 
   useEffect(() => {
@@ -305,12 +274,14 @@ export default function DashboardPage() {
 
   const districtDisplayName =
     locale === "bn"
-      ? currentDistrictObj?.nameBn || currentDistrictObj?.nameEn || "চট্টগ্রাম"
-      : currentDistrictObj?.nameEn || "Chattogram";
+      ? currentDistrictObj?.nameBn || currentDistrictObj?.nameEn || selectedDistrict || "—"
+      : currentDistrictObj?.nameEn || selectedDistrict || "—";
 
   const currentClimateSummary = summaryDistrict === selectedDistrict ? summaryData : null;
   const currentClimateMeta = summaryDistrict === selectedDistrict ? metaData : null;
   const currentEnvironmental = latestEnvironmental.district === selectedDistrict ? latestEnvironmental : null;
+  const selectedDistrictLocation = isProjectDistrictCode(selectedDistrict) && currentDistrictObj?.code === selectedDistrict ? currentDistrictObj : null;
+  const projectDistricts = getProjectDistricts(districts);
   const powerSource = environmentalSources.find((item) => item.datasetKey === "nasa:power:daily:point");
   const powerSourceCoverage = getDistrictValidCoverage(powerSource, selectedDistrict);
   const powerVerified = hasCurrentSummary && isSupportedPowerProvenance(metaData?.provenance);
@@ -347,12 +318,12 @@ export default function DashboardPage() {
           <label className="relative flex min-h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 shadow-km-sm transition-colors focus-within:border-emerald">
             <MapPin className="h-4 w-4 text-emerald shrink-0" aria-hidden="true" />
             <select
-              aria-label={t("landing.supportedDistricts")}
+              aria-label={locale === "bn" ? "জেলা-ভিত্তিক পর্যবেক্ষণের জেলা" : "District for district-level observations"}
               className="min-w-28 cursor-pointer appearance-none bg-transparent pr-6 text-sm font-medium text-content focus:outline-none"
               value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
+              onChange={(e) => handleDistrictChange(e.target.value)}
             >
-              {districts.map((d) => (
+              {projectDistricts.map((d) => (
                 <option key={d.code} value={d.code} className="bg-surface text-content">
                   {locale === "bn" ? d.nameBn || d.nameEn : d.nameEn}
                 </option>
@@ -378,19 +349,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <DivisionPanel
-        divisions={divisionList}
-        selected={selectedDivision}
-        onSelect={handleDivisionChange}
-        data={divisionData}
-        selectedDistrict={selectedDistrict}
-        districtDisplayName={districtDisplayName}
-        districtObservations={currentEnvironmental}
-        districtLoading={isLoading || !currentEnvironmental}
-        loading={divisionLoading}
-        error={divisionError}
-        locale={locale}
-      />
+      <DistrictLocationPanel district={selectedDistrictLocation} locale={locale} />
 
       <EnvironmentalIntelligenceCards
         locale={locale}

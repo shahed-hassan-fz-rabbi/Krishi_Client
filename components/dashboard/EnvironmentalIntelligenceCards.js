@@ -134,6 +134,7 @@ export default function EnvironmentalIntelligenceCards({
     ? Number(rawSmapObs.soilMoisture).toFixed(4)
     : null;
   const smapObsDate = rawSmapObs?.dateLabel || smapLastDate;
+  const smapStoredButNoneValid = smapSoilMoisture === null && smapTotalStoredCount > 0 && smapValidCount === 0;
 
   // --------------------------------------------------------------------------
   // 4. NASA MODIS (Canopy Greenness / NDVI)
@@ -305,8 +306,8 @@ export default function EnvironmentalIntelligenceCards({
       badge: {
         text: isSmapRecommended
           ? (isBn ? "প্রস্তাবিত" : "Recommended")
-          : rawSmapObs?.retrievalQualityFlag === 9
-            ? (isBn ? "ফ্ল্যাগ ৯ প্রত্যাহার" : "Flag 9 Withheld")
+          : rawSmapObs?.retrievalQualityFlag === 9 || smapStoredButNoneValid
+            ? (isBn ? "মান-পরীক্ষায় বাদ" : "Quality filtered")
             : (isBn ? "অনুপলভ্য" : "Unavailable"),
         style: isSmapRecommended
           ? "bg-teal-50 text-teal-800 border-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800/40"
@@ -321,14 +322,21 @@ export default function EnvironmentalIntelligenceCards({
       metric: {
         primaryValue: smapSoilMoisture !== null
           ? (isBn ? toBengaliNumber(smapSoilMoisture) : smapSoilMoisture)
-          : rawSmapObs
+          : rawSmapObs || smapStoredButNoneValid
             ? (isBn ? "মান স্থগিত" : "Data Withheld")
             : (isBn ? "উপাত্ত নেই" : "Unavailable"),
         unit: smapSoilMoisture !== null ? "m³/m³" : "",
+        unavailableNote: smapStoredButNoneValid
+          ? (isBn
+            ? "সংরক্ষিত SMAP নমুনাগুলো প্রস্তাবিত মান-পরীক্ষায় উত্তীর্ণ হয়নি। তাই মান দেখানো হয়নি—এটি শূন্য আর্দ্রতা নয়।"
+            : "Stored SMAP samples did not pass the recommended quality check. Their values are withheld; this does not mean zero moisture.")
+          : null,
         label: isSmapRecommended
           ? (isBn ? `পৃষ্ঠীয় আর্দ্রতা (${formatDate(smapObsDate, locale)})` : `Surface Moisture (${formatDate(smapObsDate, locale)})`)
           : rawSmapObs?.retrievalQualityFlag != null
             ? (isBn ? `ফ্ল্যাগ ${toBengaliNumber(rawSmapObs.retrievalQualityFlag)} প্রস্তাবিত মানদণ্ড পূরণ করেনি` : `Flag ${rawSmapObs.retrievalQualityFlag} does not meet the recommended quality gate`)
+            : smapStoredButNoneValid
+              ? (isBn ? "সংরক্ষিত পর্যবেক্ষণ মান-পরীক্ষায় উত্তীর্ণ হয়নি" : "Stored observations did not pass the quality gate")
             : (isBn ? "প্রস্তাবিত মানের পর্যবেক্ষণ নেই" : "No recommended-quality observation"),
         isUnavailable: smapSoilMoisture === null,
         subMetrics: [
@@ -531,6 +539,11 @@ export default function EnvironmentalIntelligenceCards({
                       <p className="mt-0.5 truncate text-xs font-medium text-stone-600 dark:text-stone-300">
                         {card.metric.label}
                       </p>
+                      {card.metric.unavailableNote && (
+                        <p className="mt-2 max-w-xl text-xs leading-relaxed text-amber-900 dark:text-amber-200">
+                          {card.metric.unavailableNote}
+                        </p>
+                      )}
                     </div>
 
                     {/* Sub-Metrics Pill Chips */}

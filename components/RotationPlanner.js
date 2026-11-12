@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { Button } from "@/components/ui/Button.js";
 import { RotationResults } from "@/components/RotationResults.js";
+import { RotationOverview } from "@/components/RotationOverview.js";
+import { useLocation } from "@/contexts/LocationContext.js";
 import { compareCropRotations, previewCropRotations, saveRotationPlan, fetchRotationPlans, explainRotationResult, fetchFarms } from "@/services/api.js";
 
 const cropCodes = ["monsoon_aman", "boro_rice", "aus_rice", "mustard"];
 const initialProfile = { districtCode: "cumilla", soilType: "unknown", drainage: "unknown", irrigation: "unknown", priority: "water" };
-const selectClass = "mt-2 w-full rounded-lg border border-line bg-surface px-3 py-3 text-sm text-content";
+const selectClass = "mt-2 w-full rounded-xl border border-line bg-surface px-3 py-3 text-sm text-content outline-none transition focus-visible:border-emerald focus-visible:ring-2 focus-visible:ring-emerald/25";
 const DRAFT_KEY = "km-rotation-preview-draft";
 function consumeDraft() {
   if (typeof window === "undefined") return null;
@@ -17,10 +19,12 @@ function consumeDraft() {
   } catch { return null; }
 }
 
-export function RotationPlanner({ publicMode = false, initialDistrict = "cumilla" }) {
+export function RotationPlanner({ publicMode = false, initialDistrict }) {
   const { t, locale } = useLang();
+  const { selectedDistrict } = useLocation();
+  const startingDistrict = initialDistrict || selectedDistrict;
   const [draft] = useState(() => publicMode ? null : consumeDraft());
-  const [profile, setProfile] = useState(() => draft ? { ...initialProfile, ...Object.fromEntries(Object.keys(initialProfile).map((key) => [key, draft[key] || initialProfile[key]])) } : { ...initialProfile, districtCode: initialDistrict });
+  const [profile, setProfile] = useState(() => draft ? { ...initialProfile, ...Object.fromEntries(Object.keys(initialProfile).map((key) => [key, draft[key] || initialProfile[key]])) } : { ...initialProfile, districtCode: startingDistrict });
   const [baseline, setBaseline] = useState(() => draft?.baseline?.length ? draft.baseline : [""]);
   const [farmId, setFarmId] = useState("");
   const [farms, setFarms] = useState([]);
@@ -107,12 +111,17 @@ export function RotationPlanner({ publicMode = false, initialDistrict = "cumilla
     </select></label>;
 
   return <div className="space-y-8">
-    {!publicMode && <header><h1 className="text-3xl font-bold text-content">{t("rotation.title")}</h1><p className="mt-3 max-w-3xl leading-7 text-muted">{t("rotation.intro")}</p></header>}
-    {loadFailed && <p role="status" className="text-sm text-amber-strong">{t("rotation.farmLoadError")}</p>}
-    <form onSubmit={compare} className="rounded-2xl border border-line bg-surface p-5 sm:p-8">
-      <fieldset disabled={busy || saveBusy || explainBusy}>
-        <legend className="mb-6 text-xl font-semibold text-content">{t("rotation.profile")}</legend>
-        {!publicMode && <label className="mb-5 block text-sm font-medium text-content">{t("rotation.farm")}<select value={farmId} onChange={(e) => selectFarm(e.target.value)} className={selectClass}><option value="">{t("rotation.manual")}</option>{farms.map((farm) => <option key={farm._id} value={farm._id}>{farm.farmName}</option>)}</select></label>}
+    <RotationOverview publicMode={publicMode} />
+    {loadFailed && <p role="status" className="rounded-xl border border-amber/30 bg-amber/5 px-4 py-3 text-sm text-amber-strong">{t("rotation.farmLoadError")}</p>}
+    <form onSubmit={compare} className="overflow-hidden rounded-3xl border border-line bg-surface shadow-km-sm">
+      <fieldset disabled={busy || saveBusy || explainBusy} className="min-w-0 w-full">
+        <div className="border-b border-line bg-surface-2/60 px-5 py-5 sm:px-8 sm:py-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-strong">{t("rotation.formEyebrow")}</p>
+          <h2 className="mt-2 text-xl font-semibold text-content sm:text-2xl">{t("rotation.profile")}</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{t("rotation.formHelp")}</p>
+        </div>
+        <div className="p-5 sm:p-8">
+        {!publicMode && <label className="mb-6 block max-w-2xl text-sm font-medium text-content">{t("rotation.farm")}<select value={farmId} onChange={(e) => selectFarm(e.target.value)} className={selectClass}><option value="">{t("rotation.manual")}</option>{farms.map((farm) => <option key={farm._id} value={farm._id}>{farm.farmName}</option>)}</select></label>}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <label className="block text-sm font-medium text-content">{t("rotation.district")}<select value={profile.districtCode} onChange={(e) => change("districtCode", e.target.value)} className={selectClass}><option value="cumilla">{t("rotation.districts.cumilla")}</option><option value="chattogram">{t("rotation.districts.chattogram")}</option></select></label>
           {field("soilType", ["unknown", "clay", "loam", "clay_loam", "sandy_loam", "sandy", "silt", "alluvial", "other"], "soil")}
@@ -120,12 +129,15 @@ export function RotationPlanner({ publicMode = false, initialDistrict = "cumilla
           {field("irrigation", ["unknown", "available", "limited", "unavailable"])}
           {field("priority", ["water", "diversity", "calendar"])}
         </div>
-        <h2 className="mt-8 text-lg font-semibold text-content">{t("rotation.baseline")}</h2><p className="mt-2 text-sm leading-6 text-muted">{t("rotation.baselineHelp")}</p>
-        <div className="mt-4 space-y-3">{baseline.map((code, index) => <div key={index} className="flex items-center gap-3">
+        <div className="mt-8 rounded-2xl border border-line bg-surface-2/50 p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-content">{t("rotation.baseline")}</h3><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{t("rotation.baselineHelp")}</p>
+        <div className="mt-4 space-y-3">{baseline.map((code, index) => <div key={index} className="flex min-w-0 items-center gap-3">
           <label className="flex-1"><span className="sr-only">{t("rotation.baseline")} {index + 1}</span><select required value={code} className={selectClass} onChange={(e) => { invalidate(); setBaseline((old) => old.map((v, i) => i === index ? e.target.value : v)); }}><option value="">{t("rotation.chooseCrop")}</option>{cropCodes.map((c) => <option key={c} value={c}>{cropName(c)}</option>)}</select></label>
           {baseline.length > 1 && <Button variant="ghost" onClick={() => { invalidate(); setBaseline((old) => old.filter((_, i) => i !== index)); }}>{t("rotation.remove")}</Button>}
         </div>)}</div>
-        <div className="mt-5 flex flex-wrap gap-3">{baseline.length < 4 && <Button variant="outline" onClick={() => { invalidate(); setBaseline((old) => [...old, ""]); }}>{t("rotation.addCrop")}</Button>}<Button as="submit" disabled={busy}>{t(busy ? "rotation.working" : "rotation.compare")}</Button></div>
+        <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap">{baseline.length < 4 && <Button variant="outline" className="w-full sm:w-auto" onClick={() => { invalidate(); setBaseline((old) => [...old, ""]); }}>{t("rotation.addCrop")}</Button>}<Button as="submit" disabled={busy} className="w-full sm:w-auto">{t(busy ? "rotation.working" : "rotation.compare")}</Button></div>
+        </div>
+        </div>
       </fieldset>
     </form>
     {error && <p role="alert" className="rounded-lg border border-danger/30 p-4 text-danger-strong">{error === "RESTORE_FAILED" ? t("rotation.error") : error}</p>}

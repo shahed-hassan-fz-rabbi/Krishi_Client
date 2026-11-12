@@ -60,7 +60,7 @@ export function PublicHeader() {
     return pathname === href || pathname?.startsWith(`${href}/`);
   };
   const navClass = (href) =>
-    `rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${
+    `rounded-lg px-2.5 py-1.5 text-xs xl:text-sm font-medium transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald ${
       isActive(href)
         ? "bg-emerald/10 text-emerald font-semibold dark:bg-emerald/15 dark:text-emerald-400"
         : "text-muted hover:text-content hover:bg-surface-2"
@@ -149,10 +149,10 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-md shadow-2xs">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <BrandMark tone="light" />
 
-        <nav className="hidden items-center gap-1 whitespace-nowrap text-sm font-medium text-muted xl:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-0.5 whitespace-nowrap text-sm font-medium text-muted xl:flex" aria-label="Primary">
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={(event) => handleNavClick(event, l.href)} aria-current={isActive(l.href) ? (l.href.includes("#") ? "location" : "page") : undefined} className={navClass(l.href)}>
               {t(l.key)}
@@ -160,15 +160,15 @@ export function PublicHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 lg:gap-3">
-          <div className="hidden items-center gap-3 xl:flex">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="hidden items-center gap-1.5 sm:gap-2 xl:flex">
             <LanguageSwitcher />
             <ThemeSwitcher />
-            <div className="h-6 w-px bg-line" />
-            <div className="flex items-center gap-3">
+            <div className="h-5 w-px bg-line/80 mx-0.5" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {isAuthenticated && user ? (
                 <>
-                  <Button href="/dashboard" size="sm" variant="primary" className="whitespace-nowrap">
+                  <Button href="/dashboard" size="sm" variant="primary" className="h-9 px-3 text-xs font-semibold whitespace-nowrap shadow-xs">
                     {dashboardLabel}
                   </Button>
                   <div className="relative" ref={profileRef}>
@@ -178,13 +178,13 @@ export function PublicHeader() {
                       aria-expanded={profileOpen}
                       aria-label={t("publicHeader.profileMenu")}
                       onClick={() => setProfileOpen((value) => !value)}
-                      className="inline-flex h-10 max-w-48 items-center gap-2 rounded-full border border-line bg-surface px-1.5 pr-2.5 text-sm text-content shadow-km-sm transition-colors hover:border-emerald/40 hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface p-1 pr-2.5 text-xs text-content shadow-xs transition-colors hover:border-emerald/40 hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald cursor-pointer"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-semibold text-white">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest text-[11px] font-bold text-white shadow-xs">
                         {avatarInitial}
                       </span>
-                      <span className="max-w-28 truncate text-xs font-medium">{displayName}</span>
-                      <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-muted transition-transform ${profileOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+                      <span className="max-w-20 sm:max-w-24 truncate font-medium">{displayName}</span>
+                      <ChevronDown className={`h-3 w-3 shrink-0 text-muted transition-transform duration-200 ${profileOpen ? "rotate-180" : ""}`} aria-hidden="true" />
                     </button>
                     {profileOpen ? (
                       <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-line bg-surface p-2 shadow-xl">
@@ -198,7 +198,7 @@ export function PublicHeader() {
                           type="button"
                           role="menuitem"
                           onClick={handleLogout}
-                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald"
+                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald cursor-pointer"
                         >
                           <LogOut className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
                           {t("auth.logout")}
@@ -208,7 +208,7 @@ export function PublicHeader() {
                   </div>
                 </>
               ) : !isLoading ? (
-                  <Button href="/login" size="sm" variant="primary">
+                  <Button href="/login" size="sm" variant="primary" className="h-9 px-3.5 text-xs font-semibold">
                     {t("auth.login")}
                   </Button>
               ) : null}
