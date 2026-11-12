@@ -77,6 +77,8 @@ export default function CropCalendarPage() {
   const loadData = useCallback(async (districtCode, cropId, isCurrent = () => true) => {
     setIsLoading(true);
     setError(null);
+    setCalendarData(null);
+    setAlignmentData(null);
     try {
       const [cropsRes, calRes, alignRes] = await Promise.all([
         fetchCropList(),
@@ -753,8 +755,8 @@ export default function CropCalendarPage() {
 
         <p className="text-xs text-ink-muted">
           {isBn
-            ? "সরকারি ক্রপ ক্যালেন্ডারের সাথে নাসার বাস্তব উপগ্রহ পর্যবেক্ষণের স্থানিক পরিবেশগত অবস্থা নিচে প্রদর্শন করা হলো। উপগ্রহ পর্যবেক্ষণগুলো কেবল পরিবেশগত অবস্থা নির্দেশ করে, এগুলো সরাসরি সার বা সেচের সরকারি নির্দেশিকা নয়।"
-            : "Below is the real-time physical environmental context from NASA satellite missions alongside the official crop calendar. Satellite observations provide regional atmospheric and canopy conditions, NOT direct agronomic mandates."}
+            ? "সরকারি ফসল পঞ্জিকার পাশে তারিখসহ সংরক্ষিত নাসা উপগ্রহ পর্যবেক্ষণ দেখানো হয়েছে। এগুলো লাইভ আবহাওয়া নয় এবং সরকারি সার বা সেচ নির্দেশিকাও নয়।"
+            : "Dated, stored NASA satellite observations are shown alongside the official crop calendar. They are not live weather or official fertilizer or irrigation instructions."}
         </p>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -768,10 +770,10 @@ export default function CropCalendarPage() {
                 </span>
               </div>
               <Badge variant={satContext?.soilMoisture?.isRecommended ? "success" : "warning"}>
-                {satContext?.soilMoisture?.quality || "Recommended"}
+                {satContext?.soilMoisture?.quality || (isBn ? "গুণমান অজানা" : "Quality unavailable")}
               </Badge>
             </div>
-            {satContext?.soilMoisture ? (
+            {satContext?.soilMoisture?.isRecommended === true && Number.isFinite(satContext.soilMoisture.value) ? (
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between items-baseline">
                   <span className="text-ink-muted">{isBn ? "সর্বশেষ স্যাটেলাইট মান:" : "Latest Satellite Observation:"}</span>
@@ -789,6 +791,14 @@ export default function CropCalendarPage() {
                     : "Top 5cm volume soil water. Informs seedbed preparation and transplanting field readiness."}
                 </p>
               </div>
+            ) : satContext?.soilMoisture ? (
+              <div className="space-y-1.5 text-xs text-ink-muted" role="status">
+                <p className="font-semibold text-amber-800 dark:text-amber-300">
+                  {isBn ? "গুণমান-অনুমোদিত SMAP মান নেই" : "No quality-approved SMAP value"}
+                </p>
+                <p>{isBn ? "সর্বশেষ পর্যবেক্ষণ:" : "Latest observation:"} {satContext.soilMoisture.date || (isBn ? "তারিখ নেই" : "date unavailable")} · {satContext.soilMoisture.quality || (isBn ? "গুণমান অজানা" : "quality unknown")}</p>
+                <p>{isBn ? "অনুমোদিত গুণমান পতাকা ০ বা ৮ না হলে মান দেখানো হয় না।" : "Values are withheld unless the retrieval quality flag is 0 or 8."}</p>
+              </div>
             ) : (
               <p className="text-xs text-ink-muted">{isBn ? "কোনো পর্যবেক্ষণ পাওয়া যায়নি" : "No observation available"}</p>
             )}
@@ -804,15 +814,15 @@ export default function CropCalendarPage() {
                 </span>
               </div>
               <Badge variant={satContext?.vegetationIndex?.isReliable ? "success" : "warning"}>
-                {satContext?.vegetationIndex?.quality || "Operational"}
+                {satContext?.vegetationIndex?.quality || (isBn ? "গুণমান অজানা" : "Quality unavailable")}
               </Badge>
             </div>
-            {satContext?.vegetationIndex ? (
+            {satContext?.vegetationIndex?.available === true ? (
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between items-baseline">
                   <span className="text-ink-muted">{isBn ? "সর্বশেষ এনডিভিআই (NDVI):" : "Latest NDVI Index:"}</span>
                   <span className="font-bold font-mono text-base text-ink">
-                    {satContext.vegetationIndex.ndvi}
+                    {satContext.vegetationIndex.ndvi ?? "—"}
                   </span>
                 </div>
                 <div className="flex justify-between text-ink-muted text-[11px]">
@@ -825,8 +835,18 @@ export default function CropCalendarPage() {
                     : "250m regional chlorophyll absorption indicating vegetative canopy vigor."}
                 </p>
               </div>
+            ) : satContext?.vegetationIndex ? (
+              <div className="space-y-1.5 text-xs text-ink-muted" role="status">
+                <p className="font-semibold text-amber-800 dark:text-amber-300">
+                  {satContext.vegetationIndex.pixelReliability === 1 && satContext.vegetationIndex.quality === "marginal_data"
+                    ? (isBn ? "র‍্যাঙ্ক-০ মান নেই; র‍্যাঙ্ক-১ তথ্য দেখানো হয়নি" : "No rank-0 value; rank-1 data is withheld")
+                    : (isBn ? "কোনো গুণমান-অনুমোদিত মান নেই" : "No quality-approved value available")}
+                </p>
+                <p>{isBn ? "সর্বশেষ পর্যবেক্ষণ:" : "Latest observation:"} {satContext.vegetationIndex.date || (isBn ? "তারিখ নেই" : "date unavailable")} · {satContext.vegetationIndex.quality || (isBn ? "গুণমান অজানা" : "quality unknown")}</p>
+                <p>{isBn ? "গুণমান নীতিমালার কারণে NDVI/EVI মান দেখানো হয়নি।" : "NDVI/EVI values are withheld by the quality policy."}</p>
+              </div>
             ) : (
-              <p className="text-xs text-ink-muted">{isBn ? "কোনো পর্যবেক্ষণ পাওয়া যায়নি" : "No observation available"}</p>
+              <p className="text-xs text-ink-muted">{isBn ? "কোনো গুণমান-অনুমোদিত পর্যবেক্ষণ নেই" : "No quality-approved observation available"}</p>
             )}
           </div>
         </div>

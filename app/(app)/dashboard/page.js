@@ -14,7 +14,6 @@ import {
   Sun,
   ThermometerSun,
   Wheat,
-  ArrowRight,
 } from "lucide-react";
 
 import { ClimateMonthlyChart } from "@/components/charts/ClimateMonthlyChart.js";
@@ -390,7 +389,11 @@ export default function DashboardPage() {
 
       {/* Real NASA POWER Climate Metric cards */}
       {hasCurrentSummary && (
-        <>
+        <section aria-labelledby="dashboard-power-title" className="space-y-5">
+          <div>
+            <h2 id="dashboard-power-title" className="text-lg font-semibold tracking-tight text-content">{t("dashboard.powerSectionTitle")}</h2>
+            <p className="mt-1 text-sm text-muted">{districtDisplayName} · {locale === "bn" ? "NASA POWER-এর ঐতিহাসিক পর্যবেক্ষণ ও জলবায়ু সারাংশ; এটি লাইভ আবহাওয়া নয়।" : "NASA POWER historical observations and calculated climate summaries. This is not live weather."}</p>
+          </div>
           <section aria-label={t("dashboard.metricsTitle")}>
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
               <div className="flex min-w-0 items-center gap-3">
@@ -399,7 +402,7 @@ export default function DashboardPage() {
                 </span>
                 <div className="min-w-0">
                   <h2 className="text-base font-semibold tracking-tight text-content">{t("dashboard.metricsTitle")}</h2>
-                  <p className="mt-1 text-xs text-muted">{districtDisplayName} · NASA POWER {locale === "bn" ? "ঐতিহাসিক জলবায়ু স্বাভাবিক মান" : "historical climate normals"}</p>
+                  <p className="mt-1 text-xs text-muted">{districtDisplayName} · NASA POWER {locale === "bn" ? "ঐতিহাসিক জলবায়ুর গড়" : "historical climate averages"}</p>
                 </div>
               </div>
               <Badge tone="sage" className="shrink-0">
@@ -540,25 +543,18 @@ export default function DashboardPage() {
               </Card>
             </div>
           </section>
-        </>
+        </section>
       )}
 
-      {/* Handoff Window Intelligence promotional card */}
+      {/* Public official crop calendar link */}
       <section>
         <Card className="border-line bg-surface-2/40">
           <CardHeader
             title={t("dashboard.handoffTeaserTitle")}
             description={t("dashboard.handoffTeaserBody")}
           />
-          <CardBody className="flex flex-wrap items-center justify-between gap-4 pt-3">
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="neutral">0 {locale === "bn" ? "দিন" : "d"}</Badge>
-              <ArrowRight className="h-4 w-4 self-center text-muted" aria-hidden="true" />
-              <Badge tone="neutral">7 {locale === "bn" ? "দিন" : "d"}</Badge>
-              <ArrowRight className="h-4 w-4 self-center text-muted" aria-hidden="true" />
-              <Badge tone="neutral">14 {locale === "bn" ? "দিন" : "d"}</Badge>
-            </div>
-            <Button href="/handoff" size="sm" variant="forest">
+          <CardBody className="flex flex-wrap items-center justify-end gap-4 pt-3">
+            <Button href="/crop-calendar" size="sm" variant="forest">
               <Wheat className="h-4 w-4" aria-hidden="true" />
               {t("dashboard.handoffTeaserCta")}
             </Button>

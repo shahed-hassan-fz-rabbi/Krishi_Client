@@ -30,10 +30,11 @@ test("SMAP requires recommended quality flag 0 or 8 and a physical non-fill valu
 });
 
 test("MODIS shows only reliability-rank-zero values within scaled index bounds", () => {
-  assert.deepEqual(getReliableModisIndices({ isReliableQuality: true, pixelReliability: 0, ndvi: 0.6, evi: 0.4 }), { ndvi: 0.6, evi: 0.4 });
+  assert.deepEqual(getReliableModisIndices({ isReliableQuality: true, pixelReliability: 0, qualityClassification: "good_data", ndvi: 0.6, evi: 0.4 }), { ndvi: 0.6, evi: 0.4 });
   assert.equal(getReliableModisIndices({ isReliableQuality: false, pixelReliability: 1, ndvi: 0.6, evi: 0.4 }), null);
   assert.equal(getReliableModisIndices({ isReliableQuality: true, pixelReliability: 1, ndvi: 0.6, evi: 0.4 }), null);
-  assert.deepEqual(getReliableModisIndices({ isReliableQuality: true, pixelReliability: 0, ndvi: -3000, evi: 0.4 }), { ndvi: null, evi: 0.4 });
+  assert.equal(getReliableModisIndices({ isReliableQuality: true, pixelReliability: 0, ndvi: 0.6, evi: 0.4 }), null, "missing quality classification is not accepted");
+  assert.deepEqual(getReliableModisIndices({ isReliableQuality: true, pixelReliability: 0, qualityClassification: "good_data", ndvi: -3000, evi: 0.4 }), { ndvi: null, evi: 0.4 });
   assert.equal(getReliableModisIndices(undefined), null);
 });
 
@@ -128,6 +129,8 @@ test("Dashboard explains stored SMAP records that fail quality without treating 
 test("Dashboard withholds MODIS rank-1 values and clearly marks a marginal-only district", async () => {
   const source = await readFile(new URL("../components/dashboard/EnvironmentalIntelligenceCards.js", import.meta.url), "utf8");
   assert.match(source, /getReliableModisIndices\(rawModisObs\)/);
+  const data = await readFile(new URL("../lib/dashboardData.js", import.meta.url), "utf8");
+  assert.match(data, /observation\.qualityClassification !== "good_data"/);
   assert.match(source, /const modisOnlyMarginal = modisGoodCount === 0 && modisMarginalCount > 0/);
   assert.match(source, /Marginal · Withheld/);
   assert.match(source, /Only marginal data/);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   Activity,
@@ -54,6 +54,7 @@ export default function MapPage() {
   const [boundaryData, setBoundaryData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const requestIdRef = useRef(0);
 
   // Layer toggles
   const [activeLayers, setActiveLayers] = useState({
@@ -68,8 +69,11 @@ export default function MapPage() {
   const isBn = locale === "bn";
 
   const loadMapData = useCallback(async (districtCode) => {
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
+    setLayersData(null);
+    setBoundaryData(null);
     try {
       const [layerRes, bndRes] = await Promise.all([
         fetchGisLayers(districtCode),
@@ -80,14 +84,15 @@ export default function MapPage() {
         throw new Error(layerRes.error?.message || "Failed to load GIS layers");
       }
 
+      if (requestId !== requestIdRef.current || layerRes.data?.district?.code !== districtCode) return;
       setLayersData(layerRes.data);
       if (bndRes.success) {
         setBoundaryData(bndRes.data);
       }
     } catch (err) {
-      setError(err.message || (isBn ? "জিআইএস উপাত্ত লোড করতে ব্যর্থ" : "Failed to load GIS data"));
+      if (requestId === requestIdRef.current) setError(err.message || (isBn ? "জিআইএস উপাত্ত লোড করতে ব্যর্থ" : "Failed to load GIS data"));
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) setIsLoading(false);
     }
   }, [isBn]);
 
@@ -97,6 +102,8 @@ export default function MapPage() {
       loadMapData(selectedDistrict);
     }
   }, [selectedDistrict, loadMapData]);
+
+  useEffect(() => () => { requestIdRef.current += 1; }, []);
 
   const toggleLayer = (key) => {
     setActiveLayers((prev) => ({ ...prev, [key]: !prev[key] }));

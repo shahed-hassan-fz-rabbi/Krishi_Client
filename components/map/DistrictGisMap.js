@@ -152,7 +152,9 @@ export default function DistrictGisMap({
 
   const modisObs = sensors?.vegetation?.observation;
   const modisLoc = sensors?.vegetation?.extractedPixelLocation;
-  const modisPos = modisLoc ? [modisLoc.latitude, modisLoc.longitude] : null;
+  const modisPos = Number.isFinite(modisLoc?.latitude) && Number.isFinite(modisLoc?.longitude)
+    ? [modisLoc.latitude, modisLoc.longitude]
+    : null;
 
   const climateLoc = sensors?.climate?.location;
   const climatePos = climateLoc ? [climateLoc.latitude, climateLoc.longitude] : null;
