@@ -335,17 +335,6 @@ export function PublicFooter() {
                 </button>
               </div>
             </form>
-
-            {/* Live Data Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-950/60 px-3.5 py-1.5 text-xs text-emerald-200/90 shadow-2xs backdrop-blur-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <span className="font-semibold text-emerald-100">{t("footer.dataFromNasa")}</span>
-              <span className="text-emerald-500/40">•</span>
-              <span className="text-emerald-300/80">{t("footer.planningNote")}</span>
-            </div>
           </div>
 
           {/* Link columns */}

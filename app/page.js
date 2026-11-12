@@ -144,7 +144,7 @@ export default function LandingPage() {
             <h1 className="break-words text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-tight">
               {t("landing.heroTitle")}
             </h1>
-            <p className="mt-6 text-lg leading-relaxed text-orange-400 sm:text-xl lg:text-2xl max-w-3xl mx-auto font-medium drop-shadow-xs">
+            <p className="mt-6 text-lg leading-relaxed text-white/90 sm:text-xl lg:text-2xl max-w-3xl mx-auto font-normal">
               {t("landing.heroSubtitle")}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
