@@ -43,7 +43,9 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
               {brandWords[0]}
             </span>
             {brandWords.length > 1 ? (
-              <span className="ml-1 text-amber-strong">{brandWords.slice(1).join(" ")}</span>
+              <span className={`ml-1 font-bold ${tone === "dark" ? "text-amber-300 drop-shadow-xs" : "text-amber-500 dark:text-amber-400"}`}>
+                {brandWords.slice(1).join(" ")}
+              </span>
             ) : null}
           </span>
           {showSubtitle ? (

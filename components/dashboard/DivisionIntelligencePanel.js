@@ -122,6 +122,8 @@ export default function DivisionIntelligencePanel({
                   : null;
           const unavailableReason = product.key === "power"
             ? item?.reason
+            : !districtMapsToDivision
+              ? (isBn ? "জেলা-ভিত্তিক NASA পর্যবেক্ষণ দেখতে চট্টগ্রাম বিভাগ নির্বাচন করুন।" : "Select Chattogram division to show observations for this supported district.")
             : product.key === "gpm"
               ? gpmSummary && !gpmComplete
                 ? (isBn ? `${gpmSummary.validIntervals}/48 ব্যবধান বৈধ; পূর্ণ দিনের মোট দেখানো হচ্ছে না।` : `${gpmSummary.validIntervals}/48 intervals are valid; no complete daily total is shown.`)
@@ -143,7 +145,7 @@ export default function DivisionIntelligencePanel({
               <p className="mt-1 min-h-8 text-[11px] leading-relaxed text-muted">{isBn ? product.explanationBn : product.explanationEn}</p>
               <div className="mt-4 rounded-xl border border-line bg-surface-2/70 p-3">
                 <p className="text-2xl font-bold tracking-tight text-content">{cardLoading ? "—" : available ? value : "—"}<span className="ml-1.5 text-xs font-medium text-muted">{unit}</span></p>
-                <p className="mt-1 text-xs text-muted">{product.key === "power" ? (isBn ? product.metricLabelBn : product.metricLabelEn) : districtDataMatches ? `${isBn ? "জেলা" : "District point"} · ${districtDisplayName}` : (isBn ? "বৈধ জেলা-ভিত্তিক পর্যবেক্ষণ" : "Validated district observation")}</p>
+                <p className="mt-1 text-xs text-muted">{product.key === "power" ? (isBn ? product.metricLabelBn : product.metricLabelEn) : districtDataMatches ? `${isBn ? "জেলা" : "District point"} · ${districtDisplayName}` : districtMapsToDivision ? (isBn ? "নির্বাচিত জেলার বিন্দু" : "Selected district point") : (isBn ? "বিভাগের সঙ্গে মিলিয়ে জেলা নির্বাচন করুন" : "Select the matching division for district data")}</p>
                 {product.key === "modis" && Number.isFinite(observation?.evi) && observation.evi >= -0.2 && observation.evi <= 1 && <p className="mt-1 text-xs text-muted">EVI {formatValue(observation.evi, locale, 4)}</p>}
                 {product.key !== "power" && qualityLabel && <p className="mt-1 text-[11px] leading-relaxed text-muted">{qualityLabel}</p>}
                 {product.key !== "power" && !available && !cardLoading && <p className="mt-1 text-[11px] leading-relaxed text-muted">{unavailableReason}</p>}
