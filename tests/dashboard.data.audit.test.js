@@ -125,6 +125,17 @@ test("Dashboard explains stored SMAP records that fail quality without treating 
   assert.match(source, /card\.metric\.unavailableNote/);
 });
 
+test("Dashboard withholds MODIS rank-1 values and clearly marks a marginal-only district", async () => {
+  const source = await readFile(new URL("../components/dashboard/EnvironmentalIntelligenceCards.js", import.meta.url), "utf8");
+  assert.match(source, /getReliableModisIndices\(rawModisObs\)/);
+  assert.match(source, /const modisOnlyMarginal = modisGoodCount === 0 && modisMarginalCount > 0/);
+  assert.match(source, /Marginal · Withheld/);
+  assert.match(source, /Only marginal data/);
+  assert.match(source, /Marginal rank-1 observations exist, but this dashboard shows only rank-0 good-quality values/);
+  assert.doesNotMatch(source, /Number\.isFinite\(rawModisObs\?\.ndvi\)/);
+  assert.doesNotMatch(source, /Number\.isFinite\(rawModisObs\?\.evi\)/);
+});
+
 test("dataset cards keep the responsive multi-column and wide-desktop layout restrained", async () => {
   const source = await readFile(new URL("../components/dashboard/EnvironmentalIntelligenceCards.js", import.meta.url), "utf8");
   assert.match(source, /grid.*items-stretch.*(?:sm|md):grid-cols-2/);
