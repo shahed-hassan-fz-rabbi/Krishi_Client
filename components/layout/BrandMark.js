@@ -43,7 +43,7 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
               {brandWords[0]}
             </span>
             {brandWords.length > 1 ? (
-              <span className={`ml-1 font-bold ${tone === "dark" ? "text-orange-400 drop-shadow-xs" : "text-orange-500 dark:text-orange-400"}`}>
+              <span className="ml-1 font-bold text-orange-400">
                 {brandWords.slice(1).join(" ")}
               </span>
             ) : null}
