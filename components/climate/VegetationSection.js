@@ -69,26 +69,12 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
 
       if (latestRes.success && latestRes.data) {
         setLatestData(latestRes.data);
-        const observation = latestRes.data;
-        const reliable = observation.isReliableQuality === true
-          && observation.pixelReliability === 0
-          && Number.isFinite(observation.ndvi) && observation.ndvi >= -0.2 && observation.ndvi <= 1;
-        onOverview?.("modis", {
-          districtCode,
-          status: reliable ? "good-quality" : "quality-excluded",
-          reliable,
-          ndvi: reliable ? observation.ndvi : null,
-          evi: reliable && Number.isFinite(observation.evi) && observation.evi >= -0.2 && observation.evi <= 1 ? observation.evi : null,
-          date: observation.dateLabel || null,
-        });
       } else {
         setLatestData(null);
-        onOverview?.("modis", { districtCode, status: "unavailable", reliable: false, ndvi: null, evi: null, date: null });
       }
       if (historyRes.success) setHistoryData(historyRes.data);
     } catch (err) {
       if (latestDistrictRef.current !== districtCode) return;
-      onOverview?.("modis", { districtCode, status: "unavailable", reliable: false, ndvi: null, evi: null, date: null });
       setError(err.message || (isBn ? "উপাত্ত লোড করতে ব্যর্থ" : "Failed to load vegetation data"));
     } finally {
       if (latestDistrictRef.current === districtCode) {
@@ -98,11 +84,29 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
   }, [isBn, onOverview]);
 
   useEffect(() => {
+    if (isLoading || latestDistrictRef.current !== selectedDistrict) return;
+    const observation = latestData;
+    const reliable = !error && observation?.isReliableQuality === true
+      && observation.pixelReliability === 0
+      && Number.isFinite(observation.ndvi) && observation.ndvi >= -0.2 && observation.ndvi <= 1;
+    const evi = reliable && Number.isFinite(observation?.evi) && observation.evi >= -0.2 && observation.evi <= 1
+      ? observation.evi
+      : null;
+    onOverview?.("modis", {
+      districtCode: selectedDistrict,
+      status: error || !observation ? "unavailable" : (reliable ? "good-quality" : "quality-excluded"),
+      reliable,
+      ndvi: reliable ? observation.ndvi : null,
+      evi,
+      date: observation?.dateLabel || null,
+    });
+  }, [error, isLoading, latestData, onOverview, selectedDistrict]);
+
+  useEffect(() => {
     if (selectedDistrict) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       loadVegetationData(selectedDistrict);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDistrict, refreshToken, loadVegetationData]);
 
   const reliableLatest = latestData?.isReliableQuality === true
@@ -184,17 +188,20 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
           <div className="flex items-start gap-2.5">
             <Info size={16} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
             <div className="space-y-1">
-              <span className="font-semibold text-ink">
-                {isBn ? "উদ্ভিজ্জ সূচক বৈজ্ঞানিক ঘোষণা:" : "Vegetation Index Scientific Disclosure:"}
-              </span>
+              <span className="font-semibold text-ink">{isBn ? "এই মানের অর্থ:" : "What this measure means:"}</span>
               <p>
                 {isBn
-                  ? "এমওডিআইএস (MODIS) এনডিভিআই এবং ইভিআই শীর্ষ ক্যানোপির পৃষ্ঠীয় প্রতিফলনের ওপর ভিত্তি করে ক্লোরোফিল শোষণ ও সবুজত্ব পরিমাপ করে। এটি কৃষিজমির আপেক্ষিক সতেজতা ও বৃদ্ধির পর্যায় নির্দেশ করে; এটি প্রত্যক্ষ ফসল উৎপাদন (ফলন), কীটপতঙ্গের আক্রমণ বা শিকড় অঞ্চলের পানি নির্দেশ করে না।"
-                  : "NASA MODIS NDVI and EVI quantify chlorophyll absorption and canopy vigor across 250m pixels. They represent canopy greenness dynamics and phenological timing, NOT direct crop yield, pest infestation, or root-zone soil water."}
+                  ? "এগুলো উপগ্রহের ছবিতে গাছপালা কতটা সবুজ দেখা যায় তা বোঝায়। ফলন, রোগ বা পোকা আক্রমণের সরাসরি পরীক্ষা নয়।"
+                  : "These indices describe how green vegetation appears in the satellite image. They do not directly measure yield, disease, or pest damage."}
               </p>
             </div>
           </div>
         </div>
+
+        <details className="rounded-xl border border-line bg-surface px-4 py-3 text-xs text-ink-muted">
+          <summary className="cursor-pointer font-medium text-ink">{isBn ? "উপাত্ত সম্পর্কে আরও জানুন" : "More about this dataset"}</summary>
+          <p className="mt-2 leading-6">{isBn ? "MODIS MOD13Q1.061 প্রায় ২৫০ মিটার পিক্সেলের ১৬-দিনের কম্পোজিট। ভালো মানের পিক্সেল র‍্যাঙ্ক ০ দিয়ে চিহ্নিত।" : "MODIS MOD13Q1.061 provides 16-day composites at about 250 m. Rank 0 is the product's good-quality pixel class."}</p>
+        </details>
 
         <div className="rounded-xl border border-emerald/30 bg-emerald/5 p-3 text-xs text-ink-muted">
           <div className="flex items-start gap-2">

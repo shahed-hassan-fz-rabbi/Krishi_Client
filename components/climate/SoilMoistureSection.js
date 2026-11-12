@@ -67,22 +67,8 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
 
       if (latestRes.success && latestRes.data) {
         setLatestData(latestRes.data);
-        const observation = latestRes.data;
-        const recommended = Number.isFinite(observation.soilMoisture)
-          && observation.soilMoisture >= 0 && observation.soilMoisture <= 1
-          && observation.isRecommendedQuality === true
-          && [0, 8].includes(observation.retrievalQualityFlag);
-        onOverview?.("smap", {
-          districtCode,
-          status: recommended ? "recommended" : "quality-excluded",
-          recommended,
-          value: recommended ? observation.soilMoisture : null,
-          flag: observation.retrievalQualityFlag ?? null,
-          date: observation.dateLabel || null,
-        });
       } else {
         setLatestData(null);
-        onOverview?.("smap", { districtCode, status: "unavailable", recommended: false, value: null, date: null });
       }
 
       if (historyRes.success && historyRes.data) {
@@ -92,7 +78,6 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
       }
     } catch (err) {
       if (latestDistrictRef.current === districtCode) {
-        onOverview?.("smap", { districtCode, status: "unavailable", recommended: false, value: null, date: null });
         setError(err.message || "Failed to load soil moisture intelligence");
       }
     } finally {
@@ -101,6 +86,23 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
       }
     }
   }, [onOverview]);
+
+  useEffect(() => {
+    if (isLoading || latestDistrictRef.current !== selectedDistrict) return;
+    const observation = latestData;
+    const recommended = !error && Number.isFinite(observation?.soilMoisture)
+      && observation.soilMoisture >= 0 && observation.soilMoisture <= 1
+      && observation.isRecommendedQuality === true
+      && [0, 8].includes(observation.retrievalQualityFlag);
+    onOverview?.("smap", {
+      districtCode: selectedDistrict,
+      status: error || !observation ? "unavailable" : (recommended ? "recommended" : "quality-excluded"),
+      recommended,
+      value: recommended ? observation.soilMoisture : null,
+      flag: observation?.retrievalQualityFlag ?? null,
+      date: observation?.dateLabel || null,
+    });
+  }, [error, isLoading, latestData, onOverview, selectedDistrict]);
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -191,13 +193,11 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
           <div className="flex items-start gap-2.5">
             <Info size={16} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
             <div className="space-y-1">
-              <span className="font-semibold text-ink">
-                {isBn ? "রেডিওমিটার রেজোলিউশন ও ফুটপ্রিন্ট ঘোষণা:" : "Radiometer Footprint & Spatial Resolution Disclosure:"}
-              </span>
+              <span className="font-semibold text-ink">{isBn ? "এই মানের অর্থ:" : "What this measure means:"}</span>
               <p>
                 {isBn
-                  ? "এসএমএপি (SMAP) এল-ব্যান্ড রেডিওমিটারের প্রকৃত আদি ফুটপ্রিন্ট প্রায় ৩৬–৪০ কিমি, যা ব্যাকাস-গিলবার্ট (Backus-Gilbert) অপ্টিমাল ইন্টারপোলেশনের মাধ্যমে ৯ কিমি EASE-Grid 2.0 গ্রিডে পোস্ট করা হয়েছে। এটি কোনো ৯ কিমি স্বাধীন ইন-সিটু সেন্সর পরিমাপ নয় এবং এটি রুট-জোন (শিকড় অঞ্চল) আর্দ্রতা নির্দেশ করে না। এটি শীর্ষ ~৫ সেমি মাটির আঞ্চলিক স্যাটেলাইট প্রক্সি।"
-                  : "NASA SMAP L-band radiometer has a native physical footprint of approximately ~36 km, posted onto a 9 km EASE-Grid 2.0 through Backus-Gilbert optimal interpolation. It is NOT an independent 9 km field-level sensor measurement and does NOT measure root-zone soil moisture."}
+                  ? "এটি মাটির একেবারে উপরিভাগের (প্রায় ৫ সেমি) আর্দ্রতার আঞ্চলিক ধারণা। আপনার নির্দিষ্ট জমি বা শিকড়ের গভীরের মাপ নয়।"
+                  : "This is a regional estimate of moisture near the soil surface (about the top 5 cm), not a measurement of your exact field or deeper root zone."}
               </p>
             </div>
           </div>
@@ -213,6 +213,11 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
             </p>
           </div>
         </div>
+
+        <details className="rounded-xl border border-line bg-surface px-4 py-3 text-xs text-ink-muted">
+          <summary className="cursor-pointer font-medium text-ink">{isBn ? "স্যাটেলাইট গ্রিড সম্পর্কে আরও জানুন" : "More about the satellite footprint"}</summary>
+          <p className="mt-2 leading-6">{isBn ? "SMAP-এর রেডিওমিটারের আদি footprint প্রায় ৩৬–৪০ কিমি। ফলাফল ৯ কিমি EASE-Grid 2.0-এ পোস্ট করা হয়; এটি ৯ কিমি ব্যবধানে আলাদা মাঠ-পরিমাপ নয়।" : "SMAP's native radiometer footprint is about 36–40 km. Results are posted to a 9 km EASE-Grid 2.0; that does not make them independent field measurements every 9 km."}</p>
+        </details>
       </div>
 
       {isLoading ? (

@@ -9,11 +9,9 @@ const ThemeContext = createContext({ theme: "light", setTheme: () => {}, toggleT
 
 /**
  * Light/Dark theme provider.
- * - Initial appearance is applied pre-paint by the inline script in app/layout.js,
- *   so there is no flash of the wrong theme.
+ * - The saved preference is applied during the one-time client hydration sync.
  * - The preference is only written when the user changes the theme.
- * - The initial class is reconciled from storage once; it is not briefly removed
- *   by an effect running with the default light state after the pre-paint script.
+ * - The root class is reconciled from storage once after hydration.
  */
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState("light");

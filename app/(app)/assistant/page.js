@@ -1,5 +1,6 @@
 "use client";
 import { PrivateAccess } from "@/components/auth/PrivateAccess.js";
+import { BRAND_LOGO_SRC } from "@/lib/branding.js";
 
 import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import Image from "next/image";
@@ -831,11 +832,12 @@ function AssistantContent() {
                     {/* Logo Emblem */}
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface border border-line shadow-xs mb-3">
                       <Image
-                        src="/images/logo.png"
+                        src={BRAND_LOGO_SRC}
                         alt="Krishi Mama Logo"
-                        width={44}
-                        height={44}
-                        className="h-11 w-11 object-contain"
+                        width={48}
+                        height={48}
+                        unoptimized
+                        className="h-12 w-12 object-contain"
                       />
                     </div>
 

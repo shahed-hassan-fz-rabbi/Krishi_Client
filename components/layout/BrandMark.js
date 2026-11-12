@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sprout } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
-
-const LOGO_SRC = "/images/logo.png";
+import { BRAND_LOGO_SRC } from "@/lib/branding.js";
 
 /**
  * Official Krishi Mama mark.
@@ -22,17 +21,18 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
     <Link href={href} className="group inline-flex items-center gap-2.5 shrink-0">
       {logoOk ? (
         <Image
-          src={LOGO_SRC}
+          src={BRAND_LOGO_SRC}
           alt="Krishi Mama"
-          width={36}
-          height={36}
+          width={40}
+          height={40}
+          unoptimized
           onError={() => setLogoOk(false)}
-          className="h-9 w-9 shrink-0 object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
+          className="h-10 w-10 shrink-0 object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
           priority
         />
       ) : (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald text-white shadow-km-sm">
-          <Sprout className="h-5 w-5" aria-hidden="true" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald text-white shadow-km-sm">
+          <Sprout className="h-6 w-6" aria-hidden="true" />
         </span>
       )}
       {!compact ? (

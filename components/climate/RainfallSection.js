@@ -75,18 +75,8 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
       }
       const nextGpmData = gRes?.success && gRes.data ? { ...gRes.data, meta: gRes.meta } : null;
       setGpmData(nextGpmData);
-      const daily = nextGpmData?.latestDailySummary;
-      const complete = daily?.completeness === "complete" && daily?.validIntervals === 48 && Number.isFinite(daily?.totalPrecipitationMm);
-      onOverview?.("gpm", {
-        districtCode,
-        status: nextGpmData ? (complete ? "complete" : "incomplete") : "unavailable",
-        complete,
-        value: complete ? daily.totalPrecipitationMm : null,
-        date: daily?.dateLabel || null,
-      });
     } catch (err) {
       if (latestDistrictRef.current === districtCode) {
-        onOverview?.("gpm", { districtCode, status: "unavailable", complete: false, value: null, date: null });
         setError(err.message || "Failed to load rainfall intelligence");
       }
     } finally {
@@ -95,6 +85,19 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
       }
     }
   }, [onOverview]);
+
+  useEffect(() => {
+    if (isLoading || latestDistrictRef.current !== selectedDistrict) return;
+    const daily = gpmData?.latestDailySummary;
+    const complete = daily?.completeness === "complete" && daily?.validIntervals === 48 && Number.isFinite(daily?.totalPrecipitationMm);
+    onOverview?.("gpm", {
+      districtCode: selectedDistrict,
+      status: error || !gpmData ? "unavailable" : (complete ? "complete" : "incomplete"),
+      complete: !error && Boolean(gpmData) && complete,
+      value: !error && complete ? daily.totalPrecipitationMm : null,
+      date: daily?.dateLabel || null,
+    });
+  }, [error, gpmData, isLoading, onOverview, selectedDistrict]);
 
   useEffect(() => {
     if (selectedDistrict) {

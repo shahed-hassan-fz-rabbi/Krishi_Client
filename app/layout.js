@@ -1,7 +1,7 @@
 import { Inter, Noto_Sans_Bengali } from "next/font/google";
-import Script from "next/script";
 
 import { AppProviders } from "../components/providers/AppProviders.js";
+import { BRAND_LOGO_SRC } from "../lib/branding.js";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,13 +21,10 @@ export const metadata = {
   description:
     "NASA-powered climate-informed agricultural decision support for Bangladesh, starting with Chattogram.",
   icons: {
-    icon: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: BRAND_LOGO_SRC,
+    apple: BRAND_LOGO_SRC,
   },
 };
-
-/** Applies the persisted theme before first paint to avoid a flash of the wrong mode. */
-const themeInitScript = `(function(){try{var t=localStorage.getItem('km-theme');document.documentElement.classList.toggle('dark',t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches));}catch(e){}})();`;
 
 export default function RootLayout({ children }) {
   return (
@@ -37,7 +34,6 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${bengali.variable} h-full`}
     >
       <body className="min-h-full antialiased">
-        <Script id="km-theme-init" strategy="beforeInteractive">{themeInitScript}</Script>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

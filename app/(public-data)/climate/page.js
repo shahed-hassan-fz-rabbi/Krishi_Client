@@ -85,6 +85,7 @@ export default function ClimatePage() {
       detail: dataDistrict !== selectedDistrict || isLoading ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : summary.warmest ? `${locale === "bn" ? "তুলনামূলক উষ্ণ মাস" : "Warmest monthly average"}: ${months(summary.warmest.months)}` : (locale === "bn" ? "তথ্য পাওয়া যায়নি" : "No available observation"),
       explanation: locale === "bn" ? "ঐতিহাসিক গড়—আজকের আবহাওয়ার পূর্বাভাস নয়।" : "Historical average, not today's weather forecast.",
       date: dataDistrict === selectedDistrict && summary.monthsAvailable ? (metaData?.from && metaData?.to ? `${metaData.from} – ${metaData.to}` : (locale === "bn" ? "ঐতিহাসিক উপাত্ত" : "Historical record")) : "—",
+      dateCaption: locale === "bn" ? "ঐতিহাসিক সময়কাল" : "Historical period",
       href: "#power",
     },
     {
@@ -92,7 +93,7 @@ export default function ClimatePage() {
       title: locale === "bn" ? "বৃষ্টিপাত" : "Rainfall",
       source: "NASA GPM IMERG Final V07",
       value: datasetOverview.gpm?.districtCode === selectedDistrict && datasetOverview.gpm?.complete ? `${number.format(datasetOverview.gpm.value)} mm` : "—",
-      detail: datasetOverview.gpm?.districtCode !== selectedDistrict ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.gpm?.complete ? (locale === "bn" ? "৪৮টির ৪৮টি সময়-খণ্ড যাচাই করা" : "All 48 half-hour intervals validated") : (locale === "bn" ? "সম্পূর্ণ দৈনিক মোট পাওয়া যায়নি" : "No complete daily total available"),
+      detail: datasetOverview.gpm?.districtCode !== selectedDistrict || datasetOverview.gpm?.status === "loading" ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.gpm?.complete ? (locale === "bn" ? "৪৮টির ৪৮টি সময়-খণ্ড যাচাই করা" : "All 48 half-hour intervals validated") : (locale === "bn" ? "সম্পূর্ণ দৈনিক মোট পাওয়া যায়নি" : "No complete daily total available"),
       explanation: locale === "bn" ? "দৈনিক মোট দেখাই কেবল ৪৮টি ব্যবধান বৈধ হলে।" : "A daily total appears only when all 48 intervals are valid.",
       date: datasetOverview.gpm?.districtCode === selectedDistrict ? datasetOverview.gpm?.date || "—" : "—",
       href: "#rainfall",
@@ -102,7 +103,7 @@ export default function ClimatePage() {
       title: locale === "bn" ? "মাটির উপরিভাগের আর্দ্রতা" : "Surface soil moisture",
       source: "NASA SMAP SPL3SMP_E V006",
       value: datasetOverview.smap?.districtCode === selectedDistrict && datasetOverview.smap?.recommended ? `${number.format(datasetOverview.smap.value)} m³/m³` : "—",
-      detail: datasetOverview.smap?.districtCode !== selectedDistrict ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.smap?.recommended ? (locale === "bn" ? `মানের ফ্ল্যাগ ${datasetOverview.smap.flag} · সুপারিশকৃত` : `Quality flag ${datasetOverview.smap.flag} · recommended`) : (locale === "bn" ? "সুপারিশকৃত মান পাওয়া যায়নি" : "No recommended-quality value available"),
+      detail: datasetOverview.smap?.districtCode !== selectedDistrict || datasetOverview.smap?.status === "loading" ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.smap?.recommended ? (locale === "bn" ? `মানের ফ্ল্যাগ ${datasetOverview.smap.flag} · সুপারিশকৃত` : `Quality flag ${datasetOverview.smap.flag} · recommended`) : (locale === "bn" ? "সুপারিশকৃত মান পাওয়া যায়নি" : "No recommended-quality value available"),
       explanation: locale === "bn" ? "মাটির উপরিভাগের আর্দ্রতা; শিকড়ের গভীরতার নয়।" : "Surface-soil moisture, not root-zone moisture.",
       date: datasetOverview.smap?.districtCode === selectedDistrict ? datasetOverview.smap?.date || "—" : "—",
       href: "#soil-moisture",
@@ -112,7 +113,7 @@ export default function ClimatePage() {
       title: locale === "bn" ? "ফসলের সবুজত্বের সূচক" : "Vegetation greenness index",
       source: "NASA MODIS MOD13Q1.061",
       value: datasetOverview.modis?.districtCode === selectedDistrict && datasetOverview.modis?.reliable ? `NDVI ${number.format(datasetOverview.modis.ndvi)}` : "—",
-      detail: datasetOverview.modis?.districtCode !== selectedDistrict ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.modis?.reliable ? (locale === "bn" ? `নির্ভরযোগ্য পিক্সেল · EVI ${Number.isFinite(datasetOverview.modis.evi) ? number.format(datasetOverview.modis.evi) : "—"}` : `Good-quality pixel · EVI ${Number.isFinite(datasetOverview.modis.evi) ? number.format(datasetOverview.modis.evi) : "—"}`) : (locale === "bn" ? "নির্ভরযোগ্য মান পাওয়া যায়নি" : "No good-quality value available"),
+      detail: datasetOverview.modis?.districtCode !== selectedDistrict || datasetOverview.modis?.status === "loading" ? (locale === "bn" ? "তথ্য লোড হচ্ছে" : "Loading available data") : datasetOverview.modis?.reliable ? (locale === "bn" ? `নির্ভরযোগ্য পিক্সেল · EVI ${Number.isFinite(datasetOverview.modis.evi) ? number.format(datasetOverview.modis.evi) : "—"}` : `Good-quality pixel · EVI ${Number.isFinite(datasetOverview.modis.evi) ? number.format(datasetOverview.modis.evi) : "—"}`) : (locale === "bn" ? "নির্ভরযোগ্য মান পাওয়া যায়নি" : "No good-quality value available"),
       explanation: locale === "bn" ? "গাছপালার সবুজত্বের সূচক; ফলন বা রোগের সরাসরি নির্ণয় নয়।" : "Vegetation greenness index, not a direct yield or disease diagnosis.",
       date: datasetOverview.modis?.districtCode === selectedDistrict ? datasetOverview.modis?.date || "—" : "—",
       href: "#vegetation",
@@ -146,12 +147,12 @@ export default function ClimatePage() {
         <span className="text-xs text-muted">{locale === "bn" ? "জেলা-ভিত্তিক উপগ্রহ/ঐতিহাসিক তথ্য; জমির সরাসরি পরিমাপ নয়" : "District-level satellite or historical data, not a direct field measurement"}</span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {overviewCards.map(({ key, icon: Icon, accent, title, source, value, detail, explanation, date, href }) => <a key={key} href={href} className="group min-w-0 rounded-2xl border border-line bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald">
+        {overviewCards.map(({ key, icon: Icon, accent, title, source, value, detail, explanation, date, dateCaption, href }) => <a key={key} href={href} className="group min-w-0 rounded-2xl border border-line bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald">
           <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-content">{title}</p><p className="mt-1 truncate text-[11px] text-muted">{source}</p></div><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accent}`}><Icon className="h-4 w-4" aria-hidden="true" /></span></div>
           <p className="mt-4 truncate text-2xl font-semibold tracking-tight text-content" title={value}>{value}</p>
           <p className="mt-1 min-h-10 text-xs leading-5 text-muted">{detail}</p>
           <p className="mt-2 min-h-10 text-xs leading-5 text-content/80">{explanation}</p>
-          <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3 text-[11px] text-muted"><span>{locale === "bn" ? "পর্যবেক্ষণ" : "Observed"}</span><span className="truncate font-medium text-content">{date}</span></div>
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3 text-[11px] text-muted"><span>{dateCaption || (locale === "bn" ? "পর্যবেক্ষণ" : "Observed")}</span><span className="truncate font-medium text-content">{date}</span></div>
         </a>)}
       </div>
     </section>
@@ -212,9 +213,9 @@ export default function ClimatePage() {
         </p>
       </div>
       <div className="space-y-8">
-        <RainfallSection embedded />
-        <SoilMoistureSection embedded />
-        <VegetationSection embedded />
+        <RainfallSection embedded refreshToken={refreshToken} onOverview={reportDatasetOverview} />
+        <SoilMoistureSection embedded refreshToken={refreshToken} onOverview={reportDatasetOverview} />
+        <VegetationSection embedded refreshToken={refreshToken} onOverview={reportDatasetOverview} />
       </div>
     </div>
   </div>;

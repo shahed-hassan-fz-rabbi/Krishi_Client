@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  ArrowRight,
   Bookmark,
   ChevronDown,
   LogOut,
@@ -294,60 +295,147 @@ export function PublicHeader() {
   );
 }
 
-/** Public footer. */
+/** Public footer with balanced brand, newsletter, and multi-column links. */
 export function PublicFooter() {
-  const { t } = useLang();
+  const { t, locale } = useLang();
 
   return (
-    <footer className="relative isolate overflow-hidden border-t border-emerald-900/35 bg-gradient-to-b from-[#03261a] via-[#021f15] to-[#01140e] text-sidebar-text">
+    <footer className="relative isolate overflow-hidden border-t border-emerald-900/40 bg-gradient-to-b from-[#03261a] via-[#021f15] to-[#01140e] text-sidebar-text">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,rgba(52,211,153,0.12),transparent_60%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.08),transparent_50%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-10 sm:px-6 sm:pb-28 lg:px-8 lg:pt-14">
-        <div className="grid gap-10 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-16 lg:gap-24 items-start">
-          <div className="space-y-4">
+
+      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 lg:px-8 lg:pt-16">
+        {/* Balanced layout: brand block fixed width, columns share remaining space evenly */}
+        <div className="grid gap-12 sm:grid-cols-[minmax(0,1fr)_auto] lg:gap-16 items-start">
+          {/* Brand + description + newsletter */}
+          <div className="flex flex-col items-start space-y-5 max-w-sm shrink-0">
             <BrandMark tone="dark" />
-            <p className="max-w-md text-sm leading-relaxed text-[#c0d2c5] font-normal">{t("footer.description")}</p>
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-950/50 px-3 py-1.5 text-xs text-emerald-200/90 shadow-2xs backdrop-blur-xs">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                <span className="font-medium">{t("footer.dataFromNasa")}</span>
-                <span className="text-emerald-500/40">•</span>
-                <span className="text-emerald-300/80">{t("footer.planningNote")}</span>
+
+            <p className="text-sm leading-relaxed text-[#c0d2c5]">
+              {t("footer.description")}
+            </p>
+
+            {/* Stay Updated / Newsletter Subscription */}
+            <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-2 w-full pt-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-300/90">
+                {locale === "bn" ? "কৃষি আপডেট পেতে যুক্ত থাকুন" : "Stay Updated"}
+              </p>
+              <div className="relative flex items-center w-full">
+                <input
+                  type="text"
+                  placeholder={locale === "bn" ? "ইমেইল বা মোবাইল নম্বর দিন" : "Enter email or mobile"}
+                  className="w-full h-10 px-3.5 pr-11 rounded-xl text-xs border border-emerald-500/25 bg-black/30 text-white placeholder:text-emerald-100/40 outline-none focus:border-emerald-400 transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-1 w-8 h-8 rounded-lg bg-emerald text-white flex items-center justify-center transition-transform hover:scale-105 shadow-sm"
+                  aria-label={locale === "bn" ? "সাবস্ক্রাইব" : "Subscribe"}
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
               </div>
+            </form>
+
+            {/* Live Data Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-950/50 px-3 py-1.5 text-xs text-emerald-200/90 shadow-2xs backdrop-blur-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="font-medium">{t("footer.dataFromNasa")}</span>
+              <span className="text-emerald-500/40">•</span>
+              <span className="text-emerald-300/80">{t("footer.planningNote")}</span>
             </div>
           </div>
 
-          <div className="sm:min-w-44 sm:justify-self-end">
-            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-300/90">{t("footer.explore")}</h3>
-            <div aria-hidden="true" className="mb-4 h-0.5 w-10 rounded-full bg-gradient-to-r from-emerald-400 to-[#a3cb70]" />
-            <ul className="space-y-2.5 text-sm text-[#c0d2c5]">
-              {links.map(({ href, key }) => (
-                <li key={key}>
-                  <Link
-                    href={href}
-                    className="group inline-flex items-center gap-2 rounded-md transition-all duration-200 hover:translate-x-1 hover:text-[#c2e994] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2e994]"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/40 transition-colors group-hover:bg-[#c2e994]" aria-hidden="true" />
-                    <span>{t(key)}</span>
+          {/* Link columns */}
+          <div className="flex flex-wrap gap-x-12 gap-y-10 sm:gap-x-16">
+            {/* Quick / Explore Links */}
+            <div className="min-w-[130px]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300/90 mb-4">
+                {t("footer.explore")}
+              </h3>
+              <ul className="space-y-3">
+                {links.map(({ href, key }) => (
+                  <li key={key}>
+                    <Link
+                      href={href}
+                      className="text-sm font-medium text-[#c0d2c5] transition-colors hover:text-[#c2e994] hover:underline underline-offset-4"
+                    >
+                      {t(key)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Data Sources & Verification */}
+            <div className="min-w-[150px]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300/90 mb-4">
+                {locale === "bn" ? "উৎস ও অংশীদার" : "Data Partners"}
+              </h3>
+              <ul className="space-y-3 text-sm text-[#c0d2c5]">
+                <li>
+                  <Link href="/data-sources" className="transition-colors hover:text-[#c2e994] hover:underline underline-offset-4">
+                    NASA Earthdata
                   </Link>
                 </li>
-              ))}
-            </ul>
+                <li>
+                  <span className="text-emerald-100/70">NASA POWER & SMAP</span>
+                </li>
+                <li>
+                  <span className="text-emerald-100/70">MODIS & GPM IMERG</span>
+                </li>
+                <li>
+                  <span className="text-emerald-100/70">BARC & BMD Calibration</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Connect Column */}
+            <div className="min-w-[140px]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300/90 mb-4">
+                {locale === "bn" ? "যোগাযোগ" : "Connect"}
+              </h3>
+              <div className="space-y-3 text-sm text-[#c0d2c5]">
+                <p className="text-xs text-emerald-100/70">
+                  {locale === "bn" ? "কৃষকের সিদ্ধান্ত-সহায়তা" : "Farmer Decision Support"}
+                </p>
+                <p className="text-xs font-medium text-emerald-200">
+                  support@krishimama.com
+                </p>
+                <div className="pt-1">
+                  <Link
+                    href="/assistant"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-[#c2e994] transition-all hover:bg-emerald-900/50"
+                  >
+                    <span>{locale === "bn" ? "কৃষি সহকারী" : "Ask Assistant"}</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[url('/images/footer-landscape.svg')] bg-[length:100%_100%] bg-no-repeat opacity-40 sm:h-20" />
+        {/* Silhouette landscape */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[url('/images/footer-landscape.svg')] bg-[length:100%_100%] bg-no-repeat opacity-30 sm:h-20" />
       </div>
-      <div className="border-t border-emerald-900/40 bg-black/30 px-4 py-4 text-xs leading-relaxed text-[#c0d2c5] sm:px-6 lg:px-8">
+
+      {/* Bottom copyright bar */}
+      <div className="border-t border-emerald-900/50 bg-black/35 px-4 py-4 text-xs leading-relaxed text-[#c0d2c5] sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
           <p>{t("footer.copyright")}</p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-[#a4bba9]">
-            <span>{t("footer.dataFromNasa")}</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-[#a4bba9]">
+            <Link href="/climate" className="transition-colors hover:text-white">
+              {locale === "bn" ? "জলবায়ু ডেটা" : "Climate Data"}
+            </Link>
             <span>•</span>
-            <span>BARC & BMD Data Integration</span>
+            <Link href="/crop-rotation" className="transition-colors hover:text-white">
+              {locale === "bn" ? "শস্য পর্যায়" : "Crop Rotation"}
+            </Link>
+            <span>•</span>
+            <span>NASA Space Apps 2026</span>
           </div>
         </div>
       </div>
