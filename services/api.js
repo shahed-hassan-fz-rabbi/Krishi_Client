@@ -203,9 +203,10 @@ export async function registerUser({ name, email, phone, password, preferredDist
  * Log in with email and password, establishing an httpOnly session.
  */
 export async function loginUser({ email, phone, identifier, password }) {
+  const resolvedEmail = email || identifier;
   return request("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, phone, identifier, password }),
+    body: JSON.stringify({ email: resolvedEmail, identifier: resolvedEmail, phone, password }),
   });
 }
 

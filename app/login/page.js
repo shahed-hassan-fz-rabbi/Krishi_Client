@@ -44,9 +44,15 @@ function LoginForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [googleNotice, setGoogleNotice] = useState("");
   const [dismissedQueryNotice, setDismissedQueryNotice] = useState("");
+  const [dismissedQueryError, setDismissedQueryError] = useState("");
 
-  const queryError = errorParam === "google_failed" || errorParam === "state_mismatch"
-    ? messageParam || t("auth.googleAuthFailed") || "Google sign-in failed. Please try again."
+  const isRawGoogleError = messageParam && (messageParam.includes("failed") || messageParam.includes("reason:") || messageParam.includes("EACCES") || messageParam.includes("ECONNREFUSED"));
+  const cleanGoogleError = isRawGoogleError 
+    ? (t("auth.googleAuthFailed") || "Google sign-in was unable to connect. Please try again or sign in with email/password.")
+    : (messageParam || t("auth.googleAuthFailed") || "Google sign-in failed. Please try again.");
+
+  const queryError = (errorParam === "google_failed" || errorParam === "state_mismatch") && dismissedQueryError !== queryNoticeKey
+    ? cleanGoogleError
     : "";
   const displayedError = error || queryError;
   const queryNotice = errorParam === "cancelled" && dismissedQueryNotice !== queryNoticeKey
@@ -89,6 +95,7 @@ function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setDismissedQueryError(queryNoticeKey);
     setGoogleNotice("");
 
     if (!email || !password) {
@@ -103,7 +110,7 @@ function LoginForm() {
 
     setIsSubmitting(true);
     try {
-      const res = await login({ identifier: email.trim(), password });
+      const res = await login({ email: email.trim(), identifier: email.trim(), password });
       if (res.success) {
         router.push(returnTo);
       } else {
@@ -165,6 +172,17 @@ function LoginForm() {
           >
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <span className="flex-1 leading-relaxed">{displayedError}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setError("");
+                setDismissedQueryError(queryNoticeKey);
+              }}
+              className="text-danger hover:opacity-75 p-0.5 transition-opacity"
+              aria-label="Dismiss error"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         )}
 
