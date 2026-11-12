@@ -13,13 +13,13 @@ import { BRAND_LOGO_SRC } from "@/lib/branding.js";
  * If the asset is missing, falls back to the temporary inline mark without
  * breaking layout; it displays automatically once the user adds the file.
  */
-export function BrandMark({ href = "/", tone = "light", compact = false, showSubtitle = true }) {
+export function BrandMark({ href = "/", tone = "light", compact = false, showSubtitle = true, subtitleWrap = false }) {
   const { t } = useLang();
   const brandWords = t("brand").trim().split(/\s+/);
   const [logoOk, setLogoOk] = useState(true);
 
   return (
-    <Link href={href} className="group inline-flex items-center gap-2.5 shrink-0">
+    <Link href={href} className={`group inline-flex items-center gap-2.5 ${subtitleWrap ? "min-w-0" : "shrink-0"}`}>
       {logoOk ? (
         <Image
           src={BRAND_LOGO_SRC}
@@ -50,7 +50,7 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
             <span
               className={
                 tone === "dark"
-                  ? "mt-0.5 block text-[11px] font-normal leading-4 text-emerald-100/75 whitespace-nowrap"
+                  ? `mt-0.5 block text-[11px] font-normal leading-4 text-emerald-100/75 ${subtitleWrap ? "max-w-[132px] whitespace-normal" : "whitespace-nowrap"}`
                   : "mt-0.5 block text-[11px] font-normal leading-4 text-muted whitespace-nowrap"
               }
             >

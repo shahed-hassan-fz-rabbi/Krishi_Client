@@ -8,9 +8,9 @@ const DivisionPointMap = dynamic(() => import("./DivisionPointMap.js"), { ssr: f
 
 const PRODUCTS = [
   { key: "power", icon: Sun, titleBn: "এলাকার জলবায়ুর ইতিহাস", titleEn: "Historical climate context", technical: "NASA POWER · Daily point", explanationBn: "তাপমাত্রা, বৃষ্টি, আর্দ্রতা ও সৌরশক্তির ঐতিহাসিক চিত্র—লাইভ আবহাওয়া নয়।", explanationEn: "Historical temperature, rainfall, humidity and solar context—not live weather.", unit: "°C", metricLabelBn: "গড় তাপমাত্রা · ৫ বছর", metricLabelEn: "Mean temperature · 5 years", href: "/climate", color: "amber" },
-  { key: "gpm", icon: CloudRain, titleBn: "বৃষ্টিপাতের তথ্য", titleEn: "Rainfall observations", technical: "NASA GPM IMERG V07 Final", explanationBn: "উপগ্রহে মাপা বৃষ্টিপাত; অসম্পূর্ণ দিনের যোগফল পূর্ণ দিনের মান নয়।", explanationEn: "Satellite rainfall estimates; incomplete days are not shown as complete totals.", unit: "mm/day", href: "/climate#rainfall", color: "sky" },
+  { key: "gpm", icon: CloudRain, titleBn: "বৃষ্টিপাতের তথ্য", titleEn: "Rainfall observations", technical: "NASA GPM IMERG V07 Final", explanationBn: "উপগ্রহে মাপা বৃষ্টিপাত; অসম্পূর্ণ দিনের যোগফল পূর্ণ দিনের মান নয়।", explanationEn: "Satellite rainfall estimates; incomplete days are not shown as complete totals.", unit: "mm", href: "/climate#rainfall", color: "sky" },
   { key: "smap", icon: Droplets, titleBn: "মাটির উপরিভাগের আর্দ্রতা", titleEn: "Near-surface soil moisture", technical: "NASA SMAP SPL3SMP_E V006", explanationBn: "মাটির কাছের পৃষ্ঠস্তরের আর্দ্রতা; শিকড়-স্তরের মাপ নয়।", explanationEn: "Near-surface soil moisture; this is not root-zone moisture.", unit: "m³/m³", href: "/climate#soil-moisture", color: "teal" },
-  { key: "modis", icon: Leaf, titleBn: "ফসলের সবুজত্বের সূচক", titleEn: "Vegetation greenness index", technical: "NASA MODIS MOD13Q1.061", explanationBn: "গাছপালার NDVI/EVI সূচক; সরাসরি ফসলের স্বাস্থ্য নির্ণয় নয়।", explanationEn: "Plant greenness indices, not a direct crop-health diagnosis.", unit: "NDVI / EVI", href: "/climate#vegetation", color: "emerald" },
+  { key: "modis", icon: Leaf, titleBn: "ফসলের সবুজত্বের সূচক", titleEn: "Vegetation greenness index", technical: "NASA MODIS MOD13Q1.061", explanationBn: "গাছপালার NDVI/EVI সূচক; সরাসরি ফসলের স্বাস্থ্য নির্ণয় নয়।", explanationEn: "Plant greenness indices, not a direct crop-health diagnosis.", unit: "NDVI", href: "/climate#vegetation", color: "emerald" },
 ];
 
 const accents = {
@@ -20,16 +20,31 @@ const accents = {
   emerald: "border-t-emerald-600 text-emerald-700 dark:text-emerald-300",
 };
 
-function formatValue(value, locale) {
+function formatValue(value, locale, maximumFractionDigits = 2) {
   if (!Number.isFinite(value)) return null;
-  return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits }).format(value);
 }
 
-export default function DivisionIntelligencePanel({ divisions, selected, onSelect, data, loading, error, locale }) {
+export default function DivisionIntelligencePanel({
+  divisions,
+  selected,
+  onSelect,
+  data,
+  selectedDistrict,
+  districtDisplayName,
+  districtObservations,
+  districtLoading,
+  loading,
+  error,
+  locale,
+}) {
   const isBn = locale === "bn";
   const division = data?.division || divisions.find((item) => item.code === selected);
   const datasets = data?.datasets || {};
   const point = getDivisionPoint(division);
+  const districtMapsToDivision = selected === "chattogram" &&
+    (selectedDistrict === "chattogram" || selectedDistrict === "cumilla");
+  const districtDataMatches = districtMapsToDivision && districtObservations?.district === selectedDistrict;
 
   return (
     <section className="space-y-4" aria-labelledby="division-intelligence-heading" aria-busy={loading}>
@@ -37,7 +52,7 @@ export default function DivisionIntelligencePanel({ divisions, selected, onSelec
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-forest dark:text-emerald-300">{isBn ? "বাংলাদেশ · ৮ বিভাগ" : "Bangladesh · 8 divisions"}</p>
           <h2 id="division-intelligence-heading" className="mt-1 text-xl font-bold text-content">{isBn ? "বিভাগভিত্তিক পরিবেশের তথ্য" : "Division environmental intelligence"}</h2>
-          <p className="mt-1 text-sm text-muted">{isBn ? "প্রতিটি মান একটি যাচাইকৃত প্রতিনিধিত্বমূলক বিন্দু থেকে।" : "Each reading is for one verified representative point."}</p>
+          <p className="mt-1 text-sm text-muted">{isBn ? "POWER-এর মান বিভাগীয় প্রতিনিধি-বিন্দুর; GPM, SMAP ও MODIS-এর মান নির্বাচিত জেলার পর্যবেক্ষণ।" : "POWER uses the division representative point; GPM, SMAP and MODIS use observations for the selected district."}</p>
         </div>
         <label className="flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm font-medium text-content">
           <MapPin className="h-4 w-4 text-forest" aria-hidden="true" />
@@ -53,29 +68,90 @@ export default function DivisionIntelligencePanel({ divisions, selected, onSelec
           const Icon = product.icon;
           const item = datasets[product.key];
           const power = product.key === "power" ? item?.metrics?.temperature : null;
-          const value = power ? formatValue(power.value, locale) : null;
-          const available = item?.status === "available" && (product.key !== "power" || value !== null);
-          const observationDate = power?.observationDate;
+          const districtResponse = product.key === "power" ? null : districtObservations?.[product.key];
+          const responseMatchesDistrict = districtResponse?.data?.districtCode === selectedDistrict;
+          const observation = districtDataMatches && !districtResponse?.error && responseMatchesDistrict
+            ? districtResponse.data
+            : null;
+          const gpmSummary = product.key === "gpm" ? observation?.latestDailySummary : null;
+          const gpmComplete = gpmSummary?.completeness === "complete" &&
+            gpmSummary?.expectedIntervals === 48 && gpmSummary?.observedIntervals === 48 &&
+            gpmSummary?.validIntervals === 48 && Number.isFinite(gpmSummary?.totalPrecipitationMm) &&
+            gpmSummary.totalPrecipitationMm >= 0;
+          const smapRecommended = product.key === "smap" && observation?.isRecommendedQuality === true &&
+            [0, 8].includes(observation?.retrievalQualityFlag) && Number.isFinite(observation?.soilMoisture) &&
+            observation.soilMoisture >= 0 && observation.soilMoisture <= 1;
+          const modisQualityKnown = product.key === "modis" &&
+            ((observation?.pixelReliability === 0 && observation?.isReliableQuality === true) || observation?.pixelReliability === 1);
+          const modisValue = modisQualityKnown && Number.isFinite(observation?.ndvi) &&
+            observation.ndvi >= -0.2 && observation.ndvi <= 1 ? observation.ndvi : null;
+          const districtValue = product.key === "gpm" && gpmComplete
+            ? gpmSummary.totalPrecipitationMm
+            : product.key === "smap" && smapRecommended
+              ? observation.soilMoisture
+              : product.key === "modis"
+                ? modisValue
+                : null;
+          const value = product.key === "power"
+            ? (power ? formatValue(power.value, locale) : null)
+            : districtValue !== null
+              ? formatValue(districtValue, locale, product.key === "gpm" ? 2 : 4)
+              : null;
+          const available = product.key === "power"
+            ? item?.status === "available" && value !== null
+            : product.key === "gpm"
+              ? Boolean(gpmComplete)
+              : product.key === "smap"
+                ? smapRecommended
+                : modisValue !== null;
+          const cardLoading = loading || (districtMapsToDivision && districtLoading && product.key !== "power");
+          const observationDate = product.key === "power"
+            ? power?.observationDate
+            : product.key === "gpm"
+              ? gpmSummary?.dateLabel || observation?.latestInterval?.observationDate
+              : observation?.dateLabel;
+          const provenance = product.key === "power" ? item?.provenance : districtResponse?.meta?.provenance;
+          const qualityLabel = product.key === "power"
+            ? (power ? `${power.validObservationCount} valid days · LST` : null)
+            : product.key === "gpm"
+              ? gpmSummary ? `${gpmSummary.validIntervals}/48 ${isBn ? "বৈধ ব্যবধান" : "valid intervals"}` : null
+              : product.key === "smap"
+                ? observation?.retrievalQualityFlag != null ? `${isBn ? "ফ্ল্যাগ" : "Flag"} ${observation.retrievalQualityFlag}` : null
+                : observation?.pixelReliability != null
+                  ? `${observation.pixelReliability === 0 ? (isBn ? "উত্তম মান" : "Good quality") : (isBn ? "প্রান্তিক মান" : "Marginal quality")} · ${isBn ? "র‍্যাঙ্ক" : "rank"} ${observation.pixelReliability}`
+                  : null;
+          const unavailableReason = product.key === "power"
+            ? item?.reason
+            : product.key === "gpm"
+              ? gpmSummary && !gpmComplete
+                ? (isBn ? `${gpmSummary.validIntervals}/48 ব্যবধান বৈধ; পূর্ণ দিনের মোট দেখানো হচ্ছে না।` : `${gpmSummary.validIntervals}/48 intervals are valid; no complete daily total is shown.`)
+                : isBn ? "নির্বাচিত জেলার জন্য যাচাইকৃত পর্যবেক্ষণ পাওয়া যায়নি।" : "No validated observation is available for the selected district."
+              : product.key === "smap"
+                ? isBn ? "শুধু মান-ফ্ল্যাগ ০ বা ৮-এর যাচাইকৃত মাপ দেখানো হয়; এমন মাপ না থাকলে মান দেখানো হবে না।" : "Only validated measurements with quality flag 0 or 8 are shown; no value is shown when none qualify."
+                : isBn ? "নির্বাচিত জেলার জন্য যাচাইকৃত MODIS পর্যবেক্ষণ পাওয়া যায়নি।" : "No validated MODIS observation is available for the selected district.";
+          const unit = product.key === "modis" ? "NDVI" : product.unit;
           return (
             <article key={product.key} className={`flex min-h-60 flex-col rounded-2xl border border-line border-t-[3px] bg-surface p-4 shadow-km-sm ${accents[product.color]}`}>
               <div className="flex items-center justify-between gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2"><Icon size={19} strokeWidth={1.8} aria-hidden="true" /></span>
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${available ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300" : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"}`}>
-                  {loading ? (isBn ? "লোড হচ্ছে" : "Loading") : available ? (isBn ? "উপাত্ত পাওয়া গেছে" : "Data available") : (isBn ? "এই স্থানে যাচাইকৃত তথ্য নেই" : "No verified reading here")}
+                  {cardLoading ? (isBn ? "লোড হচ্ছে" : "Loading") : available ? product.key === "modis" && observation?.pixelReliability === 1 ? (isBn ? "প্রান্তিক মান" : "Marginal quality") : (isBn ? "যাচাইকৃত তথ্য" : "Validated data") : (isBn ? "যাচাইকৃত তথ্য নেই" : "No validated data")}
                 </span>
               </div>
               <h3 className="mt-3 text-sm font-bold text-content">{isBn ? product.titleBn : product.titleEn}</h3>
               <p className="mt-1 text-[11px] text-muted">{product.technical}</p>
               <p className="mt-1 min-h-8 text-[11px] leading-relaxed text-muted">{isBn ? product.explanationBn : product.explanationEn}</p>
               <div className="mt-4 rounded-xl border border-line bg-surface-2/70 p-3">
-                <p className="text-2xl font-bold tracking-tight text-content">{available ? value : "—"}<span className="ml-1.5 text-xs font-medium text-muted">{product.unit}</span></p>
-                <p className="mt-1 text-xs text-muted">{product.key === "power" ? (isBn ? product.metricLabelBn : product.metricLabelEn) : isBn ? "বৈধ প্রতিনিধি-বিন্দু পর্যবেক্ষণ" : "Validated representative-point observation"}</p>
-                {product.key !== "power" && <p className="mt-1 text-[11px] leading-relaxed text-muted">{item?.reason || (isBn ? "এই বিভাগের জন্য যাচাইকৃত পর্যবেক্ষণ নেই।" : "No validated observation for this division point.")}</p>}
+                <p className="text-2xl font-bold tracking-tight text-content">{cardLoading ? "—" : available ? value : "—"}<span className="ml-1.5 text-xs font-medium text-muted">{unit}</span></p>
+                <p className="mt-1 text-xs text-muted">{product.key === "power" ? (isBn ? product.metricLabelBn : product.metricLabelEn) : districtDataMatches ? `${isBn ? "জেলা" : "District point"} · ${districtDisplayName}` : (isBn ? "বৈধ জেলা-ভিত্তিক পর্যবেক্ষণ" : "Validated district observation")}</p>
+                {product.key === "modis" && Number.isFinite(observation?.evi) && observation.evi >= -0.2 && observation.evi <= 1 && <p className="mt-1 text-xs text-muted">EVI {formatValue(observation.evi, locale, 4)}</p>}
+                {product.key !== "power" && qualityLabel && <p className="mt-1 text-[11px] leading-relaxed text-muted">{qualityLabel}</p>}
+                {product.key !== "power" && !available && !cardLoading && <p className="mt-1 text-[11px] leading-relaxed text-muted">{unavailableReason}</p>}
               </div>
               <div className="mt-3 space-y-1 text-[11px] text-muted">
-                <p>{isBn ? "পর্যবেক্ষণের তারিখ" : "Observation date"}: {available && observationDate ? observationDate : "—"}</p>
-                <p>{isBn ? "উৎস / অবস্থা" : "Source / provenance"}: {item?.provenance === "LIVE_FETCHED" ? (isBn ? "NASA থেকে আনা · ঐতিহাসিক" : "NASA fetched · historical") : item?.provenance === "CACHED" ? "Cached" : item?.provenance || "—"}</p>
-                {available && power && <p>{isBn ? "মান যাচাই" : "Quality"}: {power.validObservationCount} valid days · LST</p>}
+                <p>{isBn ? "পর্যবেক্ষণের তারিখ" : "Observation date"}: {observationDate || "—"}</p>
+                <p>{isBn ? "উৎস / অবস্থা" : "Source / provenance"}: {provenance === "LIVE_FETCHED" ? (isBn ? "NASA থেকে আনা · ঐতিহাসিক" : "NASA fetched · historical") : provenance === "HISTORICAL_DATABASE" ? (isBn ? "NASA ঐতিহাসিক ডেটাবেস" : "NASA historical database") : provenance === "CACHED" ? "Cached" : provenance || "—"}</p>
+                {qualityLabel && product.key === "power" && <p>{isBn ? "মান যাচাই" : "Quality"}: {qualityLabel}</p>}
               </div>
               <a href={product.href} className="mt-auto pt-3 text-xs font-semibold text-forest hover:underline dark:text-emerald-300">{isBn ? "বিস্তারিত দেখুন →" : "View details →"}</a>
             </article>

@@ -383,6 +383,10 @@ export default function DashboardPage() {
         selected={selectedDivision}
         onSelect={handleDivisionChange}
         data={divisionData}
+        selectedDistrict={selectedDistrict}
+        districtDisplayName={districtDisplayName}
+        districtObservations={currentEnvironmental}
+        districtLoading={isLoading || !currentEnvironmental}
         loading={divisionLoading}
         error={divisionError}
         locale={locale}

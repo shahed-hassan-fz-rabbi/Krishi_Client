@@ -3,9 +3,11 @@
 import { createContext, useContext, useSyncExternalStore, useCallback } from "react";
 
 const STORAGE_KEY = "km_sidebar_collapsed";
+const GUEST_STORAGE_KEY = `${STORAGE_KEY}_guest`;
 const subscribers = new Set();
 
 let collapsedOverride = null;
+let collapsedOverrideKey = null;
 let mobileOpenOverride = null;
 
 function notifySubscribers() {
@@ -17,8 +19,9 @@ function subscribe(subscriber) {
 
   subscribers.add(subscriber);
   const handleStorage = (event) => {
-    if (!event.key || event.key === STORAGE_KEY) {
+    if (!event.key || event.key === STORAGE_KEY || event.key === GUEST_STORAGE_KEY) {
       collapsedOverride = null;
+      collapsedOverrideKey = null;
       notifySubscribers();
     }
   };
@@ -38,8 +41,9 @@ function subscribe(subscriber) {
   };
 }
 
-function getCollapsedSnapshot() {
-  if (collapsedOverride !== null) return collapsedOverride;
+function getCollapsedSnapshot(defaultCollapsed = false) {
+  const storageKey = defaultCollapsed ? GUEST_STORAGE_KEY : STORAGE_KEY;
+  if (collapsedOverrideKey === storageKey && collapsedOverride !== null) return collapsedOverride;
   if (typeof window === "undefined") return false;
 
   try {
@@ -47,7 +51,8 @@ function getCollapsedSnapshot() {
     if (urlValue === "collapsed") return true;
     if (urlValue === "expanded") return false;
 
-    return window.localStorage.getItem(STORAGE_KEY) === "true";
+    const saved = window.localStorage.getItem(storageKey);
+    return saved === null ? defaultCollapsed : saved === "true";
   } catch {
     return false;
   }
@@ -83,21 +88,26 @@ const SidebarContext = createContext({
   mounted: false,
 });
 
-export function SidebarProvider({ children }) {
-  const isCollapsed = useSyncExternalStore(subscribe, getCollapsedSnapshot, getServerSnapshot);
+export function SidebarProvider({ children, defaultCollapsed = false }) {
+  const isCollapsed = useSyncExternalStore(
+    subscribe,
+    () => getCollapsedSnapshot(defaultCollapsed),
+    getServerSnapshot
+  );
   const isMobileOpen = useSyncExternalStore(subscribe, getMobileOpenSnapshot, getServerSnapshot);
   const mounted = useSyncExternalStore(subscribe, getMountedSnapshot, getServerSnapshot);
 
   const setIsCollapsed = useCallback((val) => {
-    const next = Boolean(typeof val === "function" ? val(getCollapsedSnapshot()) : val);
+    const next = Boolean(typeof val === "function" ? val(getCollapsedSnapshot(defaultCollapsed)) : val);
     collapsedOverride = next;
+    collapsedOverrideKey = defaultCollapsed ? GUEST_STORAGE_KEY : STORAGE_KEY;
     try {
-      window.localStorage.setItem(STORAGE_KEY, String(next));
+      window.localStorage.setItem(collapsedOverrideKey, String(next));
     } catch {
       // Ignore private browsing storage errors
     }
     notifySubscribers();
-  }, []);
+  }, [defaultCollapsed]);
 
   const toggleSidebar = useCallback(() => setIsCollapsed((prev) => !prev), [setIsCollapsed]);
 

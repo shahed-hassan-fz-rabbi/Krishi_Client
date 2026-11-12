@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AppSidebar, GlobalAppHeader } from "@/components/layout/AppSidebar.js";
 import { BottomNav } from "@/components/layout/BottomNav.js";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext.js";
+import { useAuth } from "@/contexts/AuthContext.js";
 
 /**
  * Inner shell that dynamically responds to sidebar collapse state.
@@ -44,8 +45,11 @@ function AppLayoutInner({ children }) {
  * and touch bottom navigation on mobile.
  */
 export function AppShell({ children }) {
+  const { user, isLoading } = useAuth();
+  const guestDefaultCollapsed = !isLoading && !user;
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultCollapsed={guestDefaultCollapsed}>
       <AppLayoutInner>{children}</AppLayoutInner>
     </SidebarProvider>
   );

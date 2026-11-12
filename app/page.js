@@ -223,12 +223,8 @@ export default function LandingPage() {
         {/* Grounded in NASA Earth and climate data — Vibrant, High-End Space & Earth Observation Showcase */}
         <section id="data" className="scroll-mt-20 border-t border-line/60 bg-gradient-to-b from-surface via-surface-2/20 to-surface py-20 dark:from-bg dark:via-surface-card/10 dark:to-bg sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            {/* Header with vibrant pill */}
+            {/* Header */}
             <div className="mx-auto max-w-3xl text-center mb-14">
-              <div className="inline-flex items-center gap-2 rounded-full border border-climate/40 bg-climate/10 px-4 py-1.5 text-xs font-bold text-climate mb-4 shadow-sm backdrop-blur-sm">
-                <Satellite className="h-4 w-4 animate-pulse text-climate" />
-                <span className="uppercase tracking-wider text-[11px] font-bold">{t("landing.dataKicker")}</span>
-              </div>
               <h2 className="text-3xl font-bold tracking-tight text-content sm:text-4xl lg:text-5xl">
                 {t("landing.sectionData")}
               </h2>
@@ -258,7 +254,7 @@ export default function LandingPage() {
                       </span>
                     </div>
                     <h3 className="text-xl font-bold text-content sm:text-2xl">
-                      NASA POWER — Agroclimatology Daily
+                      NASA POWER Agroclimatology Daily
                     </h3>
                     <p className="mt-1 text-sm text-muted sm:text-base max-w-2xl leading-relaxed">
                       {powerDataset.scope}
