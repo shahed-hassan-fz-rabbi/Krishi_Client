@@ -234,7 +234,7 @@ function SidebarInner({
           </>
         ) : (
           <>
-            <BrandMark tone="dark" />
+            <BrandMark tone="dark" showSubtitle={false} />
             <div className="flex items-center gap-1">
               {showClose ? (
                 <button

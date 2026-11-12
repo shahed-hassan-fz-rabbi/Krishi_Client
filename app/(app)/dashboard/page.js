@@ -73,7 +73,7 @@ export default function DashboardPage() {
   const [environmentalSources, setEnvironmentalSources] = useState([]);
   const [latestEnvironmental, setLatestEnvironmental] = useState({ district: null, loaded: false, gpm: null, smap: null, modis: null });
   const [divisionList, setDivisionList] = useState([]);
-  const [selectedDivision, setSelectedDivision] = useState("dhaka");
+  const [selectedDivision, setSelectedDivision] = useState("chattogram");
   const [divisionData, setDivisionData] = useState(null);
   const [divisionError, setDivisionError] = useState(false);
   const [divisionLoading, setDivisionLoading] = useState(true);
@@ -84,7 +84,7 @@ export default function DashboardPage() {
     fetchDivisions().then((response) => {
       if (!active || !response?.success || !Array.isArray(response.data)) return;
       setDivisionList(response.data);
-      if (response.data.some((division) => division.code === "dhaka")) setSelectedDivision("dhaka");
+      if (response.data.some((division) => division.code === "chattogram")) setSelectedDivision("chattogram");
     }).catch(() => {});
     return () => { active = false; };
   }, []);

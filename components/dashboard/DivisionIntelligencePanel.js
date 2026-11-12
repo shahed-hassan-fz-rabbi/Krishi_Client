@@ -61,7 +61,7 @@ export default function DivisionIntelligencePanel({ divisions, selected, onSelec
               <div className="flex items-center justify-between gap-2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2"><Icon size={19} strokeWidth={1.8} aria-hidden="true" /></span>
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${available ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300" : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"}`}>
-                  {loading ? (isBn ? "লোড হচ্ছে" : "Loading") : available ? (isBn ? "উপাত্ত পাওয়া গেছে" : "Data available") : (isBn ? "এখনও পাওয়া যায়নি" : "Unavailable")}
+                  {loading ? (isBn ? "লোড হচ্ছে" : "Loading") : available ? (isBn ? "উপাত্ত পাওয়া গেছে" : "Data available") : (isBn ? "এই স্থানে যাচাইকৃত তথ্য নেই" : "No verified reading here")}
                 </span>
               </div>
               <h3 className="mt-3 text-sm font-bold text-content">{isBn ? product.titleBn : product.titleEn}</h3>

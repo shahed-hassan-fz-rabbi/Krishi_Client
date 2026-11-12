@@ -837,7 +837,7 @@ function AssistantContent() {
                         width={48}
                         height={48}
                         unoptimized
-                        className="h-12 w-12 object-contain"
+                        className="h-12 w-12 object-contain brightness-110 saturate-125"
                       />
                     </div>
 

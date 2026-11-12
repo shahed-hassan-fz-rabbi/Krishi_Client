@@ -15,6 +15,7 @@ import { BRAND_LOGO_SRC } from "@/lib/branding.js";
  */
 export function BrandMark({ href = "/", tone = "light", compact = false, showSubtitle = true }) {
   const { t } = useLang();
+  const brandWords = t("brand").trim().split(/\s+/);
   const [logoOk, setLogoOk] = useState(true);
 
   return (
@@ -27,7 +28,7 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
           height={40}
           unoptimized
           onError={() => setLogoOk(false)}
-          className="h-10 w-10 shrink-0 object-contain drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
+          className="h-10 w-10 shrink-0 object-contain brightness-110 saturate-125 drop-shadow-xs transition-transform duration-200 group-hover:scale-105"
           priority
         />
       ) : (
@@ -37,8 +38,13 @@ export function BrandMark({ href = "/", tone = "light", compact = false, showSub
       )}
       {!compact ? (
         <span className="min-w-0 leading-tight">
-          <span className="block text-base font-bold tracking-tight text-inherit transition-colors group-hover:text-emerald whitespace-nowrap">
-            {t("brand")}
+          <span className="block whitespace-nowrap text-base font-bold tracking-tight">
+            <span className={tone === "dark" ? "text-emerald-200" : "text-forest-700 dark:text-emerald-300"}>
+              {brandWords[0]}
+            </span>
+            {brandWords.length > 1 ? (
+              <span className="ml-1 text-amber-strong">{brandWords.slice(1).join(" ")}</span>
+            ) : null}
           </span>
           {showSubtitle ? (
             <span

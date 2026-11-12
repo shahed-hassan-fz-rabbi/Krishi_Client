@@ -27,7 +27,6 @@ import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js"
 import { Badge } from "@/components/ui/Badge.js";
 import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
-import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 
 const HERO_SRC = "/images/hero.png";
@@ -54,7 +53,6 @@ const steps = [
 
 export default function LandingPage() {
   const { t, locale } = useLang();
-  const { districts } = useLocation();
   const [liveDataSources, setLiveDataSources] = useState(null);
   const [hasLoadedDataSources, setHasLoadedDataSources] = useState(false);
 
@@ -166,25 +164,6 @@ export default function LandingPage() {
             <p className="mt-8 max-w-2xl mx-auto text-sm text-white/80 leading-relaxed">
               {t("landing.heroNote")}
             </p>
-          </div>
-        </section>
-
-        {/* Supported districts */}
-        <section className="border-b border-line bg-surface py-12">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-emerald" aria-hidden="true" />
-                <span className="text-sm font-medium text-muted">{t("landing.supportedDistricts")}</span>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {districts.map((d) => (
-                  <Badge key={d.code} tone="emerald">
-                    {locale === "bn" ? d.nameBn || d.nameEn : d.nameEn}
-                  </Badge>
-                ))}
-              </div>
-            </div>
           </div>
         </section>
 
