@@ -11,6 +11,7 @@ import {
   Info,
 } from "lucide-react";
 import { toBengaliNumber } from "@/lib/tickerHeadlines.js";
+import { getReliableModisIndices } from "@/lib/dashboardData.js";
 
 /**
  * Krishi Mama — Premium Enterprise Environmental Intelligence Cards.
@@ -148,10 +149,16 @@ export default function EnvironmentalIntelligenceCards({
   const modisLastDate = modisDistrictValid?.lastObservationDate || null;
 
   const rawModisObs = modisData?.data;
-  const isModisGood = rawModisObs?.pixelReliability === 0 && rawModisObs?.isReliableQuality === true;
+  const modisGoodIndices = getReliableModisIndices(rawModisObs);
+  const isModisGood = modisGoodIndices !== null;
   const isModisMarginal = rawModisObs?.pixelReliability === 1;
-  const modisNdvi = Number.isFinite(rawModisObs?.ndvi) ? Number(rawModisObs.ndvi).toFixed(4) : null;
-  const modisEvi = Number.isFinite(rawModisObs?.evi) ? Number(rawModisObs.evi).toFixed(4) : null;
+  const modisOnlyMarginal = modisGoodCount === 0 && modisMarginalCount > 0;
+  const modisNdvi = modisGoodIndices?.ndvi !== null && modisGoodIndices?.ndvi !== undefined
+    ? modisGoodIndices.ndvi.toFixed(4)
+    : null;
+  const modisEvi = modisGoodIndices?.evi !== null && modisGoodIndices?.evi !== undefined
+    ? modisGoodIndices.evi.toFixed(4)
+    : null;
   const modisObsDate = rawModisObs?.dateLabel || modisLastDate;
 
   // --------------------------------------------------------------------------
@@ -392,7 +399,9 @@ export default function EnvironmentalIntelligenceCards({
         text: isModisGood
           ? (isBn ? "উত্তম মান" : "Good Data")
           : isModisMarginal
-            ? (isBn ? "প্রান্তিক মান" : "Marginal Data")
+            ? (isBn ? "প্রান্তিক মান · দেখানো হয়নি" : "Marginal · Withheld")
+            : modisOnlyMarginal
+              ? (isBn ? "শুধু প্রান্তিক মান" : "Only marginal data")
             : rawModisObs
               ? (isBn ? "মান যাচাই হয়নি" : "Quality unavailable")
               : (isBn ? "উপাত্ত নেই" : "Unavailable"),
@@ -412,9 +421,14 @@ export default function EnvironmentalIntelligenceCards({
         primaryValue: modisNdvi !== null ? (isBn ? toBengaliNumber(modisNdvi) : modisNdvi) : "—",
         unit: "NDVI",
         label: isBn
-          ? `১৬ দিনের যৌগিক চক্র (${formatDate(modisObsDate, locale)})`
-          : `16-Day Composite (${formatDate(modisObsDate, locale)})`,
+          ? `${isModisMarginal ? "প্রান্তিক যৌগিক চক্র · গ্রহণযোগ্য নয়" : "১৬ দিনের যৌগিক চক্র"}${modisObsDate ? ` (${formatDate(modisObsDate, locale)})` : ""}`
+          : `${isModisMarginal ? "Marginal composite · not eligible" : "16-Day Composite"}${modisObsDate ? ` (${formatDate(modisObsDate, locale)})` : ""}`,
         isUnavailable: modisNdvi === null,
+        unavailableNote: isModisMarginal || modisOnlyMarginal
+          ? (isBn
+            ? "র‍্যাঙ্ক ১ প্রান্তিক মান আছে, কিন্তু এই ড্যাশবোর্ডে শুধু র‍্যাঙ্ক ০ উত্তম মান দেখানো হয়।"
+            : "Marginal rank-1 observations exist, but this dashboard shows only rank-0 good-quality values.")
+          : null,
         subMetrics: [
           {
             label: "EVI",
@@ -430,7 +444,9 @@ export default function EnvironmentalIntelligenceCards({
       },
       metadata: [
         {
-          label: isBn ? "সর্বশেষ পর্যবেক্ষণ" : "Latest Observation",
+          label: isBn
+            ? (isModisMarginal ? "সর্বশেষ প্রান্তিক রেকর্ড" : "সর্বশেষ উত্তম পর্যবেক্ষণ")
+            : (isModisMarginal ? "Latest marginal record" : "Latest good observation"),
           value: formatDate(modisObsDate, locale),
         },
         {
