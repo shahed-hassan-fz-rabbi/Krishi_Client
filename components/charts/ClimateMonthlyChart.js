@@ -9,6 +9,7 @@ import {
   Legend,
   Line,
   ResponsiveContainer,
+  ReferenceArea,
   Tooltip,
   XAxis,
   YAxis,
@@ -31,8 +32,13 @@ export function ClimateMonthlyChart({
   medianLabel = `Median (${unit})`,
   emptyMessage = "No observation series available",
   variant = "default",
+  monsoonLabel = null,
 }) {
-  const isDashboard = variant === "dashboard";
+  const isDashboard = variant === "dashboard" || variant === "compact";
+  const isCompact = variant === "compact";
+  const monsoonStart = data.find((row) => row.month === 6)?.monthLabel;
+  const monsoonEnd = data.find((row) => row.month === 9)?.monthLabel;
+  const showMonsoon = monsoonLabel && monsoonStart && monsoonEnd;
 
   if (!data || data.length === 0) {
     return (
@@ -46,9 +52,10 @@ export function ClimateMonthlyChart({
   }
 
   return (
-    <div className={isDashboard ? "h-[300px] w-full sm:h-[340px] xl:h-[360px]" : "h-72 w-full"} role="img" aria-label={title}>
+    <div className={isCompact ? "relative h-[240px] w-full" : isDashboard ? "relative h-[300px] w-full sm:h-[340px] xl:h-[360px]" : "relative h-72 w-full"} role="img" aria-label={showMonsoon ? `${title} · ${monsoonLabel}` : title}>
+      {showMonsoon && <p className="absolute right-2 top-0 flex items-center gap-1.5 text-[11px] text-muted"><span className="h-2.5 w-3 rounded-sm bg-emerald/15" aria-hidden="true" />{monsoonLabel}</p>}
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={isDashboard ? { top: 16, right: 18, bottom: 8, left: 4 } : { top: 12, right: 12, bottom: 4, left: -4 }}>
+        <ComposedChart data={data} margin={isDashboard ? { top: showMonsoon ? 30 : 16, right: 18, bottom: 8, left: 4 } : { top: 12, right: 12, bottom: 4, left: -4 }}>
           <defs>
             <linearGradient id="km-chart-grad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={barColor} stopOpacity={0.4} />
@@ -56,6 +63,7 @@ export function ClimateMonthlyChart({
             </linearGradient>
           </defs>
           <CartesianGrid stroke="var(--km-border)" strokeDasharray="3 3" vertical={false} />
+          {showMonsoon && <ReferenceArea x1={monsoonStart} x2={monsoonEnd} fill="var(--km-emerald)" fillOpacity={0.1} strokeOpacity={0} />}
           <XAxis
             dataKey="monthLabel"
             tickLine={false}

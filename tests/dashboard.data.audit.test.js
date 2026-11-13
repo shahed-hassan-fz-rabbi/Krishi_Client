@@ -61,7 +61,7 @@ test("POWER accepts only explicit database, cache, or documented snapshot proven
 });
 
 test("Dashboard cards use API values, district-valid coverage and no fixed historical range", async () => {
-  const source = await readFile(new URL("../app/(app)/dashboard/page.js", import.meta.url), "utf8");
+  const source = await readFile(new URL("../components/dashboard/DashboardWorkspace.js", import.meta.url), "utf8");
   assert.match(source, /fetchClimateSummary\(districtCode\)/);
   assert.match(source, /fetchPrecipitationLatest\(selectedDistrict\)/);
   assert.match(source, /fetchSoilMoistureLatest\(selectedDistrict\)/);
@@ -77,7 +77,7 @@ test("Dashboard cards use API values, district-valid coverage and no fixed histo
 });
 
 test("district changes hide prior-district summary and environmental responses until the new district loads", async () => {
-  const source = await readFile(new URL("../app/(app)/dashboard/page.js", import.meta.url), "utf8");
+  const source = await readFile(new URL("../components/dashboard/DashboardWorkspace.js", import.meta.url), "utf8");
   assert.match(source, /const currentEnvironmental = latestEnvironmental\.district === selectedDistrict \? latestEnvironmental : null/);
   assert.match(source, /const currentClimateSummary = summaryDistrict === selectedDistrict \? summaryData : null/);
   assert.match(source, /const currentClimateMeta = summaryDistrict === selectedDistrict \? metaData : null/);
@@ -161,4 +161,57 @@ test("weather dashboard preserves unavailable risk and response-backed seasonal 
   assert.doesNotMatch(source, /usableEnsembleMembers|ensembleRainfallMeanMm|rainfallAnomalyStatus|tercileProbabilities/);
   assert.match(source, /verified government warnings/i);
   assert.doesNotMatch(source, /BMD official agricultural warnings|Official BMD/);
+});
+
+
+test("dashboard sample years come only from supplied observation dates", async () => {
+  const { observationYear } = await import("../lib/dashboardPresentation.js");
+  assert.equal(observationYear("2024-01-07"), "2024");
+  assert.equal(observationYear("2023-12-19T00:00:00Z"), "2023");
+  for (const missing of [null, undefined, "", "not-a-date", "2024", 2024]) assert.equal(observationYear(missing), null);
+});
+
+test("dashboard keeps weather mounted in a closed disclosure after planning content", async () => {
+  const source = await readFile(new URL("../components/dashboard/DashboardWorkspace.js", import.meta.url), "utf8");
+  assert.ok(source.indexOf('t("dashboardUi.planButton")') < source.indexOf("<DistrictLocationPanel"));
+  assert.ok(source.indexOf("<WeatherIntelligenceSection") > source.indexOf('t("dashboard.handoffTeaserTitle")'));
+  assert.match(source, /<details[^>]*>\s*<summary[^>]*>\{t\("dashboardUi.weatherTitle"\)\}/);
+  assert.doesNotMatch(source, /<details[^>]*\bopen[= >]/);
+  const cards = await readFile(new URL("../components/dashboard/EnvironmentalIntelligenceCards.js", import.meta.url), "utf8");
+  assert.match(cards, /cards.filter\(\(card\) => card.id !== "power"\)/);
+  assert.match(cards, /<details[\s\S]*card.technicalCode[\s\S]*card.metadata/);
+});
+
+
+test("overview and climate reuse the loader while separating their presentation", async () => {
+  const page = await readFile(new URL("../components/dashboard/DashboardWorkspace.js", import.meta.url), "utf8");
+  assert.doesNotMatch(page, /role="tab"|role="tabpanel"|activeTab/);
+  assert.match(page, /view === "overview"/);
+  const overview = await readFile(new URL("../components/dashboard/DashboardOverview.js", import.meta.url), "utf8");
+  assert.match(overview, /href="\/crop-rotation"/);
+  assert.match(overview, /href="\/climate"/);
+  assert.match(overview, /href="\/data-sources"/);
+  assert.doesNotMatch(overview, /fetch\(|fetchClimate|previewCropRotations|compareCropRotations/);
+  assert.match(overview, /Number.isFinite\(years\)/);
+  assert.match(overview, /getDistrictValidCoverage\(source, district\)/);
+  const climate = await readFile(new URL("../app/(public-data)/climate/page.js", import.meta.url), "utf8");
+  assert.match(climate, /DashboardWorkspace view="climate"/);
+  const chart = await readFile(new URL("../components/charts/ClimateMonthlyChart.js", import.meta.url), "utf8");
+  assert.match(chart, /row.month === 6/);
+  assert.match(chart, /row.month === 9/);
+  assert.match(chart, /<ReferenceArea x1=\{monsoonStart\} x2=\{monsoonEnd\}/);
+  assert.match(chart, /<ComposedChart data=\{data\}/);
+  const nav = await readFile(new URL("../lib/nav.js", import.meta.url), "utf8");
+  assert.doesNotMatch(nav, /href: "\/settings"/);
+  for (const path of ["/my-farm", "/assistant", "/map", "/rotation-planner", "/handoff"]) assert.ok(nav.includes(`href: "${path}"`));
+});
+
+
+test("redesigned overview never invents strategy results, metrics, or fixed average years", async () => {
+  const source = await readFile(new URL("../components/dashboard/DashboardOverview.js", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /fetch\(|Math.random|Soil Health|Healthy|Resilience rating|farmSize|waterUsePercent/);
+  assert.match(source, /Number.isFinite\(years\) && years > 0/);
+  assert.match(source, /tiles.filter\(\(\{ value \}\) => value !== "—"\)/);
+  assert.match(source, /row.value !== "—"/);
+  assert.match(source, /getDistrictValidCoverage\(source, district\)/);
 });

@@ -234,7 +234,7 @@ function SidebarInner({
           </>
         ) : (
           <>
-            <BrandMark tone="dark" subtitleWrap />
+            <BrandMark tone="dark" showSubtitle={false} />
             <div className="flex items-center gap-1">
               {showClose ? (
                 <button
@@ -266,7 +266,7 @@ function SidebarInner({
         <NavList onNavigate={onNavigate} isCollapsed={isCollapsed} />
 
         {/* Chat History Section */}
-        {isCollapsed ? (
+        {conversations.length > 0 && (isCollapsed ? (
           <div className="border-t border-white/10 pt-2 pb-1">
             <div className="group relative flex justify-center py-1">
               <Link
@@ -422,7 +422,7 @@ function SidebarInner({
               </div>
             )}
           </div>
-        )}
+        ))}
       </div>
 
       {/* User Profile Section at Bottom */}
@@ -535,17 +535,14 @@ function SidebarInner({
 }
 
 function DistrictContext() {
-  const { currentDistrictObj, selectedDistrict } = useLocation();
-  const { locale } = useLang();
-  const districtName =
-    locale === "bn"
-      ? currentDistrictObj?.nameBn || currentDistrictObj?.nameEn || selectedDistrict
-      : currentDistrictObj?.nameEn || selectedDistrict;
+  const { currentDistrictObj, selectedDistrict, setSelectedDistrict, districts } = useLocation();
+  const { t, locale } = useLang();
+
 
   return (
-    <div className="hidden items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 text-sm font-medium text-content sm:flex">
+    <div className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 text-sm font-medium text-content">
       <MapPin className="h-4 w-4 shrink-0 text-emerald" aria-hidden="true" />
-      <span className="max-w-36 truncate">{districtName}</span>
+      <select aria-label={t("landing.supportedDistricts")} value={selectedDistrict} onChange={(event) => setSelectedDistrict(event.target.value)} className="max-w-36 cursor-pointer bg-transparent text-sm text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald">{districts.map((district) => <option key={district.code} value={district.code} className="bg-surface text-content">{locale === "bn" ? district.nameBn || district.nameEn : district.nameEn}</option>)}</select>
     </div>
   );
 }
@@ -744,6 +741,7 @@ export function GlobalAppHeader() {
             </button>
           </div>
         </div>
+        <div className="px-3 pb-2 md:hidden"><DistrictContext /></div>
       </header>
 
       {isMobileOpen ? (

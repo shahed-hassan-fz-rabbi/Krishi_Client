@@ -19,12 +19,12 @@ function consumeDraft() {
   } catch { return null; }
 }
 
-export function RotationPlanner({ publicMode = false, initialDistrict }) {
+export function RotationPlanner({ publicMode = false, initialDistrict, initialPriority = "water" }) {
   const { t, locale } = useLang();
   const { selectedDistrict } = useLocation();
   const startingDistrict = initialDistrict || selectedDistrict;
   const [draft] = useState(() => publicMode ? null : consumeDraft());
-  const [profile, setProfile] = useState(() => draft ? { ...initialProfile, ...Object.fromEntries(Object.keys(initialProfile).map((key) => [key, draft[key] || initialProfile[key]])) } : { ...initialProfile, districtCode: startingDistrict });
+  const [profile, setProfile] = useState(() => draft ? { ...initialProfile, ...Object.fromEntries(Object.keys(initialProfile).map((key) => [key, draft[key] || initialProfile[key]])) } : { ...initialProfile, districtCode: startingDistrict, priority: initialPriority });
   const [baseline, setBaseline] = useState(() => draft?.baseline?.length ? draft.baseline : [""]);
   const [farmId, setFarmId] = useState("");
   const [farms, setFarms] = useState([]);

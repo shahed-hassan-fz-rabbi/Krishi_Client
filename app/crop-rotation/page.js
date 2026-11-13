@@ -5,13 +5,14 @@ import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome.js"
 import { RotationPlanner } from "@/components/RotationPlanner.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useLocation } from "@/contexts/LocationContext.js";
-import { resolveRotationDistrict } from "@/lib/climatePlanning.js";
+import { resolveRotationDistrict, resolveRotationPriority } from "@/lib/climatePlanning.js";
 
 function PublicRotationForm() {
   const searchParams = useSearchParams();
   const { selectedDistrict } = useLocation();
   const district = resolveRotationDistrict(searchParams.get("district"), selectedDistrict);
-  return <RotationPlanner publicMode initialDistrict={district} key={district} />;
+  const priority = resolveRotationPriority(searchParams.get("priority"));
+  return <RotationPlanner publicMode initialDistrict={district} initialPriority={priority} key={`${district}:${priority}`} />;
 }
 
 export default function CropRotationPage() {

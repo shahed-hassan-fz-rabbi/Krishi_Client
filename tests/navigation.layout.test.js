@@ -51,7 +51,7 @@ test("Climate Data is a single sidebar destination; specialist data pages are no
 });
 
 test("Climate Data embeds all three NASA detail sections and old routes redirect into the same page", () => {
-  const climatePage = read("../app/(public-data)/climate/page.js");
+  const climatePage = read("../components/climate/ClimateObservationDetails.js");
   for (const section of ["RainfallSection", "SoilMoistureSection", "VegetationSection"]) {
     assert.match(climatePage, new RegExp(`<${section} embedded refreshToken=\\{refreshToken\\} onOverview=\\{reportDatasetOverview\\} \/>`));
   }

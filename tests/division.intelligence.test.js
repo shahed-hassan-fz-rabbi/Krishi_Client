@@ -5,7 +5,7 @@ import path from "node:path";
 import { getDistrictReferencePoint, getProjectDistricts, isProjectDistrictCode, resolveProjectDistrictCode } from "../lib/districtGeography.js";
 
 const project = process.cwd();
-const dashboard = fs.readFileSync(path.join(project, "app/(app)/dashboard/page.js"), "utf8");
+const dashboard = fs.readFileSync(path.join(project, "components/dashboard/DashboardWorkspace.js"), "utf8");
 const locationPanel = fs.readFileSync(path.join(project, "components/dashboard/DistrictLocationPanel.js"), "utf8");
 const locationContext = fs.readFileSync(path.join(project, "contexts/LocationContext.js"), "utf8");
 const pointMap = fs.readFileSync(path.join(project, "components/dashboard/DivisionPointMap.js"), "utf8");

@@ -8,8 +8,9 @@ import {
   Leaf,
   ArrowRight,
   ShieldCheck,
-  Info,
 } from "lucide-react";
+import { useLang } from "@/lib/i18n/LanguageContext.js";
+import { observationYear } from "@/lib/dashboardPresentation.js";
 import { toBengaliNumber } from "@/lib/tickerHeadlines.js";
 import { getReliableModisIndices } from "@/lib/dashboardData.js";
 
@@ -64,6 +65,8 @@ function sourceMetadata(source, resolution, provenance, locale) {
 }
 
 export default function EnvironmentalIntelligenceCards({
+  sectionTitle = null,
+  hideExploreLink = false,
   locale = "bn",
   selectedDistrict = "cumilla",
   districtDisplayName = "কুমিল্লা",
@@ -76,6 +79,7 @@ export default function EnvironmentalIntelligenceCards({
   isLoading = false,
 }) {
   const isBn = locale === "bn";
+  const { t } = useLang();
 
   // --------------------------------------------------------------------------
   // 1. NASA POWER (Historical Baseline Agroclimatology)
@@ -482,7 +486,7 @@ export default function EnvironmentalIntelligenceCards({
             </p>
           </div>
           <h2 id="environmental-intelligence-title" className="mt-1 text-xl font-bold tracking-tight text-stone-900 sm:text-2xl dark:text-stone-50">
-            {isBn ? "আপনার এলাকার জলবায়ু তথ্য" : "Climate data for your area"}
+            {sectionTitle || (isBn ? "আপনার এলাকার জলবায়ু তথ্য" : "Climate data for your area")}
           </h2>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -491,114 +495,50 @@ export default function EnvironmentalIntelligenceCards({
             ? `${districtDisplayName} জেলার NASA পর্যবেক্ষণ; তারিখ, গুণমান ও সীমাবদ্ধতা প্রতিটি কার্ডে দেখানো হয়েছে।`
             : `NASA observations for ${districtDisplayName}. Dates, quality, and limitations are shown on each card.`}
         </p>
+        {!hideExploreLink && <>
         <Link href="/climate" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-forest-700 transition-colors hover:bg-forest/5 hover:text-forest-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-climate dark:text-emerald-400 dark:hover:bg-white/5">
           <span>{isBn ? "সব জলবায়ু তথ্য দেখুন" : "Explore Climate Data"}</span>
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </Link>
+        </>}
         </div>
       </div>
 
       {/* Grid of 4 Symmetrical Enterprise SaaS Cards (2 Cards per Row) */}
       <div className="grid w-full min-w-0 items-stretch gap-4 md:grid-cols-2 lg:gap-5">
-        {cards.map((card) => {
+        {cards.filter((card) => card.id !== "power").map((card) => {
           const CardIcon = card.icon;
-          return (
-            <div
-              key={card.id}
-              className={`group flex h-full w-full min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/90 bg-white p-0 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-forest-600/30 hover:shadow-md dark:border-white/10 dark:bg-surface dark:hover:border-emerald-500/30 ${card.topBorder} border-t-2`}
-            >
-              <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
-                {/* Header Row: Icon + Title on left, Status Badge on right */}
-                <div className="flex min-w-0 items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-2xs ${card.iconWrap}`}>
-                      <CardIcon className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-sm sm:text-base font-bold tracking-tight text-stone-900 dark:text-stone-100">{card.title}</h3>
-                      <p className="mt-0.5 truncate text-[11px] font-mono font-medium text-stone-500 dark:text-stone-400">{card.technicalCode}</p>
-                    </div>
-                  </div>
-                  <span
-                    title={card.badge.tooltip}
-                    className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold shadow-2xs ${card.badge.style}`}
-                  >
-                    {card.badge.text}
-                  </span>
-                </div>
-
-                {/* Farmer-Friendly Explanation */}
-                <p className="mt-2.5 min-h-[2rem] text-xs leading-relaxed text-stone-600 dark:text-stone-300 line-clamp-2">
-                  {card.explanation}
-                </p>
-
-                {/* Main Metric Container with Horizontal Balanced Layout */}
-                <div className={`mt-3 rounded-xl border p-3.5 sm:p-4 ${
-                  card.metric.isUnavailable
-                    ? "border-amber-200/60 bg-amber-50/40 dark:border-amber-900/30 dark:bg-amber-950/20"
-                    : "border-stone-200/60 bg-stone-50/70 dark:border-white/5 dark:bg-surface-2/40"
-                }`}>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className={`text-2xl font-extrabold tracking-tight sm:text-3xl ${
-                          card.metric.isUnavailable
-                            ? "text-amber-900 dark:text-amber-200 text-xl sm:text-2xl"
-                            : "text-stone-900 dark:text-stone-50"
-                        }`}>
-                          {card.metric.primaryValue}
-                        </span>
-                        {card.metric.unit && (
-                          <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">{card.metric.unit}</span>
-                        )}
-                      </div>
-                      <p className="mt-0.5 truncate text-xs font-medium text-stone-600 dark:text-stone-300">
-                        {card.metric.label}
-                      </p>
-                      {card.metric.unavailableNote && (
-                        <p className="mt-2 max-w-xl text-xs leading-relaxed text-amber-900 dark:text-amber-200">
-                          {card.metric.unavailableNote}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Sub-Metrics Pill Chips */}
-                    {Array.isArray(card.metric.subMetrics) && card.metric.subMetrics.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                        {card.metric.subMetrics.map((chip, idx) => (
-                          <span key={idx} className="inline-flex items-center gap-1 rounded-lg border border-stone-200/80 bg-white px-2.5 py-1 text-xs font-medium text-stone-800 shadow-2xs dark:border-white/10 dark:bg-surface-2 dark:text-stone-200">
-                            <span className="text-stone-500 dark:text-stone-400">{chip.label}:</span>
-                            <span className="font-bold">{chip.value}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Balanced 2-Column Metadata Grid (Compact & Clear) */}
-                <div className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-stone-200/60 pt-3 text-[11px] leading-relaxed dark:border-white/5">
-                  {card.metadata.map((meta, idx) => (
-                    <div key={idx} className="flex min-w-0 flex-col">
-                      <span className="text-[10px] font-medium text-stone-500 dark:text-stone-400">{meta.label}</span>
-                      <span className="min-w-0 truncate font-semibold text-stone-800 dark:text-stone-200">{meta.value}</span>
-                    </div>
-                  ))}
-                </div>
+          const year = observationYear(card.id === "gpm" ? gpmObservedDate : card.id === "modis" ? modisObsDate : null);
+          const noSoilData = card.id === "smap" && card.metric.isUnavailable;
+          const meaning = t(`dashboardUi.${card.id === "gpm" ? "rainMeaning" : card.id === "smap" ? "soilMeaning" : "vegetationMeaning"}`);
+          return <article key={card.id} className="flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface">
+            <div className="flex-1 p-4 sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-center gap-3"><CardIcon className="h-5 w-5 text-emerald-strong" aria-hidden="true" /><h3 className="text-base font-semibold text-content">{card.title}</h3></div>
+                {year && <span className="rounded-full border border-line bg-surface-2 px-3 py-1 text-xs font-medium text-content">{t("dashboardUi.sampleYear").replace("{year}", isBn ? toBengaliNumber(year) : year)}</span>}
               </div>
-
-              {/* Action Link Footer */}
-              <div className="border-t border-stone-200/70 bg-stone-50/60 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-white/10 dark:bg-surface-2/20">
-                <Link
-                  href={card.href}
-                  className="group/link flex items-center justify-between text-xs font-semibold text-forest-700 transition-colors hover:text-forest-900 dark:text-emerald-400 dark:hover:text-emerald-300"
-                >
-                  <span>{card.actionLabel}</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-1" aria-hidden="true" />
-                </Link>
+              <p className="mt-3 text-sm leading-6 text-muted">{meaning}</p>
+              <div className="mt-4 rounded-xl border border-line bg-surface-2 p-4">
+                {noSoilData ? <p className="text-sm leading-7 text-muted">{t("dashboardUi.noQualityData")}</p> : <>
+                  <p className="text-3xl font-semibold text-content">{card.metric.primaryValue} <span className="text-sm font-normal text-muted">{card.metric.unit}</span></p>
+                  <p className="mt-1 text-xs leading-6 text-muted">{card.metric.label}</p>
+                </>}
               </div>
+              <details className="mt-4 text-xs leading-6 text-muted">
+                <summary className="cursor-pointer font-medium text-content">{t("dashboardUi.details")}</summary>
+                <p className="mt-3 break-words">{card.technicalCode}</p>
+                <p>{card.explanation}</p>
+                <p>{card.badge.text} · {card.badge.tooltip}</p>
+                {card.metric.unavailableNote && <p>{card.metric.unavailableNote}</p>}
+                {noSoilData && <p>{card.metric.label}</p>}
+                <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {card.metric.subMetrics?.map((chip, index) => <div key={`chip-${index}`}><dt>{chip.label}</dt><dd className="font-medium text-content">{chip.value}</dd></div>)}
+                  {card.metadata.map((meta, index) => <div key={index} className="min-w-0"><dt>{meta.label}</dt><dd className="break-words font-medium text-content">{meta.value}</dd></div>)}
+                </dl>
+              </details>
             </div>
-          );
+            <Link href={card.href} className="flex items-center justify-between gap-3 border-t border-line px-5 py-3 text-sm font-medium text-emerald-strong hover:bg-surface-2"><span>{card.actionLabel}</span><ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          </article>;
         })}
       </div>
     </section>

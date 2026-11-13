@@ -9,8 +9,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
 
 test("Dashboard links to the implemented public Crop Calendar in both locales", () => {
-  const dashboard = read("app/(app)/dashboard/page.js");
-  assert.match(dashboard, /Button href="\/crop-calendar"/);
+  const dashboard = read("components/dashboard/DashboardWorkspace.js") + read("components/dashboard/DashboardOverview.js");
+  assert.match(read("lib/nav.js"), /href: "\/crop-calendar"/);
   assert.doesNotMatch(dashboard, /Crop calendar planning \(planned\)|planned feature/i);
   assert.doesNotMatch(dashboard, /Badge tone="neutral">0 .*Badge tone="neutral">7/);
   for (const locale of ["en", "bn"]) {
@@ -22,10 +22,10 @@ test("Dashboard links to the implemented public Crop Calendar in both locales", 
 });
 
 test("Dashboard groups NASA POWER metrics and summaries as historical information", () => {
-  const dashboard = read("app/(app)/dashboard/page.js");
-  assert.match(dashboard, /aria-labelledby="dashboard-power-title"/);
-  assert.match(dashboard, /NASA POWER historical observations and calculated climate summaries\. This is not live weather\./);
-  assert.match(dashboard, /NASA POWER-এর ঐতিহাসিক পর্যবেক্ষণ ও জলবায়ু সারাংশ; এটি লাইভ আবহাওয়া নয়।/);
+  const dashboard = read("components/dashboard/DashboardWorkspace.js") + read("components/dashboard/DashboardOverview.js");
+  assert.match(dashboard, /t\("dashboardUi.historyBoundary"\)/);
+  assert.match(translations.en.dashboardUi.historyBoundary, /not live weather/);
+  assert.match(translations.bn.dashboardUi.historyBoundary, /লাইভ আবহাওয়া নয়/);
   assert.match(dashboard, /dashboard\.metricsTitle/);
   assert.match(dashboard, /dashboard\.summaryTitle/);
   assert.equal(translations.en.dashboard.metricsTitle.includes("2001"), false);

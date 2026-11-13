@@ -32,3 +32,10 @@ test("farmer-facing summaries and actions are available in both languages", () =
     assert.doesNotMatch(result, /\{\w+\}/);
   }
 });
+
+
+test("rotation priority links accept only supported choices", async () => {
+  const { resolveRotationPriority } = await import("../lib/climatePlanning.js");
+  for (const key of ["water", "diversity", "calendar"]) assert.equal(resolveRotationPriority(key), key);
+  for (const bad of [null, "", "admin", "profit"]) assert.equal(resolveRotationPriority(bad), "water");
+});
