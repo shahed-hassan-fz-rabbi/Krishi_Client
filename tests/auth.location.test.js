@@ -181,3 +181,16 @@ test("Back navigation preserves form data between step 2 and step 1", () => {
   assert.equal(state.confirmPassword, "SecretPassword123!");
   assert.equal(state.chosenDistrict, "cumilla");
 });
+
+
+test("farm header follows the opened farm and owner without changing general district selection", async () => {
+  const { farmHeaderContext } = await import("../lib/farmDisplay.js");
+  const cumilla = { userId: "farmer-a", farmId: "farm-a", districtCode: "cumilla" };
+  const ctg = { userId: "farmer-b", farmId: "farm-b", districtCode: "chattogram" };
+  assert.equal(farmHeaderContext("/my-farm/farm-a", cumilla, "farmer-a").districtCode, "cumilla");
+  assert.equal(farmHeaderContext("/my-farm/farm-b", ctg, "farmer-b").districtCode, "chattogram");
+  assert.equal(farmHeaderContext("/my-farm/farm-b", cumilla, "farmer-a").districtCode, null);
+  assert.equal(farmHeaderContext("/my-farm/farm-a", cumilla, "farmer-b").districtCode, null);
+  assert.equal(farmHeaderContext("/my-farm/farm-a", cumilla, null).districtCode, null);
+  for (const path of ["/dashboard", "/climate", "/my-farm", "/my-farm/new", "/my-farm/plan"]) assert.equal(farmHeaderContext(path, cumilla, "farmer-a").isFarm, false);
+});

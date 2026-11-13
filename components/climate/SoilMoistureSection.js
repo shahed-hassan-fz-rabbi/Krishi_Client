@@ -37,6 +37,12 @@ import {
 
 export default function SoilMoistureSection({ embedded = false, refreshToken = 0, onOverview }) {
   const { t, locale } = useLang();
+  const observationDate = value => {
+    if (!value) return "—";
+    const date = new Date(`${String(value).slice(0, 10)}T00:00:00Z`);
+    return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", {day: "numeric", month: "long", year: "numeric", timeZone: "UTC"}).format(date);
+  };
+
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } = useLocation();
 
   const [latestData, setLatestData] = useState(null);
@@ -131,12 +137,9 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
             <Heading id={embedded ? "soil-section-title" : undefined} className="text-xl font-bold tracking-tight text-ink font-heading sm:text-2xl">
               {isBn ? "মাটির উপরিভাগের আর্দ্রতা" : "Surface soil moisture"}
             </Heading>
-            <Badge variant="neutral">NASA SMAP SPL3SMP_E V006</Badge>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
-            {isBn
-              ? "নাসা এসএমএপি স্যাটেলাইট থেকে প্রাপ্ত শীর্ষ ৫ সেমি ভলিউমেট্রিক মাটির আর্দ্রতা ও গুণমান ফ্ল্যাগ বিশ্লেষণ"
-              : "Topsoil (~5 cm) volumetric moisture and retrieval quality bitmask from NASA SMAP enhanced radiometer observations."}
+            {t("soilSimple.intro")}
           </p>
         </div>
 
@@ -187,38 +190,7 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
         </div>
       </div>
 
-      {/* Scientific Transparency Disclosures */}
-      <div className="space-y-2">
-        <div className="rounded-xl border border-line bg-surface-2 p-4 text-xs text-ink-muted">
-          <div className="flex items-start gap-2.5">
-            <Info size={16} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
-            <div className="space-y-1">
-              <span className="font-semibold text-ink">{isBn ? "এই মানের অর্থ:" : "What this measure means:"}</span>
-              <p>
-                {isBn
-                  ? "এটি মাটির একেবারে উপরিভাগের (প্রায় ৫ সেমি) আর্দ্রতার আঞ্চলিক ধারণা। আপনার নির্দিষ্ট জমি বা শিকড়ের গভীরের মাপ নয়।"
-                  : "This is a regional estimate of moisture near the soil surface (about the top 5 cm), not a measurement of your exact field or deeper root zone."}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-amber/30 bg-amber/5 p-3 text-xs text-ink-muted">
-          <div className="flex items-start gap-2">
-            <CalendarRange size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 text-amber-600" />
-            <p>
-              {isBn
-                ? "এটি মাটির উপরিভাগের আঞ্চলিক স্যাটেলাইট পর্যবেক্ষণ—আপনার জমির সরাসরি মাপ বা শিকড়ের গভীরের আর্দ্রতা নয়। মান-যাচাইয়ে না টিকলে মানটি দেখানো হয় না।"
-                : "This is a regional satellite observation of surface soil, not a direct measurement of your field or root-zone moisture. Values that fail the quality gate are withheld."}
-            </p>
-          </div>
-        </div>
-
-        <details className="rounded-xl border border-line bg-surface px-4 py-3 text-xs text-ink-muted">
-          <summary className="cursor-pointer font-medium text-ink">{isBn ? "স্যাটেলাইট গ্রিড সম্পর্কে আরও জানুন" : "More about the satellite footprint"}</summary>
-          <p className="mt-2 leading-6">{isBn ? "SMAP-এর রেডিওমিটারের আদি footprint প্রায় ৩৬–৪০ কিমি। ফলাফল ৯ কিমি EASE-Grid 2.0-এ পোস্ট করা হয়; এটি ৯ কিমি ব্যবধানে আলাদা মাঠ-পরিমাপ নয়।" : "SMAP's native radiometer footprint is about 36–40 km. Results are posted to a 9 km EASE-Grid 2.0; that does not make them independent field measurements every 9 km."}</p>
-        </details>
-      </div>
+      <p className="rounded-xl border border-line bg-surface-2/40 px-4 py-3 text-sm leading-6 text-muted">{t("soilSimple.note")}</p>
 
       {isLoading ? (
         <LoadingState message={isBn ? "মাটির আর্দ্রতা উপাত্ত লোড হচ্ছে..." : "Loading soil moisture intelligence..."} />
@@ -238,18 +210,17 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
                 ? "এই জেলার জন্য মান-যাচাই করা মাটির আর্দ্রতার পর্যবেক্ষণ এখন দেখানোর মতো নেই। এটি শূন্য আর্দ্রতা বোঝায় না। পরে আবার চেষ্টা করুন বা অন্য জেলা বেছে নিন।"
                 : "There is no quality-approved soil-moisture observation to show for this district right now. This does not mean zero moisture. Try again later or choose another district."}
             </p>
-            <p className="mt-4 text-xs text-ink-muted">{isBn ? "NASA SMAP SPL3SMP_E V006 · উপরিভাগের আর্দ্রতা" : "NASA SMAP SPL3SMP_E V006 · surface soil moisture"}</p>
           </CardBody>
         </Card>
       ) : (
         <>
           {/* Latest Metric Cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Card>
-              <CardBody className="space-y-1">
+            <Card className="h-full border-sky-200 bg-sky-50/60 dark:border-sky-900 dark:bg-sky-950/20">
+              <CardBody className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-ink-muted">
                   <span>{isBn ? "সর্বশেষ আর্দ্রতা" : "Latest Volumetric Moisture"}</span>
-                  <Droplets size={16} strokeWidth={1.8} className="text-emerald" />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300"><Droplets size={22} strokeWidth={1.8} aria-hidden="true" /></span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
@@ -258,16 +229,16 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
                   <span className="text-xs text-ink-muted">m³/m³</span>
                 </div>
                 <div className="text-xs text-ink-muted">
-                  {recommendedLatest ? `${isBn ? "পর্যবেক্ষণ:" : "Observed:"} ${latestData.dateLabel || "—"} (${latestData.latestOrbit || "—"})` : (isBn ? `মান-যাচাইয়ে উত্তীর্ণ নয় · ফ্ল্যাগ ${latestData?.retrievalQualityFlag ?? "—"}` : `Quality gate not met · flag ${latestData?.retrievalQualityFlag ?? "—"}`)}
+                  {recommendedLatest ? `${isBn ? "পর্যবেক্ষণ:" : "Observed:"} ${latestData.dateLabel || "—"} (${latestData.latestOrbit || "—"})` : (t("observationSimple.unverified"))}
                 </div>
               </CardBody>
             </Card>
 
-            <Card>
-              <CardBody className="space-y-1">
+            <Card className="h-full border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20">
+              <CardBody className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-ink-muted">
                   <span>{isBn ? "সকাল পর্যবেক্ষণ (AM)" : "Morning Pass (AM ~06:00)"}</span>
-                  <Sun size={16} strokeWidth={1.8} className="text-amber-500" />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"><Sun size={22} strokeWidth={1.8} aria-hidden="true" /></span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
@@ -280,14 +251,14 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
                 <div className="text-xs">
                   {latestData?.orbits?.am?.isRecommended ? (
                     <span className="inline-flex items-center gap-1 text-emerald font-medium">
-                      <ShieldCheck size={12} /> {isBn ? "সুপারিশকৃত মান (Flag 8)" : "Recommended (Flag 8)"}
+                      <ShieldCheck size={12} /> {t("observationSimple.passed")}
                     </span>
                   ) : latestData?.orbits?.am?.soilMoisture != null ? (
                     <span className="inline-flex items-center gap-1 text-amber-600 font-medium">
-                      <ShieldAlert size={12} /> {isBn ? "সুপারিশহীন (not_recommended, Flag 9)" : "Not recommended (Flag 9)"}
+                      <ShieldAlert size={12} /> {t("observationSimple.unverified")}
                     </span>
                   ) : (
-                    <span className="text-ink-muted">{isBn ? "সোয়াথ গ্যাপ" : "Swath boundary gap"}</span>
+                    <span className="text-ink-muted">{t("observationSimple.missing")}</span>
                   )}
                 </div>
               </CardBody>
@@ -302,13 +273,12 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-ink">
-                      {isBn ? "এসএমএপি স্যাটেলাইট রেকর্ড ও গুণমান বিশ্লেষণ" : "SMAP Observation Records & QA Bitmask Breakdown"}
+                      {isBn ? "মাটির আর্দ্রতার আগের রেকর্ড" : "Earlier soil moisture records"}
                     </h2>
                     <p className="text-xs text-ink-muted">
                       {districtName} — {historyData.from} {isBn ? "থেকে" : "to"} {historyData.to}
                     </p>
                   </div>
-                  <Badge variant="neutral">9 km EASE-Grid 2.0</Badge>
                 </div>
               </CardHeader>
               <CardBody className="p-0">
@@ -318,8 +288,8 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
                       <TD className="font-semibold">{isBn ? "তারিখ" : "Date (LST/UTC)"}</TD>
                       <TD className="font-semibold">{isBn ? "অরবিট" : "Orbit"}</TD>
                       <TD className="font-semibold">{isBn ? "ভলিউমেট্রিক আর্দ্রতা" : "Volumetric Moisture"}</TD>
-                      <TD className="font-semibold">{isBn ? "কোয়ালিটি ফ্ল্যাগ" : "Quality Flag"}</TD>
-                      <TD className="font-semibold">{isBn ? "নাসা ইউজার গাইড ডিকোডিং" : "NASA V006 Bitmask Decoding"}</TD>
+                      <TD className="font-semibold">{t("observationSimple.quality")}</TD>
+                      <TD className="font-semibold">{isBn ? "যাচাইয়ের ফল" : "Check result"}</TD>
                       <TD className="font-semibold">{isBn ? "সারফেস ফ্ল্যাগ" : "Surface Condition"}</TD>
                     </TR>
                   </THead>
@@ -337,34 +307,18 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
                         </TD>
                         <TD>
                           <Badge variant={row.qualityFlag === 8 ? "success" : row.qualityFlag === 9 ? "warning" : "neutral"}>
-                            Flag {row.qualityFlag}
+                            {t([0, 8].includes(row.qualityFlag) ? "observationSimple.passed" : "observationSimple.unverified")}
                           </Badge>
                         </TD>
                         <TD className="text-xs">
-                          {row.qualityFlag === 8 ? (
-                            <span className="text-emerald">
-                              {isBn
-                                ? "সুপারিশকৃত মান: রিট্রিভাল সফল ও সুপারিশকৃত (Bit 0=0, Bit 1=0, Bit 2=0, Bit 3=1)"
-                                : "Recommended: Retrieval attempted, successful, quality recommendation met (Bit 0=0)"}
-                            </span>
-                          ) : row.qualityFlag === 9 ? (
-                            <span className="text-amber-700 dark:text-amber-400">
-                              {isBn
-                                ? "সতর্কবার্তা: রিট্রিভাল সফল, তবে গুণমানের শর্ত পূরণ হয়নি (Bit 0=1; পানি/উপকূলীয় প্রভাব)"
-                                : "Not recommended: Attempted and successful, but quality recommendation not met (Bit 0=1)"}
-                            </span>
-                          ) : (
-                            <span className="text-ink-muted">
-                              {isBn ? "সোয়াথ বহির্ভূত পিক্সেল" : "Inactive swath boundary cell"}
-                            </span>
-                          )}
+                          {t([0, 8].includes(row.qualityFlag) ? "observationSimple.passed" : "observationSimple.unverified")}
                         </TD>
                         <TD className="text-xs text-ink-muted">
                           {row.surfaceFlag === 128
-                            ? isBn ? "স্বাভাবিক কৃষিজমি (Flag 128; Bit 7 ক্রান্তীয় ফলস-ফ্রস্ট)" : "Nominal cropland (Flag 128; Bit 7 low-lat false freeze)"
+                            ? isBn ? "কৃষিজমি হিসেবে চিহ্নিত" : "Classified as cropland"
                             : row.surfaceFlag === 143
-                            ? isBn ? "উপকূল/পানি/নগর মিশ্রণ (Flag 143; Bits 0,1,2,3,7)" : "Water/Coastal/Urban mix (Flag 143; Bits 0,1,2,3,7)"
-                            : `Flag ${row.surfaceFlag}`}
+                            ? isBn ? "পানি, উপকূল বা বসতির মিশ্র এলাকা" : "Mixed water, coastal or built-up area"
+                            : t("farmUi.notRecorded")}
                         </TD>
                       </TR>
                     ))}
@@ -373,7 +327,7 @@ export default function SoilMoistureSection({ embedded = false, refreshToken = 0
               </CardBody>
             </Card>
           )}
-          {observedHistoryDates.length > 0 && <p className="text-xs text-ink-muted">{isBn ? "উপলভ্য পর্যবেক্ষণ:" : "Available observations:"} {observedHistoryDates[0]} – {observedHistoryDates[observedHistoryDates.length - 1]}</p>}
+          {observedHistoryDates.length > 0 && <p className="text-xs text-ink-muted">{t("observationSimple.period")} {observationDate(observedHistoryDates[0])} – {observationDate(observedHistoryDates[observedHistoryDates.length - 1])}</p>}
         </>
       )}
     </section>

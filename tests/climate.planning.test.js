@@ -39,3 +39,10 @@ test("rotation priority links accept only supported choices", async () => {
   for (const key of ["water", "diversity", "calendar"]) assert.equal(resolveRotationPriority(key), key);
   for (const bad of [null, "", "admin", "profit"]) assert.equal(resolveRotationPriority(bad), "water");
 });
+
+
+test("signed-in climate links use the existing workspace planner", () => {
+  assert.equal(rotationLinkForDistrict("cumilla", true), "/rotation-planner?district=cumilla");
+  assert.equal(rotationLinkForDistrict("chattogram", true), "/rotation-planner?district=chattogram");
+  assert.equal(rotationLinkForDistrict("cumilla", false), "/crop-rotation?district=cumilla");
+});

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
   AlertTriangle,
@@ -30,6 +31,7 @@ import {
   Wind,
 } from "lucide-react";
 
+import { hazardTextKeys } from "@/lib/farmSourceText.js";
 import { Badge } from "@/components/ui/Badge.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
 import { Table, TBody, TD, THead, TR } from "@/components/ui/Table.js";
@@ -158,9 +160,6 @@ export default function CropCalendarPage() {
             <h1 className="text-2xl font-bold tracking-tight text-ink font-heading sm:text-3xl">
               {isBn ? "সরকারি ফসল আবহাওয়া পঞ্জিকা" : "Official Crop Agro-Weather Calendar"}
             </h1>
-            <Badge variant="neutral" className="border-forest-200 dark:border-forest-800 text-[11px]">
-              BAMIS / DAE / BRRI / BARI
-            </Badge>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
             {isBn
@@ -171,66 +170,6 @@ export default function CropCalendarPage() {
 
         {/* Dual District & Action Bar */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* District Selector */}
-          <div className="relative">
-            <label htmlFor="crop-district-select" className="sr-only">
-              {isBn ? "জেলা নির্বাচন করুন" : "Select District"}
-            </label>
-            <MapPin
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
-              size={15}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
-            <select
-              id="crop-district-select"
-              aria-label={isBn ? "জেলা নির্বাচন করুন" : "Select District"}
-              value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="appearance-none rounded-xl border border-line bg-surface py-2 pl-9 pr-8 text-sm font-medium text-ink shadow-xs transition hover:border-emerald focus:border-emerald focus:outline-hidden"
-            >
-              {districts.map((d) => (
-                <option key={d.code} value={d.code}>
-                  {isBn ? d.nameBn : d.nameEn}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted"
-              size={14}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
-          </div>
-
-          {/* View Toggle (Interactive Cards vs Official Table) */}
-          <div className="flex items-center rounded-xl border border-line bg-surface p-0.5 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setViewMode("interactive")}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition cursor-pointer ${
-                viewMode === "interactive"
-                  ? "bg-forest-600 text-white shadow-2xs dark:bg-forest-700"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              <LayoutGrid size={13} strokeWidth={2} />
-              <span>{isBn ? "ইন্টারেক্টিভ গাইড" : "Visual Guide"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("table")}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition cursor-pointer ${
-                viewMode === "table"
-                  ? "bg-forest-600 text-white shadow-2xs dark:bg-forest-700"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              <List size={13} strokeWidth={2} />
-              <span>{isBn ? "সরকারি গেজেট টেবিল" : "Official Table"}</span>
-            </button>
-          </div>
-
           {/* Refresh Button */}
           <button
             type="button"
@@ -248,7 +187,7 @@ export default function CropCalendarPage() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            {isBn ? "ফসল নির্বাচন করুন (Select Crop)" : "Select Crop"}
+            {isBn ? "ফসল নির্বাচন করুন" : "Select Crop"}
           </label>
           <span className="text-xs text-ink-muted">
             {isBn ? "অঞ্চল: " + districtName : "Region: " + districtName}
@@ -281,15 +220,7 @@ export default function CropCalendarPage() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-forest-100/80 dark:bg-forest-950/60">
                     <CropIcon cropId={crop.cropId} isSelected={isSelected} />
                   </div>
-                  <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      isSelected
-                        ? "bg-forest-600 text-white dark:bg-forest-500"
-                        : "bg-surface-2 text-ink-muted border border-line"
-                    }`}
-                  >
-                    {isBn ? crop.seasonBn || crop.season : crop.season}
-                  </span>
+
                 </div>
                 <div className="mt-2.5">
                   <h3
@@ -300,7 +231,7 @@ export default function CropCalendarPage() {
                     {isBn ? crop.nameBn : crop.nameEn}
                   </h3>
                   <p className="text-[11px] text-ink-muted truncate">
-                    {crop.scientificName || (isBn ? "সরকারি ক্যালেন্ডার" : "Official Calendar")}
+                    
                   </p>
                 </div>
               </button>
@@ -314,18 +245,9 @@ export default function CropCalendarPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-forest-500 animate-pulse" />
+              
               <span className="text-xs font-semibold uppercase tracking-wider text-forest-800 dark:text-forest-300">
-                {isSeasonActive
-                  ? isBn
-                    ? "চলমান মাঠ পর্যায় ও আবহাওয়া পরামর্শ"
-                    : "Active Field Stage & Meteorological Advisory"
-                  : isBn
-                    ? "মৌসুমী অবস্থা ও প্রস্তুতি"
-                    : "Seasonal Status & Field Readiness"}
-              </span>
-              <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-medium text-forest-700 border border-forest-200 dark:bg-surface-2 dark:text-forest-300 dark:border-forest-800">
-                {isBn ? "জেলা: " + districtName : "District: " + districtName}
+                {t("calendarSimple.heading")}
               </span>
             </div>
 
@@ -333,10 +255,10 @@ export default function CropCalendarPage() {
               {isSeasonActive && currentStage ? (
                 <>
                   <span className="text-forest-700 dark:text-forest-300">
-                    {isBn ? currentStage.stageNameBn : currentStage.stageNameEn}
+                    {["দানা পাকা ও ফসল কর্তন", "শুঁটি পরিপক্বতা ও ফসল কর্তন"].includes(currentStage.stageNameBn) ? t("farmUi.harvestStage") : (isBn ? currentStage.stageNameBn : currentStage.stageNameEn)}
                   </span>
                   <span className="text-xs font-normal text-ink-muted ml-2">
-                    ({isBn ? `মেয়াদ: ${currentStage.durationDays} দিন` : `Duration: ${currentStage.durationDays} days`})
+                    ({new Intl.NumberFormat(isBn ? "bn-BD" : "en-GB").format(currentStage.durationDays)} {t("farmUi.days")})
                   </span>
                 </>
               ) : (
@@ -351,10 +273,10 @@ export default function CropCalendarPage() {
             <p className="text-xs leading-relaxed text-ink-muted max-w-3xl">
               {isSeasonActive && currentStage?.weatherHazards ? (
                 <span className="inline-flex items-start gap-1.5">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <Info className="h-4 w-4 text-forest shrink-0 mt-0.5 dark:text-emerald-300" />
                   <span>
-                    <strong>{isBn ? "আবহাওয়া ঝুঁকি ও করণীয়: " : "Weather Hazard & Advisory: "}</strong>
-                    {currentStage.weatherHazards}
+                    <strong>{t("calendarSimple.caution")}</strong>
+                    {isBn && hazardTextKeys[currentStage.weatherHazards] ? t(`farmUi.sourceTranslations.${hazardTextKeys[currentStage.weatherHazards]}`) : currentStage.weatherHazards}
                   </span>
                 </span>
               ) : (
@@ -377,13 +299,10 @@ export default function CropCalendarPage() {
                 className="inline-flex items-center gap-1.5 rounded-xl border border-forest-300 bg-white/90 px-3.5 py-2 font-semibold text-forest-800 shadow-2xs transition hover:bg-forest-50 dark:border-forest-800 dark:bg-forest-950/40 dark:text-forest-300"
               >
                 <FileText size={14} strokeWidth={1.8} />
-                <span>{isBn ? "অফিসিয়াল BAMIS গেজেট PDF" : "Official BAMIS Gazette PDF"}</span>
+                <span>{isBn ? "মূল নির্দেশিকা PDF" : "Source guide PDF"}</span>
                 <ExternalLink size={12} strokeWidth={1.8} />
               </a>
             )}
-            <span className="text-[11px] text-ink-muted">
-              {distCal?.sourcePublisher || "DAE / BAMIS"}
-            </span>
           </div>
         </div>
       </div>
@@ -708,20 +627,16 @@ export default function CropCalendarPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-3">
           <div className="space-y-0.5">
             <h3 className="font-bold text-sm text-ink">
-              {isBn ? "অনুমোদিত জাতসমূহ ও কৃষি পরিবেশ অঞ্চল" : "DAE Approved Varieties & Agro-Ecological Region"}
+              {t("calendarSimple.varietiesTitle")}
             </h3>
-            <p className="text-xs text-ink-muted">
-              <strong>{isBn ? "অঞ্চল:" : "DAE Region:"}</strong> {distCal?.daeRegion || (isBn ? "চট্টগ্রাম ও কুমিল্লা অঞ্চল" : "Chattogram & Cumilla Regions")}
-            </p>
+
           </div>
-          <span className="text-xs font-mono text-ink-muted">
-            {calendarData?.scientificName}
-          </span>
+
         </div>
 
         <div>
           <label className="text-xs font-semibold text-ink-muted">
-            {isBn ? "প্রস্তাবিত ও চাষোপযোগী জাত:" : "Recommended Cultivars:"}
+            {t("calendarSimple.varietiesLabel")}
           </label>
           <div className="mt-2 flex flex-wrap gap-2">
             {(calendarData?.typicalVarieties || "")
@@ -734,135 +649,17 @@ export default function CropCalendarPage() {
                   className="inline-flex items-center gap-1.5 rounded-xl border border-forest-200 bg-forest-50/70 px-3 py-1 text-xs font-semibold text-forest-800 dark:border-forest-800 dark:bg-forest-950/40 dark:text-forest-200"
                 >
                   <Leaf size={12} className="text-forest-600 dark:text-forest-400" />
-                  <span>{variety}</span>
+                  <span>{isBn ? variety.replace(/BRRI dhan/gi, "ব্রি ধান").replace(/BARI Sarisha/gi, "বারি সরিষা").replace(/Binasail/gi, "বিনাশাইল").replace(/Pajam/gi, "পাজাম").replace(/[0-9]/g, digit => "০১২৩৪৫৬৭৮৯"[Number(digit)]) : variety}</span>
                 </span>
               ))}
           </div>
         </div>
       </div>
 
-      {/* 7. NASA Satellite Grounded Environmental Context */}
-      <div className="rounded-2xl border border-line bg-surface p-5 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-line pb-3">
-          <div className="flex items-center gap-2">
-            <Compass size={18} strokeWidth={1.8} className="text-[#2878c8]" />
-            <h3 className="font-bold text-base text-ink">
-              {isBn ? "নাসা উপগ্রহ সমকালীন পরিবেশগত বিশ্লেষণ (NASA Satellite Context)" : "NASA Satellite Environmental Alignment"}
-            </h3>
-          </div>
-          <Badge variant="neutral">NASA Earthdata</Badge>
-        </div>
-
-        <p className="text-xs text-ink-muted">
-          {isBn
-            ? "সরকারি ফসল পঞ্জিকার পাশে তারিখসহ সংরক্ষিত নাসা উপগ্রহ পর্যবেক্ষণ দেখানো হয়েছে। এগুলো লাইভ আবহাওয়া নয় এবং সরকারি সার বা সেচ নির্দেশিকাও নয়।"
-            : "Dated, stored NASA satellite observations are shown alongside the official crop calendar. They are not live weather or official fertilizer or irrigation instructions."}
-        </p>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Soil Moisture Alignment */}
-          <div className="rounded-xl border border-line bg-surface-2 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Waves size={16} strokeWidth={1.8} className="text-[#0f6c49]" />
-                <span className="font-semibold text-xs text-ink">
-                  {isBn ? "মাটির আর্দ্রতা অবস্থা (NASA SMAP 9km)" : "Soil Moisture Context (NASA SMAP 9km)"}
-                </span>
-              </div>
-              <Badge variant={satContext?.soilMoisture?.isRecommended ? "success" : "warning"}>
-                {satContext?.soilMoisture?.quality || (isBn ? "গুণমান অজানা" : "Quality unavailable")}
-              </Badge>
-            </div>
-            {satContext?.soilMoisture?.isRecommended === true && Number.isFinite(satContext.soilMoisture.value) ? (
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-ink-muted">{isBn ? "সর্বশেষ স্যাটেলাইট মান:" : "Latest Satellite Observation:"}</span>
-                  <span className="font-bold font-mono text-base text-ink">
-                    {satContext.soilMoisture.value} {satContext.soilMoisture.unit}
-                  </span>
-                </div>
-                <div className="flex justify-between text-ink-muted text-[11px]">
-                  <span>{isBn ? "তারিখ ও রেজোলিউশন:" : "Date & Resolution:"}</span>
-                  <span>{satContext.soilMoisture.date} (9 km grid posting)</span>
-                </div>
-                <p className="text-[11px] text-ink-muted/90 pt-1.5 border-t border-line/60">
-                  {isBn
-                    ? "মাটির শীর্ষ ৫ সেমি ভলিউমেট্রিক পানির পরিমাণ। বীজতলা তৈরি ও চারা রোপণ পর্যায়ের মাটির প্রস্তুতিতে অত্যন্ত সহায়ক।"
-                    : "Top 5cm volume soil water. Informs seedbed preparation and transplanting field readiness."}
-                </p>
-              </div>
-            ) : satContext?.soilMoisture ? (
-              <div className="space-y-1.5 text-xs text-ink-muted" role="status">
-                <p className="font-semibold text-amber-800 dark:text-amber-300">
-                  {isBn ? "গুণমান-অনুমোদিত SMAP মান নেই" : "No quality-approved SMAP value"}
-                </p>
-                <p>{isBn ? "সর্বশেষ পর্যবেক্ষণ:" : "Latest observation:"} {satContext.soilMoisture.date || (isBn ? "তারিখ নেই" : "date unavailable")} · {satContext.soilMoisture.quality || (isBn ? "গুণমান অজানা" : "quality unknown")}</p>
-                <p>{isBn ? "অনুমোদিত গুণমান পতাকা ০ বা ৮ না হলে মান দেখানো হয় না।" : "Values are withheld unless the retrieval quality flag is 0 or 8."}</p>
-              </div>
-            ) : (
-              <p className="text-xs text-ink-muted">{isBn ? "কোনো পর্যবেক্ষণ পাওয়া যায়নি" : "No observation available"}</p>
-            )}
-          </div>
-
-          {/* Vegetation Index Alignment */}
-          <div className="rounded-xl border border-line bg-surface-2 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Leaf size={16} strokeWidth={1.8} className="text-emerald" />
-                <span className="font-semibold text-xs text-ink">
-                  {isBn ? "ক্যানোপি সবুজত্ব সূচক (NASA MODIS 250m)" : "Canopy Vigor Index (NASA MODIS 250m)"}
-                </span>
-              </div>
-              <Badge variant={satContext?.vegetationIndex?.isReliable ? "success" : "warning"}>
-                {satContext?.vegetationIndex?.quality || (isBn ? "গুণমান অজানা" : "Quality unavailable")}
-              </Badge>
-            </div>
-            {satContext?.vegetationIndex?.available === true ? (
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-ink-muted">{isBn ? "সর্বশেষ এনডিভিআই (NDVI):" : "Latest NDVI Index:"}</span>
-                  <span className="font-bold font-mono text-base text-ink">
-                    {satContext.vegetationIndex.ndvi ?? "—"}
-                  </span>
-                </div>
-                <div className="flex justify-between text-ink-muted text-[11px]">
-                  <span>{isBn ? "তারিখ ও রেজোলিউশন:" : "Date & Resolution:"}</span>
-                  <span>{satContext.vegetationIndex.date} (250m sinusoidal)</span>
-                </div>
-                <p className="text-[11px] text-ink-muted/90 pt-1.5 border-t border-line/60">
-                  {isBn
-                    ? "২৫০ মিটারে ক্যানোপি ক্লোরোফিল পরিমাপ। বৃদ্ধি পর্যায় ও উদ্ভিদের সামগ্রিক সতেজতা নির্দেশ করে।"
-                    : "250m regional chlorophyll absorption indicating vegetative canopy vigor."}
-                </p>
-              </div>
-            ) : satContext?.vegetationIndex ? (
-              <div className="space-y-1.5 text-xs text-ink-muted" role="status">
-                <p className="font-semibold text-amber-800 dark:text-amber-300">
-                  {satContext.vegetationIndex.pixelReliability === 1 && satContext.vegetationIndex.quality === "marginal_data"
-                    ? (isBn ? "র‍্যাঙ্ক-০ মান নেই; র‍্যাঙ্ক-১ তথ্য দেখানো হয়নি" : "No rank-0 value; rank-1 data is withheld")
-                    : (isBn ? "কোনো গুণমান-অনুমোদিত মান নেই" : "No quality-approved value available")}
-                </p>
-                <p>{isBn ? "সর্বশেষ পর্যবেক্ষণ:" : "Latest observation:"} {satContext.vegetationIndex.date || (isBn ? "তারিখ নেই" : "date unavailable")} · {satContext.vegetationIndex.quality || (isBn ? "গুণমান অজানা" : "quality unknown")}</p>
-                <p>{isBn ? "গুণমান নীতিমালার কারণে NDVI/EVI মান দেখানো হয়নি।" : "NDVI/EVI values are withheld by the quality policy."}</p>
-              </div>
-            ) : (
-              <p className="text-xs text-ink-muted">{isBn ? "কোনো গুণমান-অনুমোদিত পর্যবেক্ষণ নেই" : "No quality-approved observation available"}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Scientific Disclosure */}
-        <div className="rounded-xl border border-line bg-surface p-3 text-xs text-ink-muted">
-          <div className="flex items-start gap-2">
-            <Info size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
-            <p>
-              {alignmentData?.scientificDisclosure ||
-                (isBn
-                  ? "অফিসিয়াল কৃষি নির্দেশনাসমূহ BAMIS / DAE / BRRI / BARI দ্বারা প্রকাশিত। নাসার স্যাটেলাইট পর্যবেক্ষণ (SMAP, MODIS, POWER) ২৫০ মিটার থেকে ৯ কিমি গ্রিড স্কেলে ভৌত পরিবেশগত পটভূমি তুলে ধরে। এটি স্থানীয় কৃষি কর্মকর্তার সরাসরি মাঠপর্যায়ের মাটির পরীক্ষার বিকল্প নয়।"
-                  : "Official agronomic recommendations are published by BAMIS / DAE / BRRI / BARI. Satellite observations (SMAP, MODIS, POWER) provide physical environmental context across 250m to 9km grid scales. They do NOT replace extension advisory or direct farm-level soil testing.")}
-            </p>
-          </div>
-        </div>
+      <div className="rounded-2xl border border-line bg-emerald-50/40 p-5 dark:bg-emerald-950/20">
+        <h3 className="text-base font-semibold text-content">{t("calendarSimple.climateTitle")}</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{t("calendarSimple.climateIntro")}</p>
+        <Link href="/climate" className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl bg-forest px-4 py-2 text-sm font-semibold text-white hover:bg-forest/90">{t("farmUi.areaClimateLink")}<ChevronRight className="h-4 w-4" aria-hidden="true" /></Link>
       </div>
     </div>
   );

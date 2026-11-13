@@ -127,9 +127,7 @@ export function GlobalSearch() {
         <span className="hidden min-w-0 flex-1 truncate text-left text-sm sm:block">
           {isBn ? "পেজ ও ফিচার খুঁজুন..." : "Search pages and features..."}
         </span>
-        <span className="hidden shrink-0 items-center gap-0.5 rounded-md border border-line bg-bg px-1.5 py-0.5 text-[10px] font-medium text-muted sm:inline-flex">
-          Ctrl K
-        </span>
+
       </button>
 
       {open ? (

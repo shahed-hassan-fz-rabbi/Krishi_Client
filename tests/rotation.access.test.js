@@ -106,3 +106,14 @@ test("account API forwards phone registration and email-or-phone login without d
     assert.equal(calls[1].identifier, "01712345678");
   } finally { globalThis.fetch = original; }
 });
+
+
+test("public crop rotation keeps guest navigation and uses the app shell when signed in", async () => {
+  const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+  const page = await readFile(path.join(root, "app/crop-rotation/page.js"), "utf8");
+  assert.match(page, /if \(isLoading\) return/);
+  assert.match(page, /if \(user\) return <AppShell>/);
+  assert.match(page, /<PublicHeader \/>/);
+  assert.match(page, /<PublicFooter \/>/);
+  assert.doesNotMatch(page, /router\.(push|replace)/);
+});

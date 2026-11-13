@@ -58,7 +58,9 @@ export function HandoffSowingChart({
     && minConsecutiveDryDays !== null;
 
   return (
-    <div className="h-80 w-full" role="img" aria-label={title}>
+    <div className="w-full" role="img" aria-label={title}>
+      {hasThreshold && labels.threshold && <p className="mb-3 flex items-center gap-2 text-xs leading-6 text-muted"><span className="w-6 shrink-0 border-t-2 border-dashed border-amber-500" aria-hidden="true" />{labels.threshold}</p>}
+      <div className="h-80 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 16, right: 16, bottom: 8, left: -8 }}>
           <CartesianGrid stroke="var(--km-border)" strokeDasharray="3 3" vertical={false} />
@@ -111,14 +113,7 @@ export function HandoffSowingChart({
               stroke="#f59e0b"
               strokeDasharray="4 4"
               strokeWidth={1.5}
-              label={{
-                value: labels.threshold,
-                // amber-strong token: #d97706 fails AA as 11px text on light bg
-                fill: "var(--km-amber-strong)",
-                fontSize: 11,
-                fontWeight: 500,
-                position: "insideTopLeft",
-              }}
+
             />
           ) : null}
           <Bar
@@ -139,6 +134,7 @@ export function HandoffSowingChart({
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

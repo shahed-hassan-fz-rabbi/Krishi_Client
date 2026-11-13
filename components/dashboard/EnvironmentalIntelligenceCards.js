@@ -521,10 +521,10 @@ export default function EnvironmentalIntelligenceCards({
               <div className="mt-4 rounded-xl border border-line bg-surface-2 p-4">
                 {noSoilData ? <p className="text-sm leading-7 text-muted">{t("dashboardUi.noQualityData")}</p> : <>
                   <p className="text-3xl font-semibold text-content">{card.metric.primaryValue} <span className="text-sm font-normal text-muted">{card.metric.unit}</span></p>
-                  <p className="mt-1 text-xs leading-6 text-muted">{card.metric.label}</p>
+                  <p className="mt-1 text-xs leading-6 text-muted">{card.id === "modis" ? `${t("rainSimple.day")}: ${formatDate(modisObsDate, locale)}` : card.metric.label}</p>
                 </>}
               </div>
-              <details className="mt-4 text-xs leading-6 text-muted">
+              {card.id !== "modis" && <details className="mt-4 text-xs leading-6 text-muted">
                 <summary className="cursor-pointer font-medium text-content">{t("dashboardUi.details")}</summary>
                 <p className="mt-3 break-words">{card.technicalCode}</p>
                 <p>{card.explanation}</p>
@@ -535,7 +535,8 @@ export default function EnvironmentalIntelligenceCards({
                   {card.metric.subMetrics?.map((chip, index) => <div key={`chip-${index}`}><dt>{chip.label}</dt><dd className="font-medium text-content">{chip.value}</dd></div>)}
                   {card.metadata.map((meta, index) => <div key={index} className="min-w-0"><dt>{meta.label}</dt><dd className="break-words font-medium text-content">{meta.value}</dd></div>)}
                 </dl>
-              </details>
+              </details>}
+              {card.id === "modis" && <p className="mt-3 text-xs leading-6 text-muted">{t("vegetationSimple.cardNote")}</p>}
             </div>
             <Link href={card.href} className="flex items-center justify-between gap-3 border-t border-line px-5 py-3 text-sm font-medium text-emerald-strong hover:bg-surface-2"><span>{card.actionLabel}</span><ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </article>;

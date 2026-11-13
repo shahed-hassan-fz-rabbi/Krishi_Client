@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
 import { ErrorState, LoadingState } from "@/components/ui/States.js";
 import { Table, TBody, TD, THead, TR } from "@/components/ui/Table.js";
+import { useAuth } from "@/contexts/AuthContext.js";
 import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { fetchTemperature } from "@/services/api.js";
@@ -17,6 +18,7 @@ import VegetationSection from "@/components/climate/VegetationSection.js";
 
 export default function ClimateObservationDetails() {
   const { t, locale } = useLang();
+  const { user } = useAuth();
   const { selectedDistrict, currentDistrictObj } = useLocation();
   const [tempData, setTempData] = useState(null);
   const [metaData, setMetaData] = useState(null);
@@ -81,7 +83,6 @@ export default function ClimateObservationDetails() {
   return <div className="space-y-8">
     <header className="flex flex-wrap items-start justify-between gap-5">
       <div className="max-w-2xl">
-        <p className="mb-3 flex items-center gap-2 text-xs font-medium text-muted"><Thermometer className="h-4 w-4 text-emerald" aria-hidden="true" />{t("climatePlanning.source")}</p>
         <h2 className="text-2xl font-bold leading-tight tracking-tight text-content sm:text-3xl">{t("climatePlanning.title")}</h2>
         <p className="mt-3 text-sm leading-7 text-muted">{t("climatePlanning.subtitle")}</p>
       </div>
@@ -117,12 +118,11 @@ export default function ClimateObservationDetails() {
         </div>
         <div className="rounded-2xl border border-line bg-forest p-5 text-white sm:p-7">
           <h3 className="text-lg font-semibold">{t("climatePlanning.compareTitle")}</h3><p className="mt-3 max-w-3xl text-sm leading-7 text-white/85">{t("climatePlanning.compareBody")}</p>
-          <Button href={rotationLinkForDistrict(selectedDistrict)} variant="hero" className="mt-5 h-auto min-h-12 w-full px-4 py-3 text-center sm:w-auto">{t("climatePlanning.rotationCta")}<ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" /></Button>
+          <Button href={rotationLinkForDistrict(selectedDistrict, Boolean(user))} variant="hero" className="mt-5 h-auto min-h-12 w-full px-4 py-3 text-center sm:w-auto">{t("climatePlanning.rotationCta")}<ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" /></Button>
           <p className="mt-3 text-xs leading-6 text-white/80">{t("climatePlanning.rotationNote")}</p>
         </div>
       </section>
 
-      <Card><CardBody className="flex gap-3"><Info className="mt-1 h-5 w-5 shrink-0 text-climate" aria-hidden="true" /><div><h2 className="text-sm font-semibold text-content">{t("climatePlanning.boundaryTitle")}</h2><p className="mt-2 text-sm leading-7 text-muted">{t("climatePlanning.boundaryBody")}</p></div></CardBody></Card>
 
       {summary.monthsAvailable > 0 && <Card><CardHeader title={t("climatePlanning.chartTitle")} description={t("climatePlanning.chartBody")} /><CardBody><TemperatureRangeChart data={chartSeries} title={t("climatePlanning.chartTitle")} highLabel={t("climatePlanning.highLine")} meanLabel={t("climatePlanning.meanLine")} lowLabel={t("climatePlanning.lowLine")} /></CardBody></Card>}
 
@@ -134,7 +134,6 @@ export default function ClimateObservationDetails() {
             {monthNames.map((name, index) => { const row = tempData.monthly_historical?.[String(index + 1)]; return <TR key={name}><TD className="font-medium text-content">{name}</TD>{[row?.stats?.mean, row?.mean_tmax?.mean, row?.mean_tmin?.mean, row?.diurnal_range?.mean, row?.absolute_max, row?.absolute_min].map((value, i) => <TD key={i} className="whitespace-nowrap text-content">{temperature(value)}</TD>)}<TD className="text-muted">{Number.isFinite(row?.years_used) ? integer.format(row.years_used) : "—"}</TD></TR>; })}
           </TBody></Table></div>
           <h3 className="mt-6 text-sm font-semibold text-content">{t("climatePlanning.dtrTitle")}</h3><p className="mt-2 text-sm leading-7 text-muted">{t("climatePlanning.dtrBody")}</p>
-          <div className="mt-5 rounded-lg bg-surface-2 p-4 text-xs leading-6 text-muted"><p>{t("climatePlanning.provenance")}: {metaData?.dataset_provenance || "nasa:power:daily:point"} · {t("climatePlanning.timeStandard")}: {metaData?.time_standard || "LST"}</p><p>{metaData?.limitations || t("dashboard.limitationsNotice")}</p></div>
         </div>
       </details>
     </>}

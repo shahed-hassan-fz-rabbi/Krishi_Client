@@ -29,8 +29,8 @@ import { ErrorState, LoadingState } from "@/components/ui/States.js";
 import { Table, TBody, TD, THead, TR } from "@/components/ui/Table.js";
 import { Tooltip } from "@/components/ui/Tooltip.js";
 import { useLocation } from "@/contexts/LocationContext.js";
-import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { translations } from "@/lib/i18n/translations.js";
+import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { fetchHandoffAnalysis } from "@/services/api.js";
 
 function formatFixed(value, digits) {
@@ -106,23 +106,9 @@ function generateSmsAdvisory(districtObj, config, sowingOpp, periodComp, locale 
     ? `${octLateShift > 0 ? "+" : ""}${octLateShift}%`
     : "—";
 
-  if (locale === "bn") {
-    return `[কৃষি মামা - ঐতিহাসিক ডেটা সারাংশ · স্বাধীন যাচাই বাকি]
-জেলা: ${distName} | রূপান্তর: ${cropTrans}
-ঐতিহাসিক সারাংশ, বপন উইন্ডো ${windowLabel}:
-১. মধ্যম শুষ্ক দিন: ${toBnDigits(dryMedian)}।
-২. প্রকল্পের শুষ্ক-দিন সংজ্ঞা পূরণকারী বছর: ${toBnDigits(workableYears)}/${toBnDigits(totalYears)} (${toBnDigits(workablePct)}%)।
-৩. অক্টোবরের শেষভাগের বৃষ্টিপাতের ঐতিহাসিক পরিবর্তন: ${locale === "bn" ? toBnDigits(octLateSign) : octLateSign}।
-এগুলো ঐতিহাসিক ফ্রিকোয়েন্সি মাত্র — ভবিষ্যৎ সম্ভাবনা বা কৃষি পরামর্শ নয়। তথ্য ও সূত্রের স্বাধীন যাচাই বাকি।`;
-  }
-
-  return `[Krishi Mama - Historical Data Summary · Independent verification pending]
-District: ${distName} | Transition: ${cropTrans}
-Historical summary, sowing window ${windowLabel}:
-1. Median dry days: ${dryMedian}.
-2. Years meeting the project dry-day definition: ${workableYears}/${totalYears} (${workablePct}%).
-3. Historical late-October rainfall change: ${octLateSign}.
-These are historical frequencies only, not future probabilities or agronomic advice. Data and provenance review is pending.`;
+  const values = {district: distName, crop: cropTrans, window: windowLabel, dry: dryMedian, years: workableYears, total: totalYears, percent: workablePct, change: octLateSign};
+  const template = translations[locale === "bn" ? "bn" : "en"].handoffSimple.summaryTemplate;
+  return template.replace(/\{(\w+)\}/g, (_, key) => locale === "bn" ? toBnDigits(values[key]) : String(values[key]));
 }
 
 const METRIC_STRING_KEYS = {
@@ -182,7 +168,7 @@ function PeriodTotalSub({ row, periodKey, locale }) {
 }
 
 export default function HandoffPage() {
-  const { locale } = useLang();
+  const { locale, t } = useLang();
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } = useLocation();
 
   const [transition, setTransition] = useState("aman-mustard");
@@ -304,26 +290,6 @@ export default function HandoffPage() {
       {/* Top Banner / Breadcrumb */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          {/* flex-wrap: the nowrap status pill otherwise forces horizontal
-              page scroll on viewports under ~640 px */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="purple" className="font-semibold tracking-wide uppercase text-[11px]">
-              {strings.kicker || "Field Shift Challenge · NASA Space Apps 2026"}
-            </Badge>
-            <Badge tone={visibleSourceMode === "live" ? "emerald" : "high"}>
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${visibleSourceMode === "live" ? "bg-emerald" : "bg-amber"}`}
-                aria-hidden="true"
-              />
-              {visibleSourceMode === "live"
-                ? locale === "bn" ? "ব্যাকএন্ড ডেটা · স্বাধীন যাচাই বাকি" : "Backend data · independent verification pending"
-                : visibleSourceMode === "snapshot-disabled"
-                  ? locale === "bn" ? "অযাচাইকৃত স্ন্যাপশট বন্ধ" : "Unverified snapshot disabled"
-                  : visibleSourceMode === "error"
-                    ? locale === "bn" ? "ব্যাকএন্ড ফলাফল অনুপলব্ধ" : "Backend response unavailable"
-                    : locale === "bn" ? "ব্যাকএন্ড অনুরোধ চলছে" : "Backend request pending"}
-            </Badge>
-          </div>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-content sm:text-3xl">
             {strings.title || "Handoff Window Intelligence"}
           </h1>
@@ -331,27 +297,11 @@ export default function HandoffPage() {
             {strings.subtitle ||
               "NASA POWER Climate Evidence for Aman Harvest to Rabi Mustard Sowing Transitions"}
           </p>
+          <p className="mt-2 text-xs text-muted">{t("handoffSimple.fieldCheck")}</p>
         </div>
 
         {/* Action Toolbar */}
         <div className="flex flex-wrap items-center gap-2 print:hidden">
-          {/* Snapshot toggle */}
-          <button
-            type="button"
-            onClick={() => setForceSnapshot((prev) => !prev)}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-              forceSnapshot
-                ? "border-amber bg-amber/10 text-amber"
-                : "border-line bg-surface text-muted hover:border-emerald/40 hover:text-content"
-            }`}
-            title={locale === "bn" ? "স্বাধীন যাচাই না হওয়া পর্যন্ত স্ন্যাপশট বন্ধ" : "Snapshot disabled pending independent verification"}
-          >
-            <Layers className="h-3.5 w-3.5" />
-            {forceSnapshot
-              ? locale === "bn" ? "অযাচাইকৃত স্ন্যাপশট (বন্ধ)" : "Unverified snapshot (disabled)"
-              : locale === "bn" ? "ব্যাকএন্ড অনুরোধ" : "Backend request"}
-          </button>
-
           {/* Print Field Report */}
           <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5 text-xs">
             <Printer className="h-3.5 w-3.5" />
@@ -374,9 +324,9 @@ export default function HandoffPage() {
 
       {/* Filter / Selector Controls */}
       <Card className="p-4 print:hidden">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:gap-8">
           {/* Crop Transition */}
-          <div>
+          <div className="w-full sm:max-w-md">
             <label htmlFor="handoff-transition" className="mb-1.5 block text-xs font-medium text-muted">
               {strings.transitionLabel || "Crop Transition"}
             </label>
@@ -398,7 +348,7 @@ export default function HandoffPage() {
           </div>
 
           {/* District Picker */}
-          <div>
+          <div className="w-full sm:max-w-md">
             <label htmlFor="handoff-district" className="mb-1.5 block text-xs font-medium text-muted">
               {strings.districtLabel || "District"}
             </label>
@@ -430,24 +380,6 @@ export default function HandoffPage() {
             </div>
           </div>
 
-          {/* Sowing Window Notice */}
-          <div className="flex flex-col justify-center rounded-lg bg-surface-2 p-3 text-xs sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-1.5 font-medium text-content">
-              <Calendar className="h-3.5 w-3.5 text-emerald" />
-              <span>{sowingWindow || "—"}</span>
-              {config.harvest_window_label ? (
-                <>
-                  <span className="text-muted">·</span>
-                  <span className="text-muted">{config.harvest_window_label}</span>
-                </>
-              ) : null}
-            </div>
-            <p className="mt-1 line-clamp-2 text-[11px] text-muted">
-              {locale === "bn"
-                ? config.description_bn || strings.transitionDescAmanMustard
-                : config.description_en || strings.transitionDescAmanMustard}
-            </p>
-          </div>
         </div>
       </Card>
 
@@ -538,8 +470,8 @@ export default function HandoffPage() {
                   dryRun: strings.chartDryRunLabel || "Max Consecutive Dry Run (days)",
                   threshold: minDryDays
                     ? (locale === "bn"
-                      ? `কার্যক্ষম প্রক্সি (≥${toBnDigits(minDryDays)} দিন)`
-                      : `Operational proxy (≥${minDryDays}d)`)
+                      ? t("handoffSimple.comparisonLine").replace("{days}", toBnDigits(minDryDays))
+                      : t("handoffSimple.comparisonLine").replace("{days}", String(minDryDays)))
                     : null,
                   rain: strings.chartRainLabel || "Rainfall (mm)",
                   daysUnit: locale === "bn" ? "দিন" : "d",
@@ -656,24 +588,6 @@ export default function HandoffPage() {
                 </Table>
               </div>
 
-              {/* Explanatory callout for Late-October Rainfall Shift */}
-              <div className="mt-4 rounded-lg border border-amber/30 bg-amber/5 p-4 text-xs text-content">
-                <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
-                  <div className="space-y-1">
-                    <p className="font-semibold text-amber-strong">
-                      {locale === "bn"
-                        ? "ঐতিহাসিক তুলনা · বৈজ্ঞানিক পর্যালোচনা বাকি"
-                        : "Historical comparison · scientific review pending"}
-                    </p>
-                    <p className="text-muted leading-relaxed">
-                      {locale === "bn"
-                        ? "এই তুলনাটি বর্ণনামূলক এবং এর ডেটা ও পরিসংখ্যানগত ব্যাখ্যা স্বাধীনভাবে যাচাই করা হয়নি। এটি মাঠের অবস্থা, ভবিষ্যৎ আবহাওয়া বা বপনের সময় সম্পর্কে পরামর্শ নয়।"
-                        : "This comparison is descriptive; its data and statistical interpretation have not been independently verified. It does not establish field conditions, future weather, or sowing advice."}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </CardBody>
           </Card>
 
@@ -688,11 +602,10 @@ export default function HandoffPage() {
                   </span>
                   <div>
                     <h2 className="text-base font-semibold text-content">
-                      {strings.advisoryTitle || "DAE Agricultural Extension Advisory Card"}
+                      {t("handoffSimple.summaryTitle")}
                     </h2>
                     <p className="text-xs text-muted">
-                      {strings.advisorySubtitle ||
-                        "Plain-text field advisory generated for agricultural officers and SMS broadcasts."}
+                      {t("handoffSimple.summaryIntro")}
                     </p>
                   </div>
                 </div>
@@ -711,14 +624,14 @@ export default function HandoffPage() {
                   ) : (
                     <>
                       <Copy className="h-3.5 w-3.5" />
-                      <span>{strings.copySms || "Copy SMS"}</span>
+                      <span>{t("handoffSimple.copySummary")}</span>
                     </>
                   )}
                 </Button>
               </CardHeader>
 
               <CardBody className="pt-2">
-                <div className="rounded-lg border border-line bg-surface-2 p-4 font-mono text-xs leading-relaxed text-content">
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 text-sm leading-7 text-content dark:border-emerald-900 dark:bg-emerald-950/20">
                   <pre className="whitespace-pre-wrap font-sans">
                     {generateSmsAdvisory(
                       currentDistrictObj,
@@ -729,75 +642,14 @@ export default function HandoffPage() {
                     )}
                   </pre>
                 </div>
-                <p className="mt-2 text-[11px] text-muted">
-                  {strings.smsNotice ||
-                    "Formatted for mobile SMS and field bulletin distribution (160 characters / unicode compatible)."}
-                </p>
+
               </CardBody>
             </Card>
 
-            {/* Scientific Disclosures & Limitations Box */}
             <Card className="p-5">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-2 text-muted">
-                    <Info className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h2 className="text-base font-semibold text-content">
-                      {strings.disclosuresTitle || "Scientific Methodology & Limitations"}
-                    </h2>
-                    <p className="text-xs text-muted">
-                      NASA POWER Daily Agroclimatology (2001–2025)
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardBody className="space-y-3 pt-2 text-xs text-muted">
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald" />
-                  <p>
-                    {strings.disclosureProxy ||
-                      "Operational Proxy: Five consecutive dry days (< 1.0 mm/day) is a project-selected operational proxy for tillage workability; not an official agronomic threshold or field readiness guarantee."}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald" />
-                  <p>
-                    <strong className="text-content">{locale === "bn" ? "প্রকল্প-নির্বাচিত বৃষ্টির দিন সংজ্ঞা:" : "Project-selected wet-day definition:"}</strong>{" "}
-                    {locale === "bn"
-                      ? "বৈধ দৈনিক বৃষ্টিপাত ≥ ১.০ মিমি হলে ভেজা দিন হিসেবে গণনা করা হয়। এটি এই প্রকল্পের বর্ণনামূলক নিয়ম, কৃষিতাত্ত্বিক সীমা নয়।"
-                      : "A valid daily rainfall observation ≥ 1.0 mm is counted as a wet day. This is a descriptive project convention, not an agronomic threshold."}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald" />
-                  <p>
-                    {strings.disclosureLst ||
-                      "Time Standard: NASA POWER observations are indexed to Local Solar Time (LST), representing solar-day boundaries rather than UTC+6."}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber" />
-                  <p>
-                    <strong className="text-content">{locale === "bn" ? "ডেটা যাচাই:" : "Data verification:"}</strong>{" "}
-                    {locale === "bn"
-                      ? "পর্যবেক্ষণ সংখ্যা ও সম্পূর্ণতার স্বাধীন যাচাই বাকি; যাচাই না হওয়া পর্যন্ত এগুলোকে নিশ্চিত ডেটা হিসেবে বিবেচনা করবেন না।"
-                      : "Observation counts and completeness are pending independent verification; do not treat them as confirmed until reviewed."}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2 border-t border-line pt-2 text-amber-strong">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber" />
-                  <p>
-                    {strings.disclosureDisclaimer ||
-                      "Non-Predictive Notice: Descriptive historical climatology only. Does not guarantee future weather outcomes, sowing dates, soil pathogen dynamics, or crop yields."}
-                  </p>
-                </div>
+              <CardHeader><h2 className="text-base font-semibold text-content">{t("handoffSimple.helpTitle")}</h2></CardHeader>
+              <CardBody className="space-y-3 text-sm leading-7 text-muted">
+                {t("handoffSimple.helpItems").map(item => <p key={item} className="rounded-xl bg-surface-2/50 px-4 py-3">{item}</p>)}
               </CardBody>
             </Card>
           </div>
@@ -877,3 +729,4 @@ export default function HandoffPage() {
     </div>
   );
 }
+

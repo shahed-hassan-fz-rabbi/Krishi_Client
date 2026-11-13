@@ -34,6 +34,7 @@ const MONTH_NAMES_BN = [
 
 export default function RainfallSection({ embedded = false, refreshToken = 0, onOverview }) {
   const { t, locale } = useLang();
+  const displayNumber = value => locale === "bn" ? String(value ?? "—").replace(/[0-9]/g, digit => "০১২৩৪৫৬৭৮৯"[Number(digit)]) : String(value ?? "—");
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } = useLocation();
 
   const [monthlyData, setMonthlyData] = useState(null);
@@ -151,18 +152,11 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge tone="blue">
-              <CloudRain className="h-3.5 w-3.5" aria-hidden="true" />
-              PRECTOTCORR
-            </Badge>
-            <span className="text-xs text-muted">WMO Standard: ≥ 1.0 mm/day</span>
-          </div>
           <Heading id={embedded ? "rainfall-section-title" : undefined} className="text-xl font-bold tracking-tight text-content sm:text-2xl">
-            {t("rainfall.title")}
+            {t("rainSimple.title")}
           </Heading>
           <p className="mt-1 text-sm text-muted">
-            <span className="font-semibold text-content">{districtDisplayName}</span> — {t("rainfall.subtitle")}
+            <span className="font-semibold text-content">{districtDisplayName}</span> — {t("rainSimple.intro")}
           </p>
         </div>
 
@@ -226,17 +220,7 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
       )}
 
       {/* Monthly chart & Seasonal overview */}
-      <Card>
-        <CardHeader title={locale === "bn" ? "NASA GPM IMERG Final V07 পর্যবেক্ষণ" : "NASA GPM IMERG Final V07 Observation"}
-          description={locale === "bn" ? "অর্ধঘণ্টার স্যাটেলাইট বৃষ্টিপাত; দৈনিক মোট কেবল ৪৮/৪৮ বৈধ ব্যবধানে" : "Half-hourly satellite precipitation; daily total requires 48/48 valid intervals"} />
-        <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div><p className="text-xs text-muted">{locale === "bn" ? "পর্যবেক্ষণের দিন (UTC+6)" : "Observation day (UTC+6)"}</p><p className="font-mono font-semibold text-content">{gpmData?.latestDailySummary?.dateLabel || "—"}</p></div>
-          <div><p className="text-xs text-muted">{locale === "bn" ? "সম্পূর্ণ দৈনিক মোট" : "Complete daily total"}</p><p className="font-mono font-semibold text-content">{gpmData?.latestDailySummary?.completeness === "complete" && gpmData.latestDailySummary.validIntervals === 48 ? `${gpmData.latestDailySummary.totalPrecipitationMm} mm` : (locale === "bn" ? "অসম্পূর্ণ/অনুপস্থিত — মোট দেখানো হয়নি" : "Incomplete/unavailable — total withheld")}</p></div>
-          <div><p className="text-xs text-muted">{locale === "bn" ? "বৈধ ব্যবধান" : "Valid intervals"}</p><p className="font-mono font-semibold text-content">{gpmData?.latestDailySummary?.validIntervals != null ? `${gpmData.latestDailySummary.validIntervals}/48` : "—"}</p></div>
-          <div><p className="text-xs text-muted">{locale === "bn" ? "সর্বশেষ ব্যবধান; পর্যবেক্ষণ সময়" : "Latest interval; observation time"}</p><p className="font-mono text-xs text-content">{gpmData?.latestInterval?.intervalStartUtc ? new Date(gpmData.latestInterval.intervalStartUtc).toISOString() : "—"}</p></div>
-          <p className="sm:col-span-2 lg:col-span-4 text-xs text-muted">{gpmData?.meta?.limitations?.join(" ") || "NASA GPM IMERG is a regional ~0.1° grid estimate, not a farm rain gauge. No offline GPM snapshot is configured."}</p>
-        </CardBody>
-      </Card>
+
 
       {!isLoading && monthlyData && (
         <>
@@ -275,11 +259,11 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Winter */}
-              <Card className="border-blue/20">
+              <Card className="h-full border-sky-200 bg-sky-50/60 dark:border-sky-900 dark:bg-sky-950/20">
                 <CardBody className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-content text-sm">{t("rainfall.winter")}</h3>
-                    <Badge tone="blue" className="text-xs">Dec–Feb</Badge>
+                    <Badge tone="blue" className="text-xs">{t("rainSimple.winterMonths")}</Badge>
                   </div>
                   <p className="text-2xl font-bold text-content">
                     {seasons.winter?.stats?.mean != null ? `${Math.round(seasons.winter.stats.mean)} mm` : "—"}
@@ -294,11 +278,11 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
               </Card>
 
               {/* Pre-Monsoon */}
-              <Card className="border-amber/20">
+              <Card className="h-full border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20">
                 <CardBody className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-content text-sm">{t("rainfall.preMonsoon")}</h3>
-                    <Badge tone="moderate" className="text-xs">Mar–May</Badge>
+                    <Badge tone="moderate" className="text-xs">{t("rainSimple.preMonths")}</Badge>
                   </div>
                   <p className="text-2xl font-bold text-content">
                     {seasons.pre_monsoon?.stats?.mean != null ? `${Math.round(seasons.pre_monsoon.stats.mean)} mm` : "—"}
@@ -313,11 +297,11 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
               </Card>
 
               {/* Monsoon */}
-              <Card className="border-emerald/20">
+              <Card className="h-full border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20">
                 <CardBody className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-content text-sm">{t("rainfall.monsoon")}</h3>
-                    <Badge tone="emerald" className="text-xs">Jun–Sep</Badge>
+                    <Badge tone="emerald" className="text-xs">{t("rainSimple.monsoonMonths")}</Badge>
                   </div>
                   <p className="text-2xl font-bold text-content">
                     {seasons.monsoon?.stats?.mean != null ? `${Math.round(seasons.monsoon.stats.mean)} mm` : "—"}
@@ -332,11 +316,11 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
               </Card>
 
               {/* Post-Monsoon */}
-              <Card className="border-purple/20">
+              <Card className="h-full border-violet-200 bg-violet-50/60 dark:border-violet-900 dark:bg-violet-950/20">
                 <CardBody className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-content text-sm">{t("rainfall.postMonsoon")}</h3>
-                    <Badge tone="purple" className="text-xs">Oct–Nov</Badge>
+                    <Badge tone="purple" className="text-xs">{t("rainSimple.postMonths")}</Badge>
                   </div>
                   <p className="text-2xl font-bold text-content">
                     {seasons.post_monsoon?.stats?.mean != null ? `${Math.round(seasons.post_monsoon.stats.mean)} mm` : "—"}
@@ -389,15 +373,6 @@ export default function RainfallSection({ embedded = false, refreshToken = 0, on
                   </TBody>
                 </Table>
 
-                <div className="mt-4 rounded-lg bg-surface-2 p-3 text-xs text-muted flex items-start gap-2">
-                  <Info className="h-4 w-4 text-emerald shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <p className="font-medium text-content mb-0.5">
-                      Provenance: {metaData?.dataset_provenance || "nasa:power:daily:point"} · Time standard: {metaData?.time_standard || "LST"}
-                    </p>
-                    <p>{metaData?.limitations || t("dashboard.limitationsNotice")}</p>
-                  </div>
-                </div>
               </CardBody>
             </Card>
           </section>

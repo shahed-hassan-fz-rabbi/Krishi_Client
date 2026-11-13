@@ -17,10 +17,6 @@ export function RotationOverview({ publicMode }) {
         <Image src="/images/hero.png" alt="" fill priority sizes="(max-width: 1024px) 100vw, 80vw" className="-z-20 object-cover object-center" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-950/75 via-slate-900/50 to-amber-950/20 dark:from-slate-950/85 dark:via-slate-900/65 dark:to-amber-950/30" />
         <div className="min-w-0 self-end lg:self-center">
-          <p className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1.5 text-xs font-semibold tracking-wide text-white shadow-sm backdrop-blur-sm">
-            <Leaf className="h-4 w-4" aria-hidden="true" />
-            <span>{t("rotation.overviewEyebrow")}</span>
-          </p>
           <h1 id="rotation-page-title" className="max-w-3xl break-words text-3xl font-bold leading-tight text-white drop-shadow sm:text-4xl lg:text-5xl">{t("rotation.simpleTitle")}</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-white/95 drop-shadow-sm sm:text-base">{t("rotation.publicIntro")}</p>
         </div>

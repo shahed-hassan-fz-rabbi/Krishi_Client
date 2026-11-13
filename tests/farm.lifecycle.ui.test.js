@@ -134,12 +134,13 @@ test("My Farm Lifecycle: Client API Contracts & Translations Suite", async (t) =
     assert.ok(translations.bn.myFarm.lifecycle.nutrientsNotice);
   });
 
-  await t.test("Lifecycle UI distinguishes estimated stage dates and pending activity status", () => {
+  await t.test("Lifecycle UI keeps estimated dates and task actions without repeated pending badges", () => {
     const source = readFileSync(new URL("../app/(app)/my-farm/[id]/page.js", import.meta.url), "utf8");
-    assert.match(source, /estimatedDateLabel/);
+    assert.match(source, /farmUi\.stageTime/);
     assert.match(source, /stg\.estimatedStartDate/);
-    assert.match(source, /act\.status === "PENDING"/);
-    assert.match(source, /myFarm\.activities\.taskStatus\.pending/);
+    assert.match(source, /handleQuickStatus\(act, "IN_PROGRESS"\)/);
+    assert.doesNotMatch(source, /myFarm\.activities\.taskStatus\.pending/);
+    assert.match(source, /handleQuickStatus\(act, "COMPLETED"\)/);
     assert.doesNotMatch(source, /animate-ping/);
   });
 });

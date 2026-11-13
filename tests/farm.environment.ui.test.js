@@ -107,11 +107,12 @@ test("My Farm Environment: Client API Contracts & Translations Suite (Phase 9.4)
     assert.ok(bnEnv.provenance?.unavailable);
   });
 
-  await t.test("My Farm displays GPM completeness and never substitutes absent rainfall with zero", () => {
+  await t.test("Land details links to the existing climate page for the farm district", () => {
     const page = fs.readFileSync(path.resolve(here, "../app/(app)/my-farm/[id]/page.js"), "utf8");
-    assert.match(page, /environment\?\.precipitation/);
-    assert.match(page, /validIntervals/);
-    assert.match(page, /Incomplete — total withheld/);
-    assert.doesNotMatch(page, /latestObservations\?\.rainfall\?\.value \?\? "0\.0"/);
+    assert.match(page, /href="\/climate"/);
+    assert.match(page, /setSelectedDistrict\(farmDistrictCode\)/);
+    assert.match(page, /farmUi.areaClimateLink/);
+    assert.doesNotMatch(page, /environment\?\.precipitation/);
+    assert.doesNotMatch(page, /environment.summary/);
   });
 });

@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/Badge.js";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card.js";
 import { LoadingState, ErrorState } from "@/components/ui/States.js";
+import { useAuth } from "@/contexts/AuthContext.js";
 import { useLocation } from "@/contexts/LocationContext.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import {
@@ -46,6 +47,7 @@ const DynamicGisMap = dynamic(
 );
 
 export default function MapPage() {
+  const { user } = useAuth();
   const { t, locale } = useLang();
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } =
     useLocation();
@@ -113,6 +115,9 @@ export default function MapPage() {
   const smapObs = layersData?.sensors?.soilMoisture?.observation;
   const modisObs = layersData?.sensors?.vegetation?.observation;
   const districtMeta = layersData?.district;
+  const display = value => locale === "bn" ? String(value ?? "—").replace(/[0-9]/g, digit => "০১২৩৪৫৬৭৮৯"[Number(digit)]) : String(value ?? "—");
+  const rainfall = layersData?.sensors?.precipitation?.observation?.dailySummary;
+
 
   return (
     <div className="space-y-6">
@@ -123,7 +128,6 @@ export default function MapPage() {
             <h1 className="text-2xl font-bold tracking-tight text-ink font-heading sm:text-3xl">
               {isBn ? "ভৌগোলিক তথ্য ব্যবস্থা (GIS) মানচিত্র" : "Interactive GIS & Environmental Map"}
             </h1>
-            <Badge variant="neutral">BBS 2020 Admin-2</Badge>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
             {isBn
@@ -134,7 +138,7 @@ export default function MapPage() {
 
         {/* District Switcher */}
         <div className="flex items-center gap-3">
-          <div className="relative">
+          {!user && <div className="relative">
             <label htmlFor="gis-district-select" className="sr-only">
               {isBn ? "জেলা নির্বাচন করুন" : "Select District"}
             </label>
@@ -163,7 +167,7 @@ export default function MapPage() {
               strokeWidth={1.8}
               aria-hidden="true"
             />
-          </div>
+          </div>}
 
           <button
             type="button"
@@ -178,7 +182,7 @@ export default function MapPage() {
       </div>
 
       {/* Layer Toggles Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-surface p-3 text-xs shadow-xs">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-line bg-surface p-4 text-xs shadow-xs">
         <span className="font-semibold text-ink flex items-center gap-1.5 mr-2">
           <Layers size={14} strokeWidth={1.8} className="text-emerald" />
           {isBn ? "লেয়ার নিয়ন্ত্রণ:" : "Layer Controls:"}
@@ -186,11 +190,12 @@ export default function MapPage() {
 
         <button
           type="button"
+          aria-pressed={activeLayers.boundary}
           onClick={() => toggleLayer("boundary")}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
+          className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
             activeLayers.boundary
-              ? "bg-emerald/15 text-emerald-strong border border-emerald/30"
-              : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+              ? "bg-forest text-white border border-forest shadow-xs hover:bg-forest/90 dark:bg-emerald-800 dark:border-emerald-700 dark:hover:bg-emerald-700"
+              : "bg-surface text-muted hover:bg-surface-2 hover:text-content border border-line"
           }`}
         >
           <Check size={12} strokeWidth={2.5} className={activeLayers.boundary ? "opacity-100" : "opacity-0"} />
@@ -199,9 +204,10 @@ export default function MapPage() {
 
         <button
           type="button"
+          aria-pressed={activeLayers.gpm}
           onClick={() => toggleLayer("gpm")}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
-            activeLayers.gpm ? "bg-sky-100 text-sky-800 border border-sky-300" : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+          className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+            activeLayers.gpm ? "bg-forest text-white border border-forest shadow-xs hover:bg-forest/90 dark:bg-emerald-800 dark:border-emerald-700 dark:hover:bg-emerald-700" : "bg-surface text-muted hover:bg-surface-2 hover:text-content border border-line"
           }`}
         >
           <Check size={12} strokeWidth={2.5} className={activeLayers.gpm ? "opacity-100" : "opacity-0"} />
@@ -210,11 +216,12 @@ export default function MapPage() {
         </button>
         <button
           type="button"
+          aria-pressed={activeLayers.smap}
           onClick={() => toggleLayer("smap")}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
+          className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
             activeLayers.smap
-              ? "bg-[#0f6c49]/15 text-[#0f6c49] border border-[#0f6c49]/30"
-              : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+              ? "bg-forest text-white border border-forest shadow-xs hover:bg-forest/90 dark:bg-emerald-800 dark:border-emerald-700 dark:hover:bg-emerald-700"
+              : "bg-surface text-muted hover:bg-surface-2 hover:text-content border border-line"
           }`}
         >
           <Check size={12} strokeWidth={2.5} className={activeLayers.smap ? "opacity-100" : "opacity-0"} />
@@ -224,11 +231,12 @@ export default function MapPage() {
 
         <button
           type="button"
+          aria-pressed={activeLayers.modis}
           onClick={() => toggleLayer("modis")}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
+          className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
             activeLayers.modis
-              ? "bg-emerald/15 text-emerald-strong border border-emerald/30"
-              : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+              ? "bg-forest text-white border border-forest shadow-xs hover:bg-forest/90 dark:bg-emerald-800 dark:border-emerald-700 dark:hover:bg-emerald-700"
+              : "bg-surface text-muted hover:bg-surface-2 hover:text-content border border-line"
           }`}
         >
           <Check size={12} strokeWidth={2.5} className={activeLayers.modis ? "opacity-100" : "opacity-0"} />
@@ -238,11 +246,12 @@ export default function MapPage() {
 
         <button
           type="button"
+          aria-pressed={activeLayers.climate}
           onClick={() => toggleLayer("climate")}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
+          className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
             activeLayers.climate
-              ? "bg-sky-100 text-sky-800 border border-sky-300"
-              : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+              ? "bg-forest text-white border border-forest shadow-xs hover:bg-forest/90 dark:bg-emerald-800 dark:border-emerald-700 dark:hover:bg-emerald-700"
+              : "bg-surface text-muted hover:bg-surface-2 hover:text-content border border-line"
           }`}
         >
           <Check size={12} strokeWidth={2.5} className={activeLayers.climate ? "opacity-100" : "opacity-0"} />
@@ -252,11 +261,12 @@ export default function MapPage() {
 
         <button
           type="button"
+          aria-pressed={activeLayers.footprints}
           onClick={() => toggleLayer("footprints")}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium transition ${
+          className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
             activeLayers.footprints
-              ? "bg-amber-100 text-amber-800 border border-amber-300"
-              : "bg-surface-2 text-ink-muted hover:text-ink border border-transparent"
+              ? "bg-forest text-white border border-forest shadow-xs hover:bg-forest/90 dark:bg-emerald-800 dark:border-emerald-700 dark:hover:bg-emerald-700"
+              : "bg-surface text-muted hover:bg-surface-2 hover:text-content border border-line"
           }`}
         >
           <Check size={12} strokeWidth={2.5} className={activeLayers.footprints ? "opacity-100" : "opacity-0"} />
@@ -277,161 +287,18 @@ export default function MapPage() {
         />
       )}
 
-      {/* Sensor Intelligence Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2"><CloudRain size={16} className="text-sky-700" /><h3 className="font-bold text-sm text-ink">{isBn ? "বৃষ্টিপাত (GPM IMERG)" : "Rainfall (GPM IMERG)"}</h3></div>
-          </CardHeader>
-          <CardBody className="space-y-2 text-xs">
-            {layersData?.sensors?.precipitation ? <>
-              <div className="text-lg font-bold text-ink">{layersData.sensors.precipitation.observation.dailySummary.completeness === "complete" ? `${layersData.sensors.precipitation.observation.dailySummary.totalPrecipitationMm} mm` : (isBn ? "সম্পূর্ণ দৈনিক মোট নেই" : "No complete daily total")}</div>
-              <div className="text-ink-muted">{isBn ? "পর্যবেক্ষণের তারিখ:" : "Observation date:"} {layersData.sensors.precipitation.observation.dailySummary.dateLabel} · {layersData.sensors.precipitation.observation.dailySummary.validIntervals}/48 {isBn ? "বৈধ" : "valid intervals"}</div>
-              <div className="text-ink-muted">{layersData.sensors.precipitation.nativeResolution}</div>
-              <p className="text-[11px] text-ink-muted">{layersData.sensors.precipitation.spatialDisclosure}</p>
-            </> : <p className="text-ink-muted">{isBn ? "GPM পর্যবেক্ষণ নেই" : "No GPM observations available"}</p>}
-          </CardBody>
-        </Card>
-        {/* SMAP Soil Moisture Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Waves size={16} strokeWidth={1.8} className="text-[#0f6c49]" />
-                <h3 className="font-bold text-sm text-ink">{isBn ? "মাটির আর্দ্রতা পর্যবেক্ষণ" : "Soil Moisture Pin"}</h3>
-              </div>
-              <Badge variant={smapObs?.isRecommendedQuality ? "success" : "warning"}>
-                {smapObs?.qualityClassification || "N/A"}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-2 text-xs">
-            {smapObs ? (
-              <>
-                <div className="flex items-baseline justify-between border-b pb-2">
-                  <span className="text-ink-muted">{isBn ? "ভলিউমেট্রিক মান:" : "Volumetric Moisture:"}</span>
-                  <span className="text-lg font-bold font-mono text-ink">{smapObs.soilMoisture} m³/m³</span>
-                </div>
-                <div className="flex items-center justify-between text-ink-muted">
-                  <span>{isBn ? "অরবিট ও তারিখ:" : "Orbit & Date:"}</span>
-                  <span className="font-mono text-ink font-medium">{smapObs.orbit} ({smapObs.dateLabel})</span>
-                </div>
-                <div className="flex items-center justify-between text-ink-muted">
-                  <span>{isBn ? "রেফারেন্স দূরত্ব:" : "Offset Distance:"}</span>
-                  <span className="font-mono text-ink font-medium">{layersData.sensors.soilMoisture.geodesicDistanceKm} km</span>
-                </div>
-                <p className="text-[11px] text-ink-muted/80 bg-surface-2 p-2 rounded-lg mt-2">
-                  {isBn
-                    ? "নমিনাল ৯ কিমি EASE-Grid সেল এবং ~৩৬ কিমি রেডিত্তমিটার অ্যান্টেনা বিম ফুটপ্রিন্ট প্রদর্শিত হচ্ছে।"
-                    : "Nominal 9 km EASE-Grid posting & ~36 km native radiometer 3dB footprint are visualized."}
-                </p>
-              </>
-            ) : (
-              <p className="text-ink-muted">{isBn ? "কোনো পর্যবেক্ষণ নেই" : "No observation available"}</p>
-            )}
-          </CardBody>
-        </Card>
-
-        {/* MODIS Vegetation Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Leaf size={16} strokeWidth={1.8} className="text-emerald" />
-                <h3 className="font-bold text-sm text-ink">{isBn ? "উদ্ভিজ্জ সতেজতা পর্যবেক্ষণ" : "Vegetation Pin"}</h3>
-              </div>
-              <Badge variant={modisObs?.isReliableQuality ? "success" : "warning"}>
-                {modisObs?.qualityClassification || "N/A"}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-2 text-xs">
-            {modisObs ? (
-              <>
-                <div className="grid grid-cols-2 gap-2 border-b pb-2">
-                  <div>
-                    <span className="text-ink-muted block text-[11px]">NDVI (Greenness)</span>
-                    <span className="text-lg font-bold font-mono text-ink">{modisObs.ndvi}</span>
-                  </div>
-                  <div>
-                    <span className="text-ink-muted block text-[11px]">EVI (Canopy)</span>
-                    <span className="text-lg font-bold font-mono text-ink">{modisObs.evi}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-ink-muted">
-                  <span>{isBn ? "কম্পোজিট দিন (DOY):" : "Composite DOY:"}</span>
-                  <span className="font-mono text-ink font-medium">{modisObs.dateLabel} (DOY {modisObs.compositeDayOfYear})</span>
-                </div>
-                <div className="flex items-center justify-between text-ink-muted">
-                  <span>{isBn ? "এমওডিআইএস টাইল:" : "MODIS Tile:"}</span>
-                  <span className="font-mono text-ink font-medium">{modisObs.modisTile}</span>
-                </div>
-                <p className="text-[11px] text-ink-muted/80 bg-surface-2 p-2 rounded-lg mt-2">
-                  {isBn
-                    ? "২৫০ মিটার রেজোলিউশনে ৬.২৫ হেক্টর এলাকার ক্যানোপি ক্লোরোফিল পরিমাপ প্রদর্শিত হচ্ছে।"
-                    : "250m sinusoidal resolution measuring regional chlorophyll vigor across 6.25 hectares."}
-                </p>
-              </>
-            ) : (
-              <p className="text-ink-muted">{isBn ? "কোনো পর্যবেক্ষণ নেই" : "No observation available"}</p>
-            )}
-          </CardBody>
-        </Card>
-
-        {/* Administrative Geography Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Compass size={16} strokeWidth={1.8} className="text-ink-muted" />
-                <h3 className="font-bold text-sm text-ink">{isBn ? "প্রশাসনিক সীমানা তথ্য" : "Boundary Geography"}</h3>
-              </div>
-              <Badge variant="neutral">{districtMeta?.pCode || "BD"}</Badge>
-            </div>
-          </CardHeader>
-          <CardBody className="space-y-2 text-xs">
-            {districtMeta ? (
-              <>
-                <div className="flex items-center justify-between border-b pb-2">
-                  <span className="text-ink-muted">{isBn ? "অফিশিয়াল নাম:" : "Official Name:"}</span>
-                  <span className="font-bold text-ink">{districtMeta.nameEn} ({districtMeta.pCode})</span>
-                </div>
-                <div className="flex items-center justify-between text-ink-muted">
-                  <span>{isBn ? "রেফারেন্স স্থানাঙ্ক:" : "Reference Coords:"}</span>
-                  <span className="font-mono text-ink font-medium">{districtMeta.refCoord[1]}° N, {districtMeta.refCoord[0]}° E</span>
-                </div>
-                <div className="flex items-center justify-between text-ink-muted">
-                  <span>{isBn ? "উৎস কর্তৃত্ব:" : "Source Authority:"}</span>
-                  <span className="font-medium text-ink">BBS 2020 / UN OCHA HDX</span>
-                </div>
-                <p className="text-[11px] text-ink-muted/80 bg-surface-2 p-2 rounded-lg mt-2">
-                  {isBn
-                    ? "WGS 84 (EPSG:4326) ফরম্যাটে সংরক্ষিত আসল পলিগন ডেটাসেট ব্যবহার করা হয়েছে।"
-                    : "Preserves exact un-simplified administrative geometry in standard WGS 84 (EPSG:4326)."}
-                </p>
-              </>
-            ) : (
-              <p className="text-ink-muted">{isBn ? "লোড হচ্ছে..." : "Loading..."}</p>
-            )}
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* Spatial Resolution Scientific Limitations Alert */}
-      <div className="rounded-xl border border-line bg-surface-2 p-4 text-xs text-ink-muted">
-        <div className="flex items-start gap-2.5">
-          <Info size={16} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
-          <div className="space-y-1">
-            <span className="font-semibold text-ink">
-              {isBn ? "স্থানিক স্কেল এবং উপগ্রহ সীমাবদ্ধতা সংক্রান্ত স্পষ্ট ঘোষণা:" : "Spatial Resolution & Scale Transparency Disclosure:"}
-            </span>
-            <p>
-              {isBn
-                ? "স্যাটেলাইট পর্যবেক্ষণসমূহ সংশ্লিষ্ট সেন্সরের গ্রিড স্কেলে এলাকাভিত্তিক গড় মান প্রদর্শন করে। নাসা স্ম্যাপ (SMAP) নমিনাল ৯ কিমি গ্রিড এবং ~৩৬ কিমি অ্যান্টেনা বিমে উপরিভাগের মাটির আর্দ্রতা পরিমাপ করে; মডিস (MODIS) ২৫০ মিটারে ক্যানোপি ক্লোরোফিল পরিমাপ করে এবং নাসা পাওয়ার (POWER) ০.৫° (~৫০ কিমি) গ্রিডে আবহাওয়ার অনুমিত উপাত্ত দেয়। এই পরিমাপগুলো কোনো নির্দিষ্ট কৃষকের একক ফসলি জমি বা খণ্ড খণ্ড মাঠের প্রত্যক্ষ চিত্র নির্দেশ করে না।"
-                : "Satellite observations represent regional area-averaged pixel postings. NASA SMAP measures top 5cm soil moisture on a nominal 9 km grid (~36 km native radiometer footprint); NASA MODIS measures canopy chlorophyll dynamics over 250m pixels (6.25 ha); and NASA POWER provides regional gridded atmospheric assimilations (~50 km). These observations do NOT represent single individual farm plots or every micro-field in the district."}
-            </p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { key: "rain", Icon: CloudRain, color: "bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300", value: rainfall?.completeness === "complete" ? `${display(rainfall.totalPrecipitationMm)} ${t("farmUi.mm")}` : t("mapSimple.noData"), date: rainfall?.dateLabel },
+          { key: "soil", Icon: Waves, color: "bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300", value: smapObs?.isRecommendedQuality && smapObs?.soilMoisture != null ? `${display(smapObs.soilMoisture)} m³/m³` : t("mapSimple.noData"), date: smapObs?.dateLabel },
+          { key: "green", Icon: Leaf, color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300", value: modisObs?.isReliableQuality && modisObs?.ndvi != null ? `${display(modisObs.ndvi)} NDVI` : t("mapSimple.noData"), date: modisObs?.dateLabel },
+          { key: "district", Icon: Compass, color: "bg-stone-100 text-stone-600 dark:bg-surface-2 dark:text-muted", value: districtMeta ? (isBn ? districtMeta.nameBn || t(`rotation.districts.${selectedDistrict}`) : districtMeta.nameEn) : t("mapSimple.noData") },
+        ].map(({ key, Icon, color, value, date }) => <article key={key} className="flex h-full flex-col rounded-2xl border border-line bg-surface p-5 shadow-xs">
+          <div className="flex items-center gap-3"><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${color}`}><Icon className="h-5 w-5" aria-hidden="true" /></span><h3 className="text-sm font-semibold text-content">{t(`mapSimple.${key}`)}</h3></div>
+          <p className="mt-5 break-words text-xl font-semibold text-content">{value}</p>
+          {date && <p className="mt-2 text-xs text-muted">{t("rainSimple.day")}: {display(date)}</p>}
+          <p className="mt-4 text-xs leading-6 text-muted">{t(key === "district" ? "mapSimple.boundaryNote" : "mapSimple.areaNote")}</p>
+        </article>)}
       </div>
     </div>
   );

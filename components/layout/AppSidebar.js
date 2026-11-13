@@ -21,6 +21,7 @@ import {
   ScanLine,
   Settings,
   Sprout,
+  RefreshCw,
   Trash2,
   UserRound,
   X,
@@ -36,6 +37,8 @@ import { NotificationCenter } from "@/components/NotificationCenter.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { useLocation } from "@/contexts/LocationContext.js";
+import { useFarmDisplay } from "@/contexts/FarmDisplayContext.js";
+import { farmHeaderContext } from "@/lib/farmDisplay.js";
 import { useSidebar } from "@/contexts/SidebarContext.js";
 import {
   fetchAssistantConversations,
@@ -45,8 +48,8 @@ import {
 const icons = {
   "/dashboard": LayoutDashboard,
   "/my-farm": Sprout,
-  "/rotation-planner": Sprout,
-  "/crop-rotation": Sprout,
+  "/rotation-planner": RefreshCw,
+  "/crop-rotation": RefreshCw,
   "/assistant": MessageCircle,
   "/handoff": Layers,
   "/climate": ChartNoAxesCombined,
@@ -537,12 +540,17 @@ function SidebarInner({
 function DistrictContext() {
   const { currentDistrictObj, selectedDistrict, setSelectedDistrict, districts } = useLocation();
   const { t, locale } = useLang();
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const { record } = useFarmDisplay();
+  const farmContext = farmHeaderContext(pathname, record, user?._id || user?.id);
+  const farmDistrict = districts.find((district) => district.code === farmContext.districtCode);
 
 
   return (
     <div className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 text-sm font-medium text-content">
       <MapPin className="h-4 w-4 shrink-0 text-emerald" aria-hidden="true" />
-      <select aria-label={t("landing.supportedDistricts")} value={selectedDistrict} onChange={(event) => setSelectedDistrict(event.target.value)} className="max-w-36 cursor-pointer bg-transparent text-sm text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald">{districts.map((district) => <option key={district.code} value={district.code} className="bg-surface text-content">{locale === "bn" ? district.nameBn || district.nameEn : district.nameEn}</option>)}</select>
+      {farmContext.isFarm ? <span className="max-w-36 truncate">{farmDistrict ? (locale === "bn" ? farmDistrict.nameBn || farmDistrict.nameEn : farmDistrict.nameEn) : t("common.loading")}</span> : <select aria-label={t("landing.supportedDistricts")} value={selectedDistrict} onChange={(event) => setSelectedDistrict(event.target.value)} className="max-w-36 cursor-pointer bg-transparent text-sm text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald">{districts.map((district) => <option key={district.code} value={district.code} className="bg-surface text-content">{locale === "bn" ? district.nameBn || district.nameEn : district.nameEn}</option>)}</select>}
     </div>
   );
 }

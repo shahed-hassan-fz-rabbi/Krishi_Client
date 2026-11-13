@@ -629,21 +629,13 @@ function AssistantContent() {
   ];
 
   return (
-    <div className="w-full flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-8.5rem)] overflow-hidden">
+    <div className="mx-auto w-full max-w-[1200px] flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-8.5rem)] overflow-hidden">
       {/* Sleek, Compact Top Toolbar: Ultra-Compact Single-Row Toolbar */}
-      <div className="shrink-0 mb-2.5 sm:mb-3 w-full flex items-center justify-between gap-2 py-2 px-3 sm:px-4 rounded-2xl border border-line/70 bg-surface/90 backdrop-blur-md shadow-xs transition-all duration-200">
+      {conversationTitle && (
+      <div className="shrink-0 mb-3 w-full flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-4 shadow-xs sm:px-6">
         {/* Left: Sparkle Icon + Title + Grounded Badge + Conversation Title */}
         <div className="flex items-center gap-2 min-w-0">
-          <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl bg-forest-50 dark:bg-emerald-950/60 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-2xs">
-            <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          </div>
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            <h1 className="text-xs sm:text-sm md:text-base font-bold text-content tracking-tight whitespace-nowrap">
-              {t("assistant.title")}
-            </h1>
-            <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald text-white shadow-2xs whitespace-nowrap">
-              {t("assistant.groundedBadge")}
-            </span>
             {conversationTitle ? (
               isRenaming ? (
                 <form onSubmit={handleRenameSubmit} className="inline-flex items-center gap-1.5 ml-1">
@@ -691,96 +683,20 @@ function AssistantContent() {
           </div>
         </div>
 
-        {/* Right: Farm, District, Crop Dropdowns + Dedicated EN/BN Switcher + New Chat Button */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {/* Farm selector (if user has registered farms) */}
-          {isAuthenticated && farmsList.length > 0 ? (
-            <div className="relative">
-              <Tractor className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
-              <select
-                value={selectedFarmId}
-                onChange={(e) => handleFarmSelection(e.target.value)}
-                disabled={isLoading}
-                aria-label={t("assistant.selectFarm")}
-                className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[110px] sm:max-w-[130px] truncate"
-              >
-                <option value="">{t("assistant.allFarmsGeneral")}</option>
-                {farmsList.map((f) => (
-                  <option key={f._id} value={f._id}>
-                    {f.farmName}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
-            </div>
-          ) : null}
-          {isAuthenticated && isFarmsLoading ? (
-            <span role="status" className="text-[11px] text-content-muted">{isBn ? "খামার লোড হচ্ছে…" : "Loading farms…"}</span>
-          ) : null}
-          {isAuthenticated && farmsLoadError ? (
-            <button type="button" onClick={() => setFarmReloadCount((count) => count + 1)} className="text-[11px] text-rose-700 dark:text-rose-300 underline">
-              {isBn ? "খামার লোড হয়নি · আবার চেষ্টা" : "Farms unavailable · Retry"}
-            </button>
-          ) : null}
-          {isAuthenticated && !isFarmsLoading && !farmsLoadError && farmsList.length === 0 ? (
-            <span role="status" className="text-[11px] text-content-muted">{isBn ? "কোনো সংরক্ষিত খামার নেই" : "No saved farms"}</span>
-          ) : null}
 
-          {/* District selector */}
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
-            <select
-              value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
-              disabled={isLoading}
-              aria-label={t("assistant.selectDistrict")}
-              className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[95px] sm:max-w-[115px]"
-            >
-              {districts.map((d) => (
-                <option key={d.code} value={d.code}>
-                  {isBn ? (d.nameBn || d.nameEn) : d.nameEn}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
-          </div>
-
-          {/* Crop selector */}
-          <div className="relative">
-            <Sprout className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
-            <select
-              value={selectedCrop}
-              onChange={(e) => setSelectedCrop(e.target.value)}
-              disabled={isLoading}
-              aria-label={t("assistant.selectCrop")}
-              className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-8 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[95px] sm:max-w-[115px]"
-            >
-              {CROPS.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {isBn ? c.nameBn : c.nameEn}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
-          </div>
-
-
-          {/* New Chat Button */}
-          <button
-            type="button"
-            onClick={() => handleNewConversation(selectedFarmId)}
-            className="inline-flex items-center gap-1 rounded-xl bg-forest hover:bg-forest/90 active:scale-[0.98] text-white px-2.5 sm:px-3 h-8 text-xs font-semibold shadow-xs hover:shadow-km-sm transition-all duration-150 cursor-pointer ring-1 ring-white/10 shrink-0"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{t("assistant.newChat")}</span>
-          </button>
-        </div>
       </div>
+      )}
+
+
 
       {/* Main Grid: Left Chat Area & Right Sidebar */}
-      <div className="flex-1 min-h-0 flex flex-col xl:flex-row gap-4 items-start w-full overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col w-full overflow-hidden">
         {/* Left Column: Full-Height Chat Area with Contained Scroll */}
         <div className="flex-1 min-w-0 w-full h-full flex flex-col rounded-3xl border border-line/70 bg-surface shadow-xs overflow-hidden transition-all duration-200">
+          <header className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-3 sm:px-6">
+            <Image src={BRAND_LOGO_SRC} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-xl object-contain" />
+            <h1 className="text-lg font-semibold tracking-tight text-content sm:text-xl">{t("assistant.title")}</h1>
+          </header>
           {/* Farm-Aware Context Banner */}
           {activeFarm ? (
             <div className="shrink-0 p-3 sm:p-4 pb-0">
@@ -848,21 +764,6 @@ function AssistantContent() {
                       {t("assistant.homePromptSubtitle")}
                     </p>
 
-                    {/* 3 Clean Trust Badges */}
-                    <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-content shadow-2xs">
-                        <BarChart3 className="h-3.5 w-3.5 text-emerald" />
-                        <span>{isBn ? "নাসা জলবায়ু তথ্য" : "NASA Climate Evidence"}</span>
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-content shadow-2xs">
-                        <Sprout className="h-3.5 w-3.5 text-emerald" />
-                        <span>{isBn ? "সরকারি কৃষি পরামর্শ" : "Official Guidance"}</span>
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface border border-line text-xs font-medium text-content shadow-2xs">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald" />
-                        <span>{isBn ? "তথ্যভিত্তিক ও নির্ভরযোগ্য" : "Transparent & Grounded"}</span>
-                      </span>
-                    </div>
                   </div>
                 </div>
 
@@ -976,7 +877,7 @@ function AssistantContent() {
               </div>
             ) : (
               /* ACTIVE CHAT: Message Bubbles */
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {messages.map((msg) => {
                   const isUser = msg.sender === "user";
                   const detailsOpen = Boolean(expandedDetails[msg.id]);
@@ -984,7 +885,7 @@ function AssistantContent() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex gap-3 max-w-4xl lg:max-w-5xl ${isUser ? "ml-auto justify-end" : "mr-auto justify-start"}`}
+                      className={`flex gap-3 max-w-[92%] lg:max-w-[85%] ${isUser ? "ml-auto justify-end" : "mr-auto justify-start"}`}
                     >
                       {!isUser && (
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald border border-emerald-200 dark:border-emerald-800 mt-1 shadow-2xs">
@@ -993,10 +894,10 @@ function AssistantContent() {
                       )}
 
                       <div
-                        className={`flex flex-col rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        className={`min-w-0 max-w-full flex flex-col rounded-2xl px-5 py-4 text-sm leading-7 sm:px-6 ${
                           isUser
-                            ? "bg-emerald text-white rounded-tr-sm shadow-2xs"
-                            : "bg-surface border border-line text-content rounded-tl-sm shadow-2xs"
+                            ? "bg-forest text-white rounded-tr-md shadow-xs"
+                            : "bg-surface border border-line text-content rounded-tl-md shadow-xs"
                         }`}
                       >
                         {/* Assistant Message Header / TTS Controls */}
@@ -1331,6 +1232,71 @@ function AssistantContent() {
               </div>
             )}
 
+        {/* Right: Farm, District, Crop Dropdowns + Dedicated EN/BN Switcher + New Chat Button */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {/* Farm selector (if user has registered farms) */}
+          {isAuthenticated && farmsList.length > 0 ? (
+            <div className="relative">
+              <Tractor className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
+              <select
+                value={selectedFarmId}
+                onChange={(e) => handleFarmSelection(e.target.value)}
+                disabled={isLoading}
+                aria-label={t("assistant.selectFarm")}
+                className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-10 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[180px] sm:max-w-[240px] truncate"
+              >
+                <option value="">{t("assistant.allFarmsGeneral")}</option>
+                {farmsList.map((f) => (
+                  <option key={f._id} value={f._id}>
+                    {f.farmName}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
+            </div>
+          ) : null}
+          {isAuthenticated && isFarmsLoading ? (
+            <span role="status" className="text-[11px] text-content-muted">{isBn ? "খামার লোড হচ্ছে…" : "Loading farms…"}</span>
+          ) : null}
+          {isAuthenticated && farmsLoadError ? (
+            <button type="button" onClick={() => setFarmReloadCount((count) => count + 1)} className="text-[11px] text-rose-700 dark:text-rose-300 underline">
+              {isBn ? "খামার লোড হয়নি · আবার চেষ্টা" : "Farms unavailable · Retry"}
+            </button>
+          ) : null}
+          {isAuthenticated && !isFarmsLoading && !farmsLoadError && farmsList.length === 0 ? (
+            <span role="status" className="text-[11px] text-content-muted">{isBn ? "কোনো সংরক্ষিত খামার নেই" : "No saved farms"}</span>
+          ) : null}
+
+          {/* Crop selector */}
+          <div className="relative">
+            <Sprout className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-emerald" />
+            <select
+              value={selectedCrop}
+              onChange={(e) => setSelectedCrop(e.target.value)}
+              disabled={isLoading}
+              aria-label={t("assistant.selectCrop")}
+              className="appearance-none rounded-xl border border-line/70 bg-surface-2/60 dark:bg-surface-2/40 pl-6.5 pr-5 h-10 text-xs font-medium text-content hover:border-emerald/40 hover:bg-surface focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all duration-150 cursor-pointer shadow-2xs max-w-[160px] sm:max-w-[200px]"
+            >
+              {CROPS.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {isBn ? c.nameBn : c.nameEn}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted" />
+          </div>
+
+
+          {/* New Chat Button */}
+          <button
+            type="button"
+            onClick={() => handleNewConversation(selectedFarmId)}
+            className="inline-flex items-center gap-1 rounded-xl bg-forest hover:bg-forest/90 active:scale-[0.98] text-white px-2.5 sm:px-3 h-10 text-xs font-semibold shadow-xs hover:shadow-km-sm transition-all duration-150 cursor-pointer ring-1 ring-white/10 shrink-0"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="inline">{t("assistant.newChat")}</span>
+          </button>
+        </div>
             {/* Input form */}
             <form
               onSubmit={(e) => {
@@ -1338,7 +1304,7 @@ function AssistantContent() {
                 handleSendMessage();
               }}
               aria-busy={isLoading}
-              className="relative flex items-end gap-2 p-2 rounded-2xl border border-line/80 bg-surface-2/60 dark:bg-surface/80 focus-within:border-emerald focus-within:ring-2 focus-within:ring-emerald/15 focus-within:bg-surface transition-all duration-200 shadow-2xs hover:border-line"
+              className="relative flex items-end gap-2 p-2.5 rounded-3xl border border-line bg-surface dark:bg-surface focus-within:border-emerald focus-within:ring-2 focus-within:ring-emerald/15 focus-within:bg-surface transition-all duration-200 shadow-2xs hover:border-line"
             >
               {/* Mic Button */}
               <button
@@ -1403,143 +1369,9 @@ function AssistantContent() {
               </button>
             </form>
 
-            {/* Bottom Sub-bar: Clean Lucide icons (No Emojis) */}
-            <div className="flex flex-wrap items-center justify-between text-[11px] text-muted px-1.5 pt-2 gap-2">
-              <span className="flex items-center gap-1.5">
-                <span>{isBn ? "পাঠাতে Enter চাপুন, নতুন লাইনের জন্য Shift+Enter" : "Enter to send, Shift+Enter for new line"}</span>
-              </span>
-
-              <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1 hover:text-content transition-colors">
-                  <Database className="h-3 w-3 text-emerald" />
-                  <span>{isBn ? "নাসা উপাত্ত" : "NASA Data"}</span>
-                </span>
-                <span className="inline-flex items-center gap-1 hover:text-content transition-colors">
-                  <Sprout className="h-3 w-3 text-emerald" />
-                  <span>BAMIS / BRRI / DAE</span>
-                </span>
-                <span className="inline-flex items-center gap-1 hover:text-content transition-colors">
-                  <Info className="h-3 w-3 text-emerald" />
-                  <span>{isBn ? "প্রমাণ ও সীমাবদ্ধতা" : "Evidence & Limitations"}</span>
-                </span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Right Column: Sidebar Reference Cards */}
-        <div className="hidden xl:flex xl:w-72 2xl:w-80 h-full shrink-0 flex-col gap-3 overflow-y-auto pr-1 km-smooth-scroll pb-2">
-          {/* Card 1: Data & Guidance */}
-          <div className="rounded-3xl border border-line/70 bg-surface p-4.5 shadow-xs hover:border-line hover:shadow-km-sm transition-all duration-200">
-            <div className="flex items-center gap-3 pb-3 border-b border-line/60">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B3D91] text-white shadow-2xs p-1">
-                <div className="relative flex items-center justify-center w-full h-full">
-                  <span className="text-[11px] font-black tracking-wider leading-none">NASA</span>
-                  <div className="absolute inset-0 border border-red-500/70 rounded-full scale-90 rotate-45 pointer-events-none" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-content leading-tight">
-                  {isBn ? "উপাত্ত ও নির্দেশিকা" : "Data & Guidance"}
-                </h3>
-                <p className="text-[11px] text-muted">
-                  {isBn ? "উত্তরে ব্যবহৃত তথ্যসূত্র" : "Sources used in answers"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3.5 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald text-white mt-0.5">
-                  <Check className="h-2.5 w-2.5 stroke-[3]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-content">NASA POWER (Climate)</div>
-                  <div className="text-[11px] text-muted mt-0.5">
-                    {isBn ? "বৃষ্টিপাত, তাপমাত্রা, আর্দ্রতা ও সৌর বিকিরণ" : "Rainfall, temperature, humidity, radiation"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald text-white mt-0.5">
-                  <Check className="h-2.5 w-2.5 stroke-[3]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-content">BAMIS / BRRI</div>
-                  <div className="text-[11px] text-muted mt-0.5">
-                    {isBn ? "ফসল পঞ্জিকা, জাত ও ব্যবস্থাপনা" : "Crop calendar, variety and management"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald text-white mt-0.5">
-                  <Check className="h-2.5 w-2.5 stroke-[3]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-content">
-                    {isBn ? "ডিএই (কৃষি সম্প্রসারণ অধিদপ্তর)" : "DAE (Agricultural Extension)"}
-                  </div>
-                  <div className="text-[11px] text-muted mt-0.5">
-                    {isBn ? "মাঠ পর্যায়ের বাস্তবসম্মত কৃষি পরামর্শ" : "Field practices and advisories"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Important to Know */}
-          <div className="rounded-3xl border border-line/70 bg-surface overflow-hidden shadow-xs hover:border-line hover:shadow-km-sm transition-all duration-200 flex flex-col">
-            <div className="p-4 pb-3">
-              <div className="flex items-center gap-2 mb-2.5">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-                  <Info className="h-3 w-3" />
-                </div>
-                <h3 className="text-sm font-bold text-content">
-                  {isBn ? "জরুরি জ্ঞাতব্য" : "Important to Know"}
-                </h3>
-              </div>
-
-              <ul className="space-y-2 text-xs text-muted leading-relaxed pl-1">
-                <li className="flex items-start gap-1.5">
-                  <span className="text-muted leading-tight">•</span>
-                  <span>
-                    {isBn
-                      ? "এটি ঐতিহাসিক জলবায়ু তথ্যের ভিত্তিতে বিশ্লেষণ, ভবিষ্যৎ আবহাওয়ার পূর্বাভাস নয়।"
-                      : "Based on historical climate analysis, not a weather forecast."}
-                  </span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-muted leading-tight">•</span>
-                  <span>
-                    {isBn
-                      ? "কৃষি সিদ্ধান্ত নেওয়ার আগে স্থানীয় কৃষি কর্মকর্তার পরামর্শ নিন।"
-                      : "Consult local agricultural extension officers before major farm decisions."}
-                  </span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="text-muted leading-tight">•</span>
-                  <span>
-                    {isBn
-                      ? "উল্লেখিত সীমাবদ্ধতা ও তথ্যের উৎস উত্তরের সঙ্গে দেওয়া হবে।"
-                      : "Limitations and source provenance are disclosed with each response."}
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Bottom Crop Thumbnail Image from /images/hero.png */}
-            <div className="relative w-full h-28 border-t border-line/60 overflow-hidden">
-              <Image
-                src="/images/hero.png"
-                alt="Agricultural Paddy Field"
-                fill
-                className="object-cover object-center"
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

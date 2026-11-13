@@ -38,6 +38,12 @@ import {
 
 export default function VegetationSection({ embedded = false, refreshToken = 0, onOverview }) {
   const { t, locale } = useLang();
+  const readableDate = value => {
+    if (!value) return "—";
+    const date = new Date(`${String(value).slice(0, 10)}T00:00:00Z`);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", {day: "numeric", month: "long", year: "numeric", timeZone: "UTC"}).format(date);
+  };
   const { selectedDistrict, setSelectedDistrict, districts, currentDistrictObj } =
     useLocation();
 
@@ -126,7 +132,6 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
             <Heading id={embedded ? "vegetation-section-title" : undefined} className="text-xl font-bold tracking-tight text-ink font-heading sm:text-2xl">
               {isBn ? "ফসলের সবুজত্বের সূচক" : "Vegetation greenness index"}
             </Heading>
-            <Badge variant="neutral">NASA MODIS MOD13Q1.061</Badge>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
             {isBn
@@ -199,17 +204,15 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
         </div>
 
         <details className="rounded-xl border border-line bg-surface px-4 py-3 text-xs text-ink-muted">
-          <summary className="cursor-pointer font-medium text-ink">{isBn ? "উপাত্ত সম্পর্কে আরও জানুন" : "More about this dataset"}</summary>
-          <p className="mt-2 leading-6">{isBn ? "MODIS MOD13Q1.061 প্রায় ২৫০ মিটার পিক্সেলের ১৬-দিনের কম্পোজিট। ভালো মানের পিক্সেল র‍্যাঙ্ক ০ দিয়ে চিহ্নিত।" : "MODIS MOD13Q1.061 provides 16-day composites at about 250 m. Rank 0 is the product's good-quality pixel class."}</p>
+          <summary className="cursor-pointer font-medium text-ink">{t("observationSimple.about")}</summary>
+          <p className="mt-2 leading-6">{t("observationSimple.vegetationAbout")}</p>
         </details>
 
         <div className="rounded-xl border border-emerald/30 bg-emerald/5 p-3 text-xs text-ink-muted">
           <div className="flex items-start gap-2">
             <Layers size={15} strokeWidth={1.8} className="mt-0.5 shrink-0 text-emerald" />
             <p>
-              {isBn
-                ? "মান যাচাই: এই পণ্যে র‍্যাঙ্ক ০-কে ভালো মান হিসেবে ধরা হয়েছে। এখানে দেখানো সুপারিশকৃত মানে অন্য র‍্যাঙ্ক ব্যবহার করা হয় না। এই যাচাই ফসলের স্বাস্থ্য নির্ণয় করে না।"
-                : "Quality check: rank 0 is classified as good quality for this product. Other ranks are not used for the recommended value shown here; this check does not diagnose crop health."}
+              {t("observationSimple.qualityNote")}
             </p>
           </div>
         </div>
@@ -233,7 +236,6 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
                 ? "এই জেলার জন্য মান-যাচাই করা উদ্ভিজ্জ সূচক এখন দেখানোর মতো নেই। এটি ফসল নেই বা ফসল খারাপ—এমন প্রমাণ নয়। পরে আবার চেষ্টা করুন বা অন্য জেলা বেছে নিন।"
                 : "There is no quality-approved vegetation index to show for this district right now. This does not mean there are no crops or that crop condition is poor. Try again later or choose another district."}
             </p>
-            <p className="mt-4 text-xs text-ink-muted">NASA MODIS MOD13Q1.061 · 16-day vegetation composite</p>
           </CardBody>
         </Card>
       ) : (
@@ -279,22 +281,22 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
             <Card>
               <CardBody className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-ink-muted">
-                  <span>{isBn ? "পিক্সেল নির্ভরযোগ্যতা" : "Pixel Reliability"}</span>
+                  <span>{t("observationSimple.quality")}</span>
                   <Activity size={16} strokeWidth={1.8} className="text-emerald" />
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-ink">
-                    {isBn ? "র‍্যাঙ্ক" : "Rank"} {latestData?.pixelReliability ?? "—"}
+                    {t(reliableLatest ? "observationSimple.passed" : "observationSimple.unverified")}
                   </span>
                 </div>
                 <div className="text-xs">
                   {reliableLatest ? (
                     <span className="inline-flex items-center gap-1 text-emerald font-medium">
-                      <ShieldCheck size={12} /> {isBn ? "নির্ভরযোগ্য (Good Data)" : "Reliable (Good Data)"}
+                      <ShieldCheck size={12} /> {t("observationSimple.passed")}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-amber-600 font-medium">
-                      <ShieldAlert size={12} /> {isBn ? "সতর্কতা প্রয়োজন (Marginal/Cloud)" : "Marginal / Cloud mask"}
+                      <ShieldAlert size={12} /> {t("observationSimple.unverified")}
                     </span>
                   )}
                 </div>
@@ -326,11 +328,12 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-ink">
-                      {isBn ? "ক্যানোপি গ্রিননেস পরিবর্তন ধারা (NDVI ও EVI)" : "Canopy Greenness Dynamics (NDVI & EVI)"}
+                      {t("vegetationSimple.trendTitle")}
                     </h2>
                     <p className="text-xs text-ink-muted">
-                      {districtName} — {historyData.from} {isBn ? "থেকে" : "to"} {historyData.to}
+                      {districtName} · {readableDate(historyData.from)} – {readableDate(historyData.to)}
                     </p>
+                    <p className="mt-1 text-xs leading-6 text-muted">{t("vegetationSimple.trendIntro")}</p>
                   </div>
                   <Badge variant="neutral">250m Resolution</Badge>
                 </div>
@@ -387,7 +390,6 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
                   <h2 className="text-base font-semibold text-ink">
                     {isBn ? "১৬-দিনের পর্যবেক্ষণ ও গুণমান রেকর্ড" : "16-Day Observation & Quality Records"}
                   </h2>
-                  <Badge variant="neutral">MOD13Q1.061</Badge>
                 </div>
               </CardHeader>
               <CardBody className="p-0">
@@ -395,10 +397,9 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
                   <THead>
                     <TR>
                       <TD className="font-semibold">{isBn ? "তারিখ" : "Composite Date"}</TD>
-                      <TD className="font-semibold">{isBn ? "DOY" : "Acq DOY"}</TD>
                       <TD className="font-semibold">{isBn ? "এনডিভিআই" : "NDVI Index"}</TD>
                       <TD className="font-semibold">{isBn ? "ইভিআই" : "EVI Index"}</TD>
-                      <TD className="font-semibold">{isBn ? "পিক্সেল নির্ভরযোগ্যতা" : "Pixel Reliability"}</TD>
+                      <TD className="font-semibold">{t("observationSimple.quality")}</TD>
                       <TD className="font-semibold">{isBn ? "শ্রেণিবিভাগ" : "Classification"}</TD>
                     </TR>
                   </THead>
@@ -406,7 +407,6 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
                     {historyData.series.map((row, i) => (
                       <TR key={`${row.date}-${i}`}>
                         <TD className="font-medium">{row.date}</TD>
-                        <TD className="font-mono text-xs">Day {row.compositeDayOfYear || "—"}</TD>
                         <TD className="font-mono font-medium text-emerald">
                           {row.ndvi !== null ? row.ndvi : "Fill (-3000)"}
                         </TD>
@@ -415,7 +415,7 @@ export default function VegetationSection({ embedded = false, refreshToken = 0, 
                         </TD>
                         <TD>
                           <Badge variant={row.pixelReliability === 0 ? "success" : "warning"}>
-                            Rank {row.pixelReliability}
+                            {t(row.pixelReliability === 0 ? "observationSimple.passed" : "observationSimple.unverified")}
                           </Badge>
                         </TD>
                         <TD className="text-xs text-ink-muted">

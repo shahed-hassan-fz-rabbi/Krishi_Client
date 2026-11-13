@@ -25,6 +25,7 @@ import {
   SkipForward,
 } from "lucide-react";
 
+import { SUPPORTED_CROPS, LAND_UNITS, getUpazilasForDistrict } from "@/lib/upazilas.js";
 import { useLang } from "@/lib/i18n/LanguageContext.js";
 import { useAuth } from "@/contexts/AuthContext.js";
 import { fetchFarms, deleteFarm, fetchActivitiesOverview, updateFarmActivity } from "@/services/api.js";
@@ -44,6 +45,15 @@ function MyFarmPage() {
   const [deletingId, setDeletingId] = useState(null);
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
 
+  const digits = value => lang === "bn" ? String(value ?? "—").replace(/[0-9]/g, digit => "০১২৩৪৫৬৭৮৯"[Number(digit)]) : String(value ?? "—");
+  const farmLabel = (farm, kind) => {
+    let entry;
+    if (kind === "crop") entry = SUPPORTED_CROPS.find(item => item.code === farm.crop?.cropCode || item.nameEn === farm.crop?.cropName);
+    if (kind === "unit") entry = LAND_UNITS.find(item => item.code === farm.land?.unit);
+    if (kind === "upazila") entry = getUpazilasForDistrict(farm.location?.districtCode).find(item => item.code === farm.location?.upazila || item.nameEn.toLowerCase() === farm.location?.upazila?.toLowerCase());
+    if (entry) return lang === "bn" ? entry.nameBn : entry.nameEn;
+    return kind === "crop" ? farm.crop?.cropName || t("farmUi.notRecorded") : kind === "unit" ? farm.land?.unit || "" : farm.location?.upazila;
+  };
   const loadFarmsAndActivities = useCallback(async (isCurrent = () => true, ownerId) => {
     setLoading(true);
     setError(null);
@@ -145,49 +155,16 @@ function MyFarmPage() {
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "active":
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            {t("myFarm.status.active") || "Active"}
-          </span>
-        );
-      case "harvested":
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
-            {t("myFarm.status.harvested") || "Harvested"}
-          </span>
-        );
-      case "planning":
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-            {t("myFarm.status.planning") || "Planning"}
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-700 dark:bg-surface-2 dark:text-muted">
-            {status || "Active"}
-          </span>
-        );
-    }
-  };
 
   return (
     <div className="space-y-7">
       <header className="relative isolate overflow-hidden rounded-[28px] border border-line bg-surface shadow-km-sm">
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-cover bg-center opacity-25 dark:opacity-20" style={{ backgroundImage: "url('/images/hero.png')" }} />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-white/95 via-white/85 to-white/65 dark:from-surface/95 dark:via-surface/85 dark:to-surface/65" />
-        <div className="flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
+        <div aria-hidden="true" className="absolute inset-0 -z-20 bg-cover bg-[center_75%]" style={{ backgroundImage: "url('/images/hero.png')" }} />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#052e21]/95 via-[#052e21]/60 to-transparent" />
+        <div className="flex min-h-[200px] flex-col justify-center gap-6 p-5 sm:min-h-[220px] sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
           <div className="max-w-2xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-white/75 px-3 py-1 text-xs font-semibold text-forest shadow-km-sm dark:border-white/10 dark:bg-surface/75 dark:text-emerald-300">
-              <Tractor className="h-3.5 w-3.5" />
-              {lang === "bn" ? "আপনার খামারের কর্মক্ষেত্র" : "YOUR FARM WORKSPACE"}
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">{t("myFarm.title")}</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted sm:text-base">{t("myFarm.subtitle")}</p>
+            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{t("myFarm.title")}</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-white/85 sm:text-base">{t("myFarm.subtitle")}</p>
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
@@ -298,191 +275,6 @@ function MyFarmPage() {
         </div>
       )}
 
-      {/* Activity Overview Card */}
-      {user && displayedActivityOverview && displayedActivityOverview.hasFarms && (
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-km-sm sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-stone-100 pb-4 dark:border-line">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-forest-50 text-forest-700 dark:bg-forest-950/60 dark:text-forest-400">
-                <ListTodo className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-stone-900 dark:text-content">
-                  {t("myFarm.activities.title") || "Farm Activities & Timeline Tasks"}
-                </h2>
-                <p className="text-xs text-stone-500 dark:text-muted">
-                  {t("myFarm.activities.subtitle") || "Actionable agricultural task tracking grounded in official crop lifecycle guidance"}
-                </p>
-              </div>
-            </div>
-
-            {/* Status Counts Pill */}
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="rounded-lg bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                {lang === "bn" ? "আজকের কাজ: " : "Due Today: "}
-                {displayedActivityOverview.counts?.todayTotal ?? "—"}
-              </span>
-              <span className="rounded-lg bg-sky-50 px-2.5 py-1 font-semibold text-sky-800 dark:bg-sky-950/50 dark:text-sky-300">
-                {lang === "bn" ? "আসন্ন: " : "Upcoming: "}
-                {displayedActivityOverview.counts?.upcomingTotal ?? "—"}
-              </span>
-              <span className="rounded-lg bg-stone-100 px-2.5 py-1 font-semibold text-stone-700 dark:bg-surface-2 dark:text-muted">
-                {lang === "bn" ? "সম্পন্ন: " : "Completed: "}
-                {displayedActivityOverview.counts?.completed ?? "—"}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Today's Tasks */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-forest-800 dark:text-forest-300 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  {t("myFarm.activities.todayTasks") || "Today's Activities"}
-                </span>
-                <span className="text-xs text-stone-400 font-mono">
-                  {displayedActivityOverview.todayStr}
-                </span>
-              </div>
-
-              {displayedActivityOverview.todayActivities && displayedActivityOverview.todayActivities.length > 0 ? (
-                <div className="space-y-2.5">
-                  {displayedActivityOverview.todayActivities.map((act) => (
-                    <div
-                      key={act._id}
-                      className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3.5 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="rounded-full bg-forest-100 px-2 py-0.5 text-[10px] font-semibold text-forest-800 dark:bg-forest-950 dark:text-forest-300">
-                              {act.farmName}
-                            </span>
-                            {act.cropName && (
-                              <span className="text-[11px] text-stone-500">
-                                ({act.cropName})
-                              </span>
-                            )}
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${act.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300" : "bg-surface-2 text-muted"}`}>
-                              {act.status === "IN_PROGRESS"
-                                ? t("myFarm.activities.taskStatus.inProgress")
-                                : act.status === "PENDING"
-                                  ? t("myFarm.activities.taskStatus.pending")
-                                  : act.status}
-                            </span>
-                          </div>
-                          <h4 className="mt-1 text-sm font-semibold text-stone-900 dark:text-content">
-                            {act.title}
-                          </h4>
-                          {act.description && (
-                            <p className="mt-0.5 text-xs text-stone-600 line-clamp-1 dark:text-muted">
-                              {act.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Quick Action Buttons */}
-                        <div className="flex flex-wrap items-center justify-end gap-1 shrink-0">
-                          {act.status !== "IN_PROGRESS" && (
-                            <button
-                              onClick={() => handleQuickStatus(act.farmId, act._id, "IN_PROGRESS")}
-                              disabled={updatingTaskId === act._id}
-                              title={t("myFarm.activities.actions.markInProgress") || "Mark In Progress"}
-                              className="rounded-lg border border-amber-300 bg-amber-50 p-1.5 text-amber-700 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-400"
-                            >
-                              <Play className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleQuickStatus(act.farmId, act._id, "COMPLETED")}
-                            disabled={updatingTaskId === act._id}
-                            title={t("myFarm.activities.actions.markCompleted") || "Mark Completed"}
-                            className="rounded-lg border border-emerald-300 bg-emerald-50 p-1.5 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-400"
-                          >
-                            <Check className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleQuickStatus(act.farmId, act._id, "SKIPPED")}
-                            disabled={updatingTaskId === act._id}
-                            title={t("myFarm.activities.actions.markSkipped") || "Mark Skipped"}
-                            className="rounded-lg border border-stone-200 bg-white p-1.5 text-stone-500 hover:bg-stone-100 dark:border-line dark:bg-surface dark:text-muted"
-                          >
-                            <SkipForward className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-line dark:text-muted">
-                  <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-500/60 mb-1" />
-                  {t("myFarm.activities.noTasksToday") || "No activities scheduled for today."}
-                </div>
-              )}
-            </div>
-
-            {/* Upcoming Tasks */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-forest-800 dark:text-forest-300 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {t("myFarm.activities.upcomingTasks") || "Upcoming Activities"}
-                </span>
-                <span className="text-xs text-stone-500">
-                  {displayedActivityOverview.upcomingActivities?.length || 0} {lang === "bn" ? "টি কাজ" : "tasks"}
-                </span>
-              </div>
-
-              {displayedActivityOverview.upcomingActivities && displayedActivityOverview.upcomingActivities.length > 0 ? (
-                <div className="space-y-2.5">
-                  {displayedActivityOverview.upcomingActivities.slice(0, 4).map((act) => (
-                    <div
-                      key={act._id}
-                      className="rounded-xl border border-stone-200/80 bg-stone-50/30 p-3 transition hover:border-forest-300 dark:border-line dark:bg-bg dark:hover:border-forest-700 flex items-center justify-between gap-3"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="text-[11px] font-semibold text-forest-700 dark:text-forest-400 truncate">
-                            {act.farmName}
-                          </span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${act.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300" : "bg-surface-2 text-muted"}`}>
-                            {act.status === "IN_PROGRESS"
-                              ? t("myFarm.activities.taskStatus.inProgress")
-                              : act.status === "PENDING"
-                                ? t("myFarm.activities.taskStatus.pending")
-                                : act.status}
-                          </span>
-                          <span className="text-[10px] text-muted">
-                            {lang === "bn" ? "নির্ধারিত: " : "Due: "}{act.scheduledDate}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-medium text-stone-900 truncate dark:text-content">
-                          {act.title}
-                        </h4>
-                      </div>
-
-                      <Link
-                        href={`/my-farm/${act.farmId}`}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-forest-700 hover:text-forest-800 dark:text-forest-400 shrink-0"
-                      >
-                        {lang === "bn" ? "খামারে যান" : "View"}
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-stone-500 dark:border-line dark:text-muted">
-                  {t("myFarm.activities.noUpcomingTasks") || "No upcoming activities scheduled."}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Content Area */}
       {loading || authLoading || (user && !farmDataIsCurrent) ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -547,7 +339,7 @@ function MyFarmPage() {
           </div>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted">
             <Layers className="h-3.5 w-3.5 text-forest dark:text-emerald-300" />
-            {displayedSummary?.totalFarms ?? displayedFarms.length} {lang === "bn" ? "টি খামার" : "farms"}
+            {digits(displayedSummary?.totalFarms ?? displayedFarms.length)} {lang === "bn" ? "টি খামার" : "farms"}
           </span>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -566,12 +358,10 @@ function MyFarmPage() {
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-stone-500 dark:text-muted">
                       <MapPin className="h-3.5 w-3.5 shrink-0 text-forest-600 dark:text-forest-400" />
                       <span className="truncate">
-                        {farm.location?.upazila}, {farm.location?.district}
-                        {farm.location?.village ? ` (${farm.location.village})` : ""}
+                        {farmLabel(farm, "upazila")}, {farm.location?.districtCode ? t(`rotation.districts.${farm.location.districtCode}`) : farm.location?.district}
                       </span>
                     </div>
                   </div>
-                  <div>{getStatusBadge(farm.status)}</div>
                 </div>
 
                 {/* Details Section */}
@@ -581,7 +371,7 @@ function MyFarmPage() {
                       {t("myFarm.fields.cropCode")}:
                     </span>
                     <span className="max-w-[65%] truncate text-right font-semibold text-content">
-                      {farm.crop?.cropName || (lang === "bn" ? "নির্ধারিত নয়" : "Not set")}
+                      {farmLabel(farm, "crop")}
                       {farm.crop?.variety ? ` (${farm.crop.variety})` : ""}
                     </span>
                   </div>
@@ -591,7 +381,7 @@ function MyFarmPage() {
                       {t("myFarm.fields.landArea")}:
                     </span>
                     <span className="font-semibold text-stone-900 dark:text-content">
-                      {farm.land?.area ?? "—"} {farm.land?.unit || ""}
+                      {digits(farm.land?.area)} {farmLabel(farm, "unit")}
                     </span>
                   </div>
 
@@ -600,7 +390,7 @@ function MyFarmPage() {
                       {t("myFarm.fields.plantingDate")}:
                     </span>
                     <span className="font-medium text-stone-700 dark:text-muted">
-                      {farm.crop?.plantingDate || "—"}
+                      {digits(farm.crop?.plantingDate)}
                     </span>
                   </div>
 
@@ -609,7 +399,7 @@ function MyFarmPage() {
                       {t("myFarm.fields.irrigationAvailability")}:
                     </span>
                     <span className="capitalize text-stone-700 dark:text-muted">
-                      {farm.water?.irrigationAvailability || "—"}
+                      {["available", "limited", "unavailable"].includes(farm.water?.irrigationAvailability) ? t(`myFarm.irrigationOptions.${farm.water.irrigationAvailability}`) : t("farmUi.notRecorded")}
                     </span>
                   </div>
                 </div>

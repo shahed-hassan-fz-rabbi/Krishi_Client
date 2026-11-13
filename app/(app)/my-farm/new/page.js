@@ -43,6 +43,7 @@ function NewFarmWizardPage() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [customVariety, setCustomVariety] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
 
@@ -77,8 +78,10 @@ function NewFarmWizardPage() {
   }, [formData.districtCode]);
 
   const updateField = (field, value) => {
+    if (field === "cropCode") setCustomVariety(false);
     setFormData((prev) => {
       const next = { ...prev, [field]: value };
+      if (field === "cropCode") next.variety = "";
       // If district changed, auto-select first available upazila
       if (field === "districtCode") {
         const upz = getUpazilasForDistrict(value);
@@ -572,39 +575,19 @@ function NewFarmWizardPage() {
               </div>
             </div>
 
-            {/* Variety */}
+            {/* Variety: existing crop catalog options, or a farmer-entered name. */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">
-                {t("myFarm.fields.variety")}
-              </label>
-              <input
-                type="text"
-                value={formData.variety}
-                onChange={(e) => updateField("variety", e.target.value)}
-                placeholder={
-                  selectedCrop
-                    ? `e.g., ${selectedCrop.typicalVarieties.slice(0, 2).join(", ")}`
-                    : t("myFarm.fields.varietyPlaceholder")
-                }
-                className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content"
-              />
-              {selectedCrop && (
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  <span className="text-[11px] text-stone-500 dark:text-muted">
-                    {lang === "bn" ? "প্রস্তাবিত জাত:" : "Recommended varieties:"}
-                  </span>
-                  {selectedCrop.typicalVarieties.map((v) => (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => updateField("variety", v)}
-                      className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] text-stone-700 hover:bg-stone-200 dark:bg-surface-2 dark:text-muted dark:hover:bg-surface-2"
-                    >
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <label htmlFor="farm-crop-variety" className="block text-xs font-semibold uppercase tracking-wider text-stone-700 dark:text-muted">{t("myFarm.fields.variety")}</label>
+              <select id="farm-crop-variety" value={customVariety ? "__other__" : formData.variety} onChange={(event) => {
+                const other = event.target.value === "__other__";
+                setCustomVariety(other);
+                updateField("variety", other ? "" : event.target.value);
+              }} className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content">
+                <option value="">{t("myFarm.fields.varietyChoose")}</option>
+                {(selectedCrop?.typicalVarieties || []).map((variety) => <option key={variety} value={variety}>{variety}</option>)}
+                <option value="__other__">{t("myFarm.fields.varietyOther")}</option>
+              </select>
+              {customVariety && <div className="mt-3"><label htmlFor="farm-custom-variety" className="block text-xs font-medium text-content">{t("myFarm.fields.varietyCustom")}</label><input id="farm-custom-variety" type="text" value={formData.variety} onChange={(event) => updateField("variety", event.target.value)} placeholder={t("myFarm.fields.varietyCustom")} className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-xs focus:border-forest-500 focus:outline-none focus:ring-1 focus:ring-forest-500 dark:border-line dark:bg-surface-2 dark:text-content" /></div>}
             </div>
 
             {/* Planting Date & Cultivation Method */}
